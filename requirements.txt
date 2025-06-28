@@ -1,0 +1,7 @@
+# Required packages
+requests>=2.31.0
+
+# For systems without tkinter, install python3-tk:
+# Ubuntu/Debian: sudo apt-get install python3-tk
+# Mac: tkinter comes with Python
+# Windows: tkinter comes with Python

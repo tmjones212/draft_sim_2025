@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(rm:*)",
+      "Bash(chmod:*)",
+      "Bash(./sync_to_windows.sh:*)",
+      "Bash(mv:*)"
+    ],
+    "deny": []
+  }
+}
