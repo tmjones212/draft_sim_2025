@@ -8,7 +8,7 @@ from .styled_widgets import StyledFrame
 
 
 class DraftBoard(StyledFrame):
-    def __init__(self, parent, teams: Dict[int, Team], total_rounds: int, max_visible_rounds: int = 9, on_team_select=None, on_pick_click=None, **kwargs):
+    def __init__(self, parent, teams: Dict[int, Team], total_rounds: int, max_visible_rounds: int = 9, on_team_select=None, on_pick_click=None, image_service=None, **kwargs):
         super().__init__(parent, bg_type='secondary', **kwargs)
         self.teams = teams
         self.num_teams = len(teams)
@@ -21,6 +21,7 @@ class DraftBoard(StyledFrame):
         self.selected_team_id = None
         self.team_buttons = {}  # team_id -> button widget
         self.draft_results = []  # Store draft picks
+        self.image_service = image_service
         self.setup_ui()
         
     def setup_ui(self):
@@ -63,8 +64,8 @@ class DraftBoard(StyledFrame):
     
     def create_draft_grid(self):
         # Column width and row height - adjusted for 10 teams
-        col_width = 120  # Slightly wider for better readability
-        row_height = 55  # More compact
+        col_width = 140  # Wider to accommodate images
+        row_height = 65  # Taller for image + text
         header_height = 40
         button_height = 25
         
@@ -260,31 +261,73 @@ class DraftBoard(StyledFrame):
                 if pick.pick_number <= len(self.draft_results):
                     self.on_pick_click(pick.pick_number)
         
-        # Player container
+        # Player container with horizontal layout
         player_frame = StyledFrame(pick_frame, bg_type='tertiary')
-        player_frame.place(x=5, y=25, relwidth=0.9)
+        player_frame.place(x=5, y=20, relwidth=0.9, height=40)
         player_frame.bind("<Button-1>", handle_pick_click)
+        
+        # Create horizontal layout
+        content_frame = tk.Frame(player_frame, bg=DARK_THEME['bg_tertiary'])
+        content_frame.pack(fill='both', expand=True)
+        content_frame.bind("<Button-1>", handle_pick_click)
+        
+        # Player image (if available)
+        if self.image_service and pick.player.player_id:
+            image = self.image_service.get_image(pick.player.player_id, size=(30, 30))
+            if image:
+                img_label = tk.Label(
+                    content_frame,
+                    image=image,
+                    bg=DARK_THEME['bg_tertiary']
+                )
+                img_label.image = image  # Keep reference
+                img_label.pack(side='left', padx=(2, 5))
+                img_label.bind("<Button-1>", handle_pick_click)
+            else:
+                # Schedule image loading
+                def update_image(photo):
+                    if pick_frame.winfo_exists():
+                        img_label = tk.Label(
+                            content_frame,
+                            image=photo,
+                            bg=DARK_THEME['bg_tertiary']
+                        )
+                        img_label.image = photo
+                        img_label.pack(side='left', padx=(2, 5), before=content_frame.winfo_children()[0])
+                        img_label.bind("<Button-1>", handle_pick_click)
+                
+                self.image_service.load_image_async(
+                    pick.player.player_id,
+                    size=(30, 30),
+                    callback=update_image,
+                    widget=self
+                )
+        
+        # Text container
+        text_frame = tk.Frame(content_frame, bg=DARK_THEME['bg_tertiary'])
+        text_frame.pack(side='left', fill='both', expand=True)
+        text_frame.bind("<Button-1>", handle_pick_click)
         
         # Player name
         name_label = tk.Label(
-            player_frame,
+            text_frame,
             text=pick.player.name,
             bg=DARK_THEME['bg_tertiary'],
             fg=DARK_THEME['text_primary'],
-            font=(DARK_THEME['font_family'], 10),
+            font=(DARK_THEME['font_family'], 9),
             anchor='w'
         )
         name_label.pack(fill='x')
         name_label.bind("<Button-1>", handle_pick_click)
         
-        # Position badge
+        # Position badge inline
         pos_frame = tk.Frame(
-            player_frame,
+            text_frame,
             bg=get_position_color(pick.player.position),
-            padx=4,
-            pady=1
+            padx=3,
+            pady=0
         )
-        pos_frame.pack(anchor='w', pady=(2, 0))
+        pos_frame.pack(anchor='w')
         pos_frame.bind("<Button-1>", handle_pick_click)
         
         pos_label = tk.Label(
@@ -292,7 +335,7 @@ class DraftBoard(StyledFrame):
             text=pick.player.position,
             bg=get_position_color(pick.player.position),
             fg='white',
-            font=(DARK_THEME['font_family'], 8, 'bold')
+            font=(DARK_THEME['font_family'], 7, 'bold')
         )
         pos_label.pack()
         pos_label.bind("<Button-1>", handle_pick_click)

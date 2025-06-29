@@ -41,6 +41,10 @@ class MockDraftApp:
         self.all_players = generate_mock_players()
         self.available_players = list(self.all_players)
         
+        # Initialize services
+        from src.services import PlayerImageService
+        self.image_service = PlayerImageService()
+        
         # User control state
         self.user_team_id = None  # Which team the user controls
         
@@ -143,8 +147,8 @@ class MockDraftApp:
         # Configure grid
         content_frame.grid_rowconfigure(0, weight=3, minsize=400)  # Draft board and roster
         content_frame.grid_rowconfigure(1, weight=1, minsize=250)  # Available players
-        content_frame.grid_columnconfigure(0, weight=5)  # Draft board column
-        content_frame.grid_columnconfigure(1, weight=1, minsize=250)  # Roster column
+        content_frame.grid_columnconfigure(0, weight=7)  # Draft board column - wider
+        content_frame.grid_columnconfigure(1, weight=1, minsize=200)  # Roster column - narrower
         
         # Top row - Draft board and Roster
         # Draft board
@@ -158,7 +162,8 @@ class MockDraftApp:
             total_rounds, 
             max_visible_rounds=9,
             on_team_select=self.on_team_selected,
-            on_pick_click=self.on_pick_clicked
+            on_pick_click=self.on_pick_clicked,
+            image_service=self.image_service
         )
         self.draft_board.pack(fill='both', expand=True, padx=10, pady=10)
         
