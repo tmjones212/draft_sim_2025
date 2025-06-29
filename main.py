@@ -219,6 +219,13 @@ class MockDraftApp:
         try:
             self.draft_engine.make_pick(current_team, player)
             self.available_players.remove(player)
+            
+            # Debug print
+            pick_num, _, _, _ = self.draft_engine.get_current_pick_info()
+            adp_diff = (pick_num - 1) - player.adp  # -1 because pick was just made
+            print(f"Pick #{pick_num - 1}: {current_team.name} selects {player.name} ({player.position}) "
+                  f"- ADP: {player.adp:.1f} (diff: {adp_diff:+.1f})")
+            
             # Quick update - don't reload all players
             self.update_display(full_update=False)
             # Remove the drafted player from the UI
@@ -308,6 +315,11 @@ class MockDraftApp:
                 try:
                     self.draft_engine.make_pick(current_team, selected_player)
                     self.available_players.remove(selected_player)
+                    
+                    # Debug print
+                    adp_diff = pick_num - selected_player.adp
+                    print(f"Pick #{pick_num}: {current_team.name} selects {selected_player.name} ({selected_player.position}) "
+                          f"- ADP: {selected_player.adp:.1f} (diff: {adp_diff:+.1f})")
                 except ValueError:
                     # Pick failed, try next player
                     continue
@@ -323,10 +335,36 @@ class MockDraftApp:
         # Count current players by position
         position_counts = self._get_position_counts(team)
         
-        # Filter players by position needs
+        # Early rounds (1-3) should be much tighter to ADP
+        is_early_round = pick_num <= (3 * config.num_teams)
+        
+        # Special handling for elite players that should never fall
+        for player in self.available_players[:5]:
+            # Elite players that must go by certain picks
+            if player.name == "JAMARR CHASE" and pick_num >= 2:
+                return player  # Chase must go by 1.02
+            elif player.adp <= 3 and pick_num >= player.adp + 1:
+                return player  # Top 3 players shouldn't fall more than 1 spot
+            elif player.adp <= 10 and pick_num >= player.adp + 3:
+                return player  # Top 10 players shouldn't fall more than 3 spots
+        
+        # Determine how many players to consider based on pick
+        if is_early_round:
+            # Early rounds: only consider players within reasonable ADP range
+            max_adp_reach = 5  # Won't reach more than 5 picks early
+            consider_range = 8  # Look at top 8 available
+        else:
+            max_adp_reach = 15  # More flexibility later
+            consider_range = 20  # Look at top 20 available
+        
+        # Filter players by position needs and ADP appropriateness
         eligible_players = []
-        for player in self.available_players[:20]:  # Consider top 20 players
+        for i, player in enumerate(self.available_players[:consider_range]):
             pos = player.position
+            
+            # Check if pick is too much of a reach
+            if player.adp > pick_num + max_adp_reach:
+                continue  # Don't reach too far
             
             # Check position limits
             if pos == 'QB' and position_counts.get('QB', 0) >= 2:
@@ -342,38 +380,57 @@ class MockDraftApp:
             elif pos == 'K' and position_counts.get('K', 0) >= 1:
                 continue  # Max 1 K
             
+            # Don't draft K/DEF before round 10
+            if pos in ['K', 'DEF'] and pick_num < (10 * config.num_teams):
+                continue
+            
             eligible_players.append(player)
         
         if not eligible_players:
-            # If no eligible players in top 20, just take best available
+            # If no eligible players, take best available non-K/DEF
+            for player in self.available_players:
+                if player.position not in ['K', 'DEF'] or pick_num >= 120:
+                    return player
             return self.available_players[0] if self.available_players else None
         
         # Calculate pick value for each player based on ADP
         player_values = []
         for player in eligible_players:
             # Calculate how good the value is (negative = reach, positive = value)
-            adp_value = pick_num - player.adp
+            adp_diff = pick_num - player.adp
             
             # Adjust value based on roster need
             need_multiplier = 1.0
             if player.position in roster_needs[:2]:  # Top 2 needs
-                need_multiplier = 1.3
+                need_multiplier = 1.2 if is_early_round else 1.3
             elif player.position in roster_needs[:3]:  # Top 3 needs
-                need_multiplier = 1.15
+                need_multiplier = 1.1 if is_early_round else 1.15
             
-            # Calculate probability of picking this player
-            # Players with ADP close to current pick are more likely
-            # But with some randomness for realism
-            if adp_value > 10:  # Great value (ADP much later than current pick)
-                base_prob = 0.4
-            elif adp_value > 5:  # Good value
-                base_prob = 0.3
-            elif adp_value > -3:  # Fair value (within 3 picks of ADP)
-                base_prob = 0.25
-            elif adp_value > -10:  # Slight reach
-                base_prob = 0.1
-            else:  # Big reach
-                base_prob = 0.02
+            # Calculate probability - much tighter in early rounds
+            if is_early_round:
+                # Early rounds: heavily favor players near their ADP
+                if adp_diff > 5:  # Great value
+                    base_prob = 0.5
+                elif adp_diff > 2:  # Good value
+                    base_prob = 0.4
+                elif adp_diff > -2:  # Fair value (within 2 picks)
+                    base_prob = 0.35
+                elif adp_diff > -5:  # Slight reach
+                    base_prob = 0.15
+                else:  # Big reach
+                    base_prob = 0.02
+            else:
+                # Later rounds: more flexibility
+                if adp_diff > 10:  # Great value
+                    base_prob = 0.4
+                elif adp_diff > 5:  # Good value
+                    base_prob = 0.3
+                elif adp_diff > -3:  # Fair value
+                    base_prob = 0.25
+                elif adp_diff > -10:  # Slight reach
+                    base_prob = 0.1
+                else:  # Big reach
+                    base_prob = 0.02
             
             final_prob = base_prob * need_multiplier
             player_values.append((player, final_prob))
@@ -461,7 +518,10 @@ class MockDraftApp:
         return needs
     
     def restart_draft(self):
-        """Reset the draft to start over"""
+        """Reset the draft but keep user team selection"""
+        # Save current user team selection
+        saved_user_team = self.user_team_id
+        
         # Reset teams
         self.teams = self._create_teams()
         
@@ -477,21 +537,12 @@ class MockDraftApp:
         self.all_players = generate_mock_players()
         self.available_players = list(self.all_players)
         
-        # Reset user selection
-        self.user_team_id = None
+        # Restore user team selection
+        self.user_team_id = saved_user_team
         
         # Reset UI
         self.draft_board.draft_results = []
         self.draft_board._last_pick_count = 0
-        self.draft_board.selected_team_id = None
-        
-        # Reset team buttons
-        for tid, button in self.draft_board.team_buttons.items():
-            button.config(
-                bg=DARK_THEME['button_bg'],
-                fg=DARK_THEME['text_secondary'],
-                text='Control'
-            )
         
         # Clear all pick widgets
         for pick_widget in self.draft_board.pick_widgets.values():
@@ -513,6 +564,9 @@ class MockDraftApp:
         self.undo_button.config(state='disabled')
         self.draft_state_before_reversion = None
         self.players_before_reversion = None
+        
+        # Start auto-drafting from the beginning
+        self.check_auto_draft()
     
     def on_pick_clicked(self, pick_number):
         """Handle clicking on a completed pick to revert draft to that point"""

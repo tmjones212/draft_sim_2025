@@ -3,6 +3,7 @@ import requests
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 import os
+from .player_extensions import format_name
 
 
 def fetch_adp_data() -> Optional[Dict]:
@@ -184,16 +185,68 @@ def load_local_player_data() -> Optional[List[Dict]]:
         return None
 
 
+def load_sleeper_players() -> Dict[str, Dict]:
+    """Load the Sleeper player database"""
+    try:
+        # Look for the players.json file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        players_file = os.path.join(project_root, 'data', 'players.json')
+        
+        if os.path.exists(players_file):
+            with open(players_file, 'r') as f:
+                sleeper_data = json.load(f)
+                # Create a name-to-player mapping for faster lookups
+                name_to_player = {}
+                for player_id, player_data in sleeper_data.items():
+                    if 'name' in player_data and player_data.get('position') in ['QB', 'RB', 'WR', 'TE', 'K', 'DEF']:
+                        name = player_data['name']
+                        # Store the player data with ID
+                        name_to_player[name] = {
+                            'player_id': player_id,
+                            'team': player_data.get('team'),
+                            'full_name': player_data.get('full_name'),
+                            'position': player_data.get('position')
+                        }
+                return name_to_player
+    except Exception as e:
+        print(f"Error loading Sleeper players: {e}")
+    return {}
+
+
+def match_with_sleeper_data(players: List[Dict]) -> List[Dict]:
+    """Match ADP players with Sleeper player IDs"""
+    sleeper_players = load_sleeper_players()
+    
+    for player in players:
+        # The name should already be formatted in the JSON
+        name = player['name']
+        
+        # Look up in Sleeper data
+        if name in sleeper_players:
+            sleeper_data = sleeper_players[name]
+            player['player_id'] = sleeper_data['player_id']
+            # Update team if not already set
+            if not player.get('team') and sleeper_data.get('team'):
+                player['team'] = sleeper_data['team']
+    
+    return players
+
+
 def get_players_with_fallback() -> List[Dict]:
     """Get players from local file, API, or cache"""
     # Try local file first
     players = load_local_player_data()
     if players:
-        return players
+        # Match with Sleeper data to get player IDs
+        return match_with_sleeper_data(players)
     
     # Try cache next
     players = load_player_cache()
     if players:
+        # Match with Sleeper data if not already matched
+        if players and 'player_id' not in players[0]:
+            players = match_with_sleeper_data(players)
         return players
     
     # Try fetching from API
@@ -201,6 +254,8 @@ def get_players_with_fallback() -> List[Dict]:
     if raw_data:
         players = parse_player_data(raw_data)
         if players:
+            # Match with Sleeper data to get player IDs
+            players = match_with_sleeper_data(players)
             save_player_cache(players)
             return players
     

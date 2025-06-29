@@ -1,6 +1,7 @@
 from typing import List
 from ..models import Player
 from .player_data_fetcher import get_players_with_fallback
+from .player_extensions import format_name
 
 
 def generate_mock_players() -> List[Player]:
@@ -11,11 +12,12 @@ def generate_mock_players() -> List[Player]:
     players = []
     for data in player_data:
         player = Player(
-            name=data['name'],
+            name=format_name(data['name']),
             position=data['position'],
             rank=data['rank'],
             adp=data['adp'],
-            team=data.get('team')
+            team=data.get('team'),
+            player_id=data.get('player_id')
         )
         players.append(player)
     

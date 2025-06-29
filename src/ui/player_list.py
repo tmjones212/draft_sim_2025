@@ -1,9 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
 from typing import List, Optional, Callable
+from PIL import Image, ImageTk
+import requests
+from io import BytesIO
 from ..models import Player
 from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
+from ..utils.player_extensions import get_player_image_url
 
 
 class PlayerList(StyledFrame):
@@ -46,7 +50,7 @@ class PlayerList(StyledFrame):
             scroll_container,
             bg=DARK_THEME['bg_secondary'],
             highlightthickness=0,
-            height=200
+            height=240
         )
         h_scrollbar = tk.Scrollbar(
             scroll_container,
@@ -93,7 +97,7 @@ class PlayerList(StyledFrame):
             bg_type='tertiary',
             relief='flat',
             width=130,
-            height=160
+            height=200  # Increased height for image
         )
         card.pack_propagate(False)
         
@@ -111,9 +115,33 @@ class PlayerList(StyledFrame):
         
         # Inner container with padding
         inner = StyledFrame(card, bg_type='tertiary')
-        inner.pack(fill='both', expand=True, padx=10, pady=10)
+        inner.pack(fill='both', expand=True, padx=10, pady=8)
         inner.bind("<Button-1>", on_click)
         inner.bind("<Double-Button-1>", on_double_click)
+        
+        # Player image
+        if player.player_id:
+            try:
+                # Try to load and display player image
+                image_url = get_player_image_url(player.player_id)
+                response = requests.get(image_url, timeout=2)
+                if response.status_code == 200:
+                    img = Image.open(BytesIO(response.content))
+                    # Resize image to fit
+                    img = img.resize((60, 60), Image.Resampling.LANCZOS)
+                    photo = ImageTk.PhotoImage(img)
+                    
+                    image_label = tk.Label(
+                        inner,
+                        image=photo,
+                        bg=DARK_THEME['bg_tertiary']
+                    )
+                    image_label.image = photo  # Keep a reference
+                    image_label.pack(pady=(0, 5))
+                    image_label.bind("<Button-1>", on_click)
+            except:
+                # If image fails to load, just skip it
+                pass
         
         # Rank at top
         rank_label = tk.Label(
@@ -121,7 +149,7 @@ class PlayerList(StyledFrame):
             text=f"#{player.rank}",
             bg=DARK_THEME['bg_tertiary'],
             fg=DARK_THEME['text_muted'],
-            font=(DARK_THEME['font_family'], 16, 'bold')
+            font=(DARK_THEME['font_family'], 14, 'bold')
         )
         rank_label.pack()
         rank_label.bind("<Button-1>", on_click)

@@ -178,11 +178,12 @@ class DraftBoard(StyledFrame):
                 
                 # Make pick clickable
                 def on_pick_click(pn=pick_number):
-                    if self.on_pick_click and pn <= len(self.draft_results):
-                        self.on_pick_click(pn)
+                    if self.on_pick_click:
+                        # Only allow clicking on completed picks
+                        if self.draft_results and pn <= len(self.draft_results):
+                            self.on_pick_click(pn)
                 
                 pick_frame.bind("<Button-1>", lambda e: on_pick_click())
-                pick_frame.config(cursor="hand2")
                 
                 pick_number += 1
         
@@ -235,6 +236,13 @@ class DraftBoard(StyledFrame):
                 self.update_pick_slot(pick)
         
         self._last_pick_count = len(picks)
+        
+        # Update cursor for all completed picks
+        for pick_num, widget in self.pick_widgets.items():
+            if pick_num <= len(picks):
+                widget.config(cursor="hand2")
+            else:
+                widget.config(cursor="")
         
         # Highlight current pick
         self.highlight_current_pick()
