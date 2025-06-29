@@ -55,7 +55,9 @@ class MockDraftApp:
         # Setup UI
         self.setup_ui()
         self.setup_keyboard_shortcuts()
-        self.update_display()
+        
+        # Defer initial display update to speed up load
+        self.root.after(10, lambda: self.update_display())
     
     def _create_teams(self):
         teams = {}
@@ -261,7 +263,7 @@ class MockDraftApp:
             if player in self.available_players:
                 self.available_players.remove(player)
             
-            # Remove the drafted player from the UI
+            # Remove the drafted player from the UI immediately
             if self.player_list.selected_index is not None:
                 # Find the actual index of this player in case it changed
                 actual_index = None
@@ -274,11 +276,11 @@ class MockDraftApp:
                     self.player_list.remove_player_card(actual_index)
                     self.player_list.selected_index = None
             
-            # Quick update - don't reload all players
-            self.update_display(full_update=False)
-            
-            # Force UI update before checking auto-draft
-            self.root.update_idletasks()
+            # Update draft board with new pick immediately
+            self.draft_board.update_picks(
+                self.draft_engine.get_draft_results(),
+                self.draft_engine.get_current_pick_info()[0]
+            )
             
             # Check if we need to auto-draft next
             self.check_auto_draft()
@@ -376,13 +378,28 @@ class MockDraftApp:
                     # Pick failed, try next player
                     continue
         
-        # Update display once after all auto-picks
+        # Update everything at once after all auto-picks
         if picks_made:
             # Remove auto-drafted players from the UI
             players_to_remove = [player for _, _, player in picks_made]
             self.player_list.remove_players(players_to_remove)
             
-            self.update_display(full_update=False)
+            # Update draft board with all new picks
+            self.draft_board.update_picks(
+                self.draft_engine.get_draft_results(),
+                self.draft_engine.get_current_pick_info()[0]
+            )
+            
+            # Update status labels
+            pick_num, round_num, pick_in_round, team_on_clock = self.draft_engine.get_current_pick_info()
+            self.status_label.config(text=f"Round {round_num} • Pick {pick_in_round}")
+            self.on_clock_label.config(text=f"On the Clock: {self.teams[team_on_clock].name}")
+            
+            # Enable draft button if it's user's turn
+            if self.user_team_id and team_on_clock == self.user_team_id:
+                self.draft_button.config(state="normal", bg=DARK_THEME['button_active'])
+            else:
+                self.draft_button.config(state="disabled", bg=DARK_THEME['button_bg'])
     
     def _select_computer_pick(self, team, pick_num):
         """Select a player for computer team based on smart drafting logic"""

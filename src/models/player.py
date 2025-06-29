@@ -17,3 +17,17 @@ class Player:
     
     def __repr__(self):
         return f"Player(name='{self.name}', position='{self.position}', rank={self.rank})"
+    
+    def __hash__(self):
+        # Use player_id if available, otherwise use name and position
+        if self.player_id:
+            return hash(self.player_id)
+        return hash((self.name, self.position))
+    
+    def __eq__(self, other):
+        if not isinstance(other, Player):
+            return False
+        # Compare by player_id if available, otherwise by name and position
+        if self.player_id and other.player_id:
+            return self.player_id == other.player_id
+        return self.name == other.name and self.position == other.position
