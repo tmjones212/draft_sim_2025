@@ -176,14 +176,11 @@ class DraftBoard(StyledFrame):
                 # Store reference
                 self.pick_widgets[pick_number] = pick_frame
                 
-                # Make pick clickable
-                def on_pick_click(pn=pick_number):
-                    if self.on_pick_click:
-                        # Only allow clicking on completed picks
-                        if self.draft_results and pn <= len(self.draft_results):
-                            self.on_pick_click(pn)
+                # Make pick clickable (but only for completed picks)
+                def on_pick_click(event):
+                    pass  # We'll handle clicks when the pick is actually made
                 
-                pick_frame.bind("<Button-1>", lambda e: on_pick_click())
+                pick_frame.bind("<Button-1>", on_pick_click)
                 
                 pick_number += 1
         
@@ -255,9 +252,16 @@ class DraftBoard(StyledFrame):
             if isinstance(widget, tk.Frame) and widget.winfo_y() > 20:
                 widget.destroy()
         
+        # Create click handler for this pick
+        def handle_pick_click(event):
+            if self.on_pick_click and self.draft_results:
+                if pick.pick_number <= len(self.draft_results):
+                    self.on_pick_click(pick.pick_number)
+        
         # Player container
         player_frame = StyledFrame(pick_frame, bg_type='tertiary')
         player_frame.place(x=5, y=25, relwidth=0.9)
+        player_frame.bind("<Button-1>", handle_pick_click)
         
         # Player name
         name_label = tk.Label(
@@ -269,6 +273,7 @@ class DraftBoard(StyledFrame):
             anchor='w'
         )
         name_label.pack(fill='x')
+        name_label.bind("<Button-1>", handle_pick_click)
         
         # Position badge
         pos_frame = tk.Frame(
@@ -278,6 +283,7 @@ class DraftBoard(StyledFrame):
             pady=1
         )
         pos_frame.pack(anchor='w', pady=(2, 0))
+        pos_frame.bind("<Button-1>", handle_pick_click)
         
         pos_label = tk.Label(
             pos_frame,
@@ -287,6 +293,7 @@ class DraftBoard(StyledFrame):
             font=(DARK_THEME['font_family'], 8, 'bold')
         )
         pos_label.pack()
+        pos_label.bind("<Button-1>", handle_pick_click)
     
     def highlight_current_pick(self):
         # Remove previous highlights

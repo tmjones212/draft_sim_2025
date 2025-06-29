@@ -226,14 +226,15 @@ class MockDraftApp:
             print(f"Pick #{pick_num - 1}: {current_team.name} selects {player.name} ({player.position}) "
                   f"- ADP: {player.adp:.1f} (diff: {adp_diff:+.1f})")
             
-            # Quick update - don't reload all players
-            self.update_display(full_update=False)
-            # Remove the drafted player from the UI
+            # Remove the drafted player from the UI first
             if self.player_list.selected_index is not None:
                 self.player_list.player_cards[self.player_list.selected_index].destroy()
                 self.player_list.player_cards.pop(self.player_list.selected_index)
                 self.player_list.players.pop(self.player_list.selected_index)
                 self.player_list.selected_index = None
+            
+            # Quick update - don't reload all players
+            self.update_display(full_update=False)
             
             # Check if we need to auto-draft next
             self.check_auto_draft()
@@ -550,12 +551,11 @@ class MockDraftApp:
                 if isinstance(widget, tk.Frame) and widget.winfo_y() > 20:
                     widget.destroy()
         
-        # Reset roster view
-        self.roster_view.current_team_id = 1
-        self.roster_view.team_var.set("Team 1")
-        
         # Update display
         self.update_display()
+        
+        # Force roster view to update
+        self.roster_view.update_roster_display()
         
         # Re-enable draft button
         self.draft_button.config(state="normal", bg=DARK_THEME['button_active'])
@@ -570,18 +570,10 @@ class MockDraftApp:
     
     def on_pick_clicked(self, pick_number):
         """Handle clicking on a completed pick to revert draft to that point"""
-        if pick_number >= self.draft_engine.get_current_pick_info()[0]:
+        current_pick = self.draft_engine.get_current_pick_info()[0]
+        
+        if pick_number >= current_pick:
             return  # Can't revert to future picks
-        
-        # Confirm with user
-        result = messagebox.askyesno(
-            "Revert Draft",
-            f"Revert draft to pick #{pick_number}? This will undo all picks after this one.",
-            parent=self.root
-        )
-        
-        if not result:
-            return
         
         # Save current state for undo
         self.draft_state_before_reversion = {
@@ -591,7 +583,7 @@ class MockDraftApp:
         }
         self.players_before_reversion = list(self.available_players)
         
-        # Revert the draft
+        # Revert the draft immediately - no confirmation
         self._revert_to_pick(pick_number)
         
         # Enable undo button

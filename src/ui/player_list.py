@@ -17,6 +17,7 @@ class PlayerList(StyledFrame):
         self.on_draft = on_draft
         self.players: List[Player] = []
         self.selected_index = None
+        self.image_cache = {}  # Cache loaded images
         self.setup_ui()
         
     def setup_ui(self):
@@ -122,15 +123,24 @@ class PlayerList(StyledFrame):
         # Player image
         if player.player_id:
             try:
-                # Try to load and display player image
-                image_url = get_player_image_url(player.player_id)
-                response = requests.get(image_url, timeout=2)
-                if response.status_code == 200:
-                    img = Image.open(BytesIO(response.content))
-                    # Resize image to fit
-                    img = img.resize((60, 60), Image.Resampling.LANCZOS)
-                    photo = ImageTk.PhotoImage(img)
-                    
+                # Check cache first
+                if player.player_id in self.image_cache:
+                    photo = self.image_cache[player.player_id]
+                else:
+                    # Load and cache the image
+                    image_url = get_player_image_url(player.player_id)
+                    response = requests.get(image_url, timeout=2)
+                    if response.status_code == 200:
+                        img = Image.open(BytesIO(response.content))
+                        # Resize image to fit
+                        img = img.resize((60, 60), Image.Resampling.LANCZOS)
+                        photo = ImageTk.PhotoImage(img)
+                        # Cache it
+                        self.image_cache[player.player_id] = photo
+                    else:
+                        photo = None
+                
+                if photo:
                     image_label = tk.Label(
                         inner,
                         image=photo,
