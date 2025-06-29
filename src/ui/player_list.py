@@ -18,6 +18,8 @@ class PlayerList(StyledFrame):
         self.players: List[Player] = []
         self.selected_index = None
         self.image_cache = {}  # Cache loaded images
+        self.player_cards = []
+        self.draft_enabled = False
         self.setup_ui()
         
     def setup_ui(self):
@@ -51,7 +53,7 @@ class PlayerList(StyledFrame):
             scroll_container,
             bg=DARK_THEME['bg_secondary'],
             highlightthickness=0,
-            height=240
+            height=200
         )
         h_scrollbar = tk.Scrollbar(
             scroll_container,
@@ -91,6 +93,37 @@ class PlayerList(StyledFrame):
             card.pack(side='left', padx=5, pady=10)
             self.player_cards.append(card)
     
+    def remove_player_card(self, index: int):
+        """Remove a specific player card without refreshing all players"""
+        if 0 <= index < len(self.player_cards):
+            self.player_cards[index].destroy()
+            self.player_cards.pop(index)
+            self.players.pop(index)
+            
+            # No need to update indices anymore since we use player objects
+    
+    def remove_players(self, players_to_remove: List[Player]):
+        """Remove multiple players from the list efficiently"""
+        # Find indices of all players to remove
+        indices_to_remove = []
+        for player in players_to_remove:
+            for i, p in enumerate(self.players):
+                if p == player:
+                    indices_to_remove.append(i)
+                    break
+        
+        # Sort in reverse order so we remove from the end first
+        indices_to_remove.sort(reverse=True)
+        
+        # Remove each player
+        for index in indices_to_remove:
+            if 0 <= index < len(self.player_cards):
+                self.player_cards[index].destroy()
+                self.player_cards.pop(index)
+                self.players.pop(index)
+        
+        # No need to update indices anymore since we use player objects
+    
     def create_player_card(self, index: int, player: Player) -> tk.Frame:
         # Player card container - vertical layout
         card = StyledFrame(
@@ -98,7 +131,7 @@ class PlayerList(StyledFrame):
             bg_type='tertiary',
             relief='flat',
             width=130,
-            height=200  # Increased height for image
+            height=180  # Adjusted for 40x40 image
         )
         card.pack_propagate(False)
         
@@ -120,38 +153,33 @@ class PlayerList(StyledFrame):
         inner.bind("<Button-1>", on_click)
         inner.bind("<Double-Button-1>", on_double_click)
         
-        # Player image
+        # Player image placeholder
+        image_label = None
         if player.player_id:
-            try:
-                # Check cache first
-                if player.player_id in self.image_cache:
-                    photo = self.image_cache[player.player_id]
-                else:
-                    # Load and cache the image
-                    image_url = get_player_image_url(player.player_id)
-                    response = requests.get(image_url, timeout=2)
-                    if response.status_code == 200:
-                        img = Image.open(BytesIO(response.content))
-                        # Resize image to fit
-                        img = img.resize((60, 60), Image.Resampling.LANCZOS)
-                        photo = ImageTk.PhotoImage(img)
-                        # Cache it
-                        self.image_cache[player.player_id] = photo
-                    else:
-                        photo = None
-                
-                if photo:
-                    image_label = tk.Label(
-                        inner,
-                        image=photo,
-                        bg=DARK_THEME['bg_tertiary']
-                    )
-                    image_label.image = photo  # Keep a reference
-                    image_label.pack(pady=(0, 5))
-                    image_label.bind("<Button-1>", on_click)
-            except:
-                # If image fails to load, just skip it
-                pass
+            # Check cache first
+            if player.player_id in self.image_cache:
+                photo = self.image_cache[player.player_id]
+                image_label = tk.Label(
+                    inner,
+                    image=photo,
+                    bg=DARK_THEME['bg_tertiary']
+                )
+                image_label.image = photo  # Keep a reference
+                image_label.pack(pady=(0, 5))
+                image_label.bind("<Button-1>", lambda e: on_click(e))
+            else:
+                # Create placeholder for image
+                image_label = tk.Label(
+                    inner,
+                    text="",
+                    bg=DARK_THEME['bg_tertiary'],
+                    height=3,
+                    width=5
+                )
+                image_label.pack(pady=(0, 5))
+                image_label.bind("<Button-1>", lambda e: on_click(e))
+                # Schedule image loading
+                self.after(1, lambda pid=player.player_id, lbl=image_label: self._load_player_image(pid, lbl))
         
         # Rank at top
         rank_label = tk.Label(
@@ -162,7 +190,7 @@ class PlayerList(StyledFrame):
             font=(DARK_THEME['font_family'], 14, 'bold')
         )
         rank_label.pack()
-        rank_label.bind("<Button-1>", on_click)
+        rank_label.bind("<Button-1>", lambda e: on_click(e))
         
         # Position badge
         pos_frame = tk.Frame(
@@ -192,7 +220,7 @@ class PlayerList(StyledFrame):
             wraplength=110
         )
         name_label.pack(fill='x')
-        name_label.bind("<Button-1>", on_click)
+        name_label.bind("<Button-1>", lambda e: on_click(e))
         
         # Draft button
         if self.on_draft:
@@ -204,7 +232,8 @@ class PlayerList(StyledFrame):
                 font=(DARK_THEME['font_family'], 8, 'bold'),
                 relief='flat',
                 cursor='hand2',
-                command=lambda: self.draft_player(index)
+                command=lambda p=player: self.draft_specific_player(p),
+                state='normal' if self.draft_enabled else 'disabled'
             )
             draft_btn.pack(pady=(5, 0))
             
@@ -225,6 +254,27 @@ class PlayerList(StyledFrame):
             value_label.bind("<Button-1>", on_click)
         
         return card
+    
+    def _load_player_image(self, player_id, image_label=None):
+        """Load player image asynchronously"""
+        if player_id not in self.image_cache:
+            try:
+                image_url = get_player_image_url(player_id)
+                response = requests.get(image_url, timeout=2)
+                if response.status_code == 200:
+                    img = Image.open(BytesIO(response.content))
+                    # Resize image to consistent 40x40 size
+                    img = img.resize((40, 40), Image.Resampling.LANCZOS)
+                    photo = ImageTk.PhotoImage(img)
+                    # Cache it
+                    self.image_cache[player_id] = photo
+                    
+                    # If image_label is provided, update it
+                    if image_label and image_label.winfo_exists():
+                        image_label.configure(image=photo, height=40, width=40)
+                        image_label.image = photo
+            except:
+                pass
     
     def select_player(self, index: int):
         # Deselect previous
@@ -258,3 +308,27 @@ class PlayerList(StyledFrame):
         self.select_player(index)
         if self.on_draft:
             self.on_draft()
+    
+    def draft_specific_player(self, player: Player):
+        """Draft a specific player object directly"""
+        # Find the player's current index
+        for i, p in enumerate(self.players):
+            if p == player:
+                self.select_player(i)
+                if self.on_draft:
+                    self.on_draft()
+                return
+        # Player not found - might have been drafted already
+        return
+    
+    def set_draft_enabled(self, enabled: bool):
+        """Enable or disable all draft buttons"""
+        self.draft_enabled = enabled
+        # Update all existing draft buttons
+        for card in self.player_cards:
+            # Find the draft button in the card's children
+            for widget in card.winfo_children():
+                if isinstance(widget, tk.Frame):  # Inner frame
+                    for child in widget.winfo_children():
+                        if isinstance(child, tk.Button) and child.cget('text') == 'DRAFT':
+                            child.config(state='normal' if enabled else 'disabled')

@@ -10,7 +10,9 @@
       "Bash(chmod:*)",
       "Bash(./sync_to_windows.sh:*)",
       "Bash(mv:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(timeout 5 python3 main.py)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }

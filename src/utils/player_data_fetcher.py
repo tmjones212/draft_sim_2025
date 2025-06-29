@@ -193,9 +193,7 @@ def load_sleeper_players() -> Dict[str, Dict]:
         project_root = os.path.dirname(os.path.dirname(current_dir))
         players_file = os.path.join(project_root, 'data', 'players.json')
         
-        print(f"DEBUG: Looking for players.json at {players_file}")
         if os.path.exists(players_file):
-            print(f"DEBUG: Found players.json")
             with open(players_file, 'r') as f:
                 sleeper_data = json.load(f)
                 # Create a name-to-player mapping for faster lookups
@@ -211,13 +209,7 @@ def load_sleeper_players() -> Dict[str, Dict]:
                             'full_name': player_data.get('full_name'),
                             'position': player_data.get('position')
                         }
-                
-                # Print some sample names to debug
-                sample_names = list(name_to_player.keys())[:5]
-                print(f"DEBUG: Sample player names from Sleeper: {sample_names}")
                 return name_to_player
-        else:
-            print(f"DEBUG: players.json not found at {players_file}")
     except Exception as e:
         print(f"Error loading Sleeper players: {e}")
     return {}
@@ -226,9 +218,7 @@ def load_sleeper_players() -> Dict[str, Dict]:
 def match_with_sleeper_data(players: List[Dict]) -> List[Dict]:
     """Match ADP players with Sleeper player IDs"""
     sleeper_players = load_sleeper_players()
-    print(f"DEBUG: Loaded {len(sleeper_players)} players from Sleeper data")
     
-    matched_count = 0
     for player in players:
         # Format the name to match Sleeper format
         formatted_name = format_name(player['name'])
@@ -237,7 +227,6 @@ def match_with_sleeper_data(players: List[Dict]) -> List[Dict]:
         if formatted_name in sleeper_players:
             sleeper_data = sleeper_players[formatted_name]
             player['player_id'] = sleeper_data['player_id']
-            matched_count += 1
             # Update team if not already set
             if not player.get('team') and sleeper_data.get('team'):
                 player['team'] = sleeper_data['team']
@@ -246,13 +235,9 @@ def match_with_sleeper_data(players: List[Dict]) -> List[Dict]:
             if player['name'] in sleeper_players:
                 sleeper_data = sleeper_players[player['name']]
                 player['player_id'] = sleeper_data['player_id']
-                matched_count += 1
                 if not player.get('team') and sleeper_data.get('team'):
                     player['team'] = sleeper_data['team']
-            else:
-                print(f"DEBUG: No match for player: {player['name']} (formatted: {formatted_name})")
     
-    print(f"DEBUG: Matched {matched_count} out of {len(players)} players with Sleeper IDs")
     return players
 
 

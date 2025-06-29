@@ -234,15 +234,17 @@ class DraftBoard(StyledFrame):
         
         self._last_pick_count = len(picks)
         
-        # Update cursor for all completed picks
-        for pick_num, widget in self.pick_widgets.items():
-            if pick_num <= len(picks):
-                widget.config(cursor="hand2")
-            else:
-                widget.config(cursor="")
+        # Only update cursors if picks have changed
+        if new_picks:
+            # Update cursor for newly completed picks only
+            for pick in new_picks:
+                if pick.pick_number in self.pick_widgets:
+                    self.pick_widgets[pick.pick_number].config(cursor="hand2")
         
-        # Highlight current pick
-        self.highlight_current_pick()
+        # Only highlight if current pick changed
+        if not hasattr(self, '_last_highlighted_pick') or self._last_highlighted_pick != current_pick_num:
+            self.highlight_current_pick()
+            self._last_highlighted_pick = current_pick_num
     
     def update_pick_slot(self, pick: DraftPick):
         pick_frame = self.pick_widgets[pick.pick_number]
