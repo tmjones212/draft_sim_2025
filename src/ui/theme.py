@@ -25,12 +25,14 @@ DARK_THEME = {
     'divider': '#1e2127',         # Divider lines
     'button_bg': '#5a6171',       # Button background
     'button_hover': '#6b7280',    # Button hover
-    'button_active': '#4ade80',   # Active/success button
+    'button_active': '#2d7a4e',   # Active/success button (toned down green)
+    'button_glow': '#58a7ff',     # Glowing button color
+    'button_glow_alt': '#36ceb8', # Alternative glow color
     
     # Draft specific
     'pick_bg': '#1a1d24',         # Draft pick background
     'pick_border': '#2d3139',     # Draft pick border
-    'current_pick': '#4ade80',    # Current pick highlight
+    'current_pick': '#2d7a4e',    # Current pick highlight (toned down green)
     
     # Fonts
     'font_family': 'Segoe UI',

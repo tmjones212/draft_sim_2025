@@ -22,7 +22,15 @@ class DraftBoard(StyledFrame):
         self.team_buttons = {}  # team_id -> button widget
         self.draft_results = []  # Store draft picks
         self.image_service = image_service
+        self.glow_animation_running = False
+        self.canvas = None
+        self.scrollable_frame = None
         self.setup_ui()
+        # Start glowing animation if no team selected
+        if not self.selected_team_id:
+            self.start_glow_animation()
+        # Bind resize event
+        self.bind('<Configure>', self.on_resize)
         
     def setup_ui(self):
         # Main container with padding
@@ -30,7 +38,7 @@ class DraftBoard(StyledFrame):
         container.pack(fill='both', expand=True, padx=10, pady=10)
         
         # Canvas for vertical scrolling only
-        canvas = tk.Canvas(
+        self.canvas = tk.Canvas(
             container,
             bg=DARK_THEME['bg_secondary'],
             highlightthickness=0
@@ -38,22 +46,22 @@ class DraftBoard(StyledFrame):
         v_scrollbar = tk.Scrollbar(
             container,
             orient='vertical',
-            command=canvas.yview,
+            command=self.canvas.yview,
             bg=DARK_THEME['bg_tertiary'],
             troughcolor=DARK_THEME['bg_secondary']
         )
         
-        self.scrollable_frame = StyledFrame(canvas, bg_type='secondary')
+        self.scrollable_frame = StyledFrame(self.canvas, bg_type='secondary')
         self.scrollable_frame.bind(
             "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+            lambda e: self.canvas.configure(scrollregion=canvas.bbox("all"))
         )
         
-        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=v_scrollbar.set)
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=v_scrollbar.set)
         
         # Grid layout
-        canvas.grid(row=0, column=0, sticky='nsew')
+        self.canvas.grid(row=0, column=0, sticky='nsew')
         v_scrollbar.grid(row=0, column=1, sticky='ns')
         
         container.grid_rowconfigure(0, weight=1)
@@ -63,9 +71,14 @@ class DraftBoard(StyledFrame):
         self.create_draft_grid()
     
     def create_draft_grid(self):
-        # Column width and row height - adjusted for 10 teams
-        col_width = 140  # Wider to accommodate images
-        row_height = 65  # Taller for image + text
+        # Get actual available width
+        self.update_idletasks()  # Force geometry update
+        available_width = self.winfo_width() - 40  # Subtract padding and scrollbar
+        
+        # Calculate column width to fill available space
+        col_width = max(120, available_width // self.num_teams)
+        
+        row_height = 60  # Height for each pick
         header_height = 40
         button_height = 25
         
@@ -82,9 +95,9 @@ class DraftBoard(StyledFrame):
             
             button = tk.Button(
                 button_frame,
-                text=f"Control",
+                text=f"Sit",
                 bg=DARK_THEME['button_bg'],
-                fg=DARK_THEME['text_secondary'],
+                fg='white',
                 font=(DARK_THEME['font_family'], 9),
                 bd=1,
                 relief='solid',
@@ -160,7 +173,7 @@ class DraftBoard(StyledFrame):
                     text=f"R{round_num}.{pos + 1}",
                     bg=DARK_THEME['bg_tertiary'],
                     fg=DARK_THEME['text_muted'],
-                    font=(DARK_THEME['font_family'], 9)
+                    font=(DARK_THEME['font_family'], 8)
                 )
                 round_pick_label.place(x=5, y=5)
                 
@@ -185,9 +198,9 @@ class DraftBoard(StyledFrame):
                 
                 pick_number += 1
         
-        # Configure grid weights
+        # Configure grid weights - make columns expand
         for i in range(self.num_teams):
-            self.scrollable_frame.grid_columnconfigure(i, minsize=col_width)
+            self.scrollable_frame.grid_columnconfigure(i, weight=1, minsize=col_width)
         for i in range(self.total_rounds + 2):
             if i == 0:
                 self.scrollable_frame.grid_rowconfigure(i, minsize=button_height)
@@ -200,19 +213,22 @@ class DraftBoard(StyledFrame):
         """Handle team selection for user control"""
         self.selected_team_id = team_id
         
+        # Stop glow animation when team is selected
+        self.stop_glow_animation()
+        
         # Update button appearances
         for tid, button in self.team_buttons.items():
             if tid == team_id:
                 button.config(
                     bg=DARK_THEME['button_active'],
                     fg='white',
-                    text='Controlling'
+                    text='Sitting'
                 )
             else:
                 button.config(
                     bg=DARK_THEME['button_bg'],
-                    fg=DARK_THEME['text_secondary'],
-                    text='Control'
+                    fg='white',
+                    text='Sit'
                 )
         
         # Notify parent if callback provided
@@ -261,9 +277,9 @@ class DraftBoard(StyledFrame):
                 if pick.pick_number <= len(self.draft_results):
                     self.on_pick_click(pick.pick_number)
         
-        # Player container with horizontal layout
+        # Player container with horizontal layout - use full width
         player_frame = StyledFrame(pick_frame, bg_type='tertiary')
-        player_frame.place(x=5, y=20, relwidth=0.9, height=40)
+        player_frame.place(x=2, y=20, relwidth=0.95, height=40)
         player_frame.bind("<Button-1>", handle_pick_click)
         
         # Create horizontal layout
@@ -271,63 +287,112 @@ class DraftBoard(StyledFrame):
         content_frame.pack(fill='both', expand=True)
         content_frame.bind("<Button-1>", handle_pick_click)
         
+        # Player image container (for player + team logo)
+        image_container = tk.Frame(content_frame, bg=DARK_THEME['bg_tertiary'], width=40, height=32)
+        image_container.pack(side='left', padx=(2, 5))
+        image_container.pack_propagate(False)
+        image_container.bind("<Button-1>", handle_pick_click)
+        
         # Player image (if available)
         if self.image_service and pick.player.player_id:
-            image = self.image_service.get_image(pick.player.player_id, size=(30, 30))
-            if image:
+            # Player image
+            player_image = self.image_service.get_image(pick.player.player_id, size=(40, 32))
+            if player_image:
                 img_label = tk.Label(
-                    content_frame,
-                    image=image,
+                    image_container,
+                    image=player_image,
                     bg=DARK_THEME['bg_tertiary']
                 )
-                img_label.image = image  # Keep reference
-                img_label.pack(side='left', padx=(2, 5))
+                img_label.image = player_image  # Keep reference
+                img_label.place(x=0, y=0)
                 img_label.bind("<Button-1>", handle_pick_click)
             else:
+                # Create placeholder
+                img_label = tk.Label(
+                    image_container,
+                    bg=DARK_THEME['bg_tertiary'],
+                    width=5,
+                    height=2
+                )
+                img_label.place(x=0, y=0, width=40, height=32)
+                img_label.bind("<Button-1>", handle_pick_click)
+                
                 # Schedule image loading
-                def update_image(photo):
-                    if pick_frame.winfo_exists():
-                        img_label = tk.Label(
-                            content_frame,
-                            image=photo,
-                            bg=DARK_THEME['bg_tertiary']
-                        )
+                def update_player_image(photo):
+                    if img_label.winfo_exists():
+                        img_label.configure(image=photo)
                         img_label.image = photo
-                        img_label.pack(side='left', padx=(2, 5), before=content_frame.winfo_children()[0])
-                        img_label.bind("<Button-1>", handle_pick_click)
                 
                 self.image_service.load_image_async(
                     pick.player.player_id,
-                    size=(30, 30),
-                    callback=update_image,
+                    size=(40, 32),
+                    callback=update_player_image,
                     widget=self
                 )
+            
+            # Team logo overlay
+            if pick.player.team:
+                team_logo = self.image_service.get_image(f"team_{pick.player.team}", size=(16, 16))
+                if team_logo:
+                    logo_label = tk.Label(
+                        image_container,
+                        image=team_logo,
+                        bg=DARK_THEME['bg_tertiary']
+                    )
+                    logo_label.image = team_logo
+                    logo_label.place(x=26, y=14)  # Position like Sleeper
+                    logo_label.bind("<Button-1>", handle_pick_click)
+                else:
+                    # Schedule team logo loading
+                    def update_team_logo(photo):
+                        if image_container.winfo_exists():
+                            logo_label = tk.Label(
+                                image_container,
+                                image=photo,
+                                bg=DARK_THEME['bg_tertiary']
+                            )
+                            logo_label.image = photo
+                            logo_label.place(x=26, y=14)
+                            logo_label.bind("<Button-1>", handle_pick_click)
+                    
+                    # Load team logo using special ID
+                    self.image_service.load_image_async(
+                        f"team_{pick.player.team}",
+                        size=(16, 16),
+                        callback=update_team_logo,
+                        widget=self
+                    )
         
         # Text container
         text_frame = tk.Frame(content_frame, bg=DARK_THEME['bg_tertiary'])
         text_frame.pack(side='left', fill='both', expand=True)
         text_frame.bind("<Button-1>", handle_pick_click)
         
+        # Create a single line for name and position
+        info_frame = tk.Frame(text_frame, bg=DARK_THEME['bg_tertiary'])
+        info_frame.pack(fill='x')
+        info_frame.bind("<Button-1>", handle_pick_click)
+        
         # Player name
         name_label = tk.Label(
-            text_frame,
-            text=pick.player.name,
+            info_frame,
+            text=self.format_player_name(pick.player.name),
             bg=DARK_THEME['bg_tertiary'],
             fg=DARK_THEME['text_primary'],
-            font=(DARK_THEME['font_family'], 9),
+            font=(DARK_THEME['font_family'], 10, 'bold'),
             anchor='w'
         )
-        name_label.pack(fill='x')
+        name_label.pack(side='left', fill='x', expand=True)
         name_label.bind("<Button-1>", handle_pick_click)
         
-        # Position badge inline
+        # Position badge inline with name
         pos_frame = tk.Frame(
-            text_frame,
+            info_frame,
             bg=get_position_color(pick.player.position),
-            padx=3,
-            pady=0
+            padx=4,
+            pady=1
         )
-        pos_frame.pack(anchor='w')
+        pos_frame.pack(side='right', padx=(5, 0))
         pos_frame.bind("<Button-1>", handle_pick_click)
         
         pos_label = tk.Label(
@@ -353,3 +418,111 @@ class DraftBoard(StyledFrame):
                 relief='solid',
                 borderwidth=2
             )
+    
+    def start_glow_animation(self):
+        """Start glowing animation for team selection buttons"""
+        self.glow_animation_running = True
+        self.glow_state = 0
+        self.animate_glow()
+    
+    def stop_glow_animation(self):
+        """Stop the glowing animation"""
+        self.glow_animation_running = False
+    
+    def animate_glow(self):
+        """Animate glowing effect on team buttons"""
+        if not self.glow_animation_running or self.selected_team_id:
+            return
+        
+        # Cycle through colors for a pulsing effect
+        colors = [
+            DARK_THEME['button_glow'],
+            DARK_THEME['button_glow_alt'],
+            DARK_THEME['button_bg']
+        ]
+        
+        color_index = self.glow_state % len(colors)
+        current_color = colors[color_index]
+        
+        # Apply glow to all control buttons
+        for button in self.team_buttons.values():
+            if button['text'] == 'Sit':  # Only glow unselected buttons
+                button.config(bg=current_color)
+        
+        self.glow_state += 1
+        
+        # Schedule next animation frame
+        if self.glow_animation_running:
+            self.after(500, self.animate_glow)  # Pulse every 500ms
+    
+    def format_player_name(self, name):
+        """Format player names with special nicknames"""
+        # Strip any whitespace and normalize the name
+        name = name.strip()
+        
+        special_names = {
+            "Amon-Ra St. Brown": "SUN GOD",
+            "Brian Thomas Jr.": "BTJ",
+            "Brian Thomas": "BTJ",  # Without Jr.
+            "Justin Jefferson": "JJ",
+            "Christian McCaffrey": "CMC",
+            "Jonathan Taylor": "JT",
+            "Jayden Daniels": "JD",
+            "Bijan Robinson": "BIJAN"
+        }
+        
+        # Check exact match first
+        if name in special_names:
+            return special_names[name]
+        
+        # Check if the name contains key parts for partial matching
+        name_lower = name.lower()
+        if "bijan" in name_lower and "robinson" in name_lower:
+            return "BIJAN"
+        elif "amon" in name_lower and "ra" in name_lower:
+            return "SUN GOD"
+        elif "brian" in name_lower and "thomas" in name_lower:
+            return "BTJ"
+        elif "justin" in name_lower and "jefferson" in name_lower:
+            return "JJ"
+        elif "christian" in name_lower and "mccaffrey" in name_lower:
+            return "CMC"
+        elif "jonathan" in name_lower and "taylor" in name_lower:
+            return "JT"
+        elif "jayden" in name_lower and "daniels" in name_lower:
+            return "JD"
+        
+        # Default: First initial + last name
+        parts = name.split()
+        if len(parts) >= 2:
+            # Handle suffixes like Jr., III, etc.
+            if parts[-1] in ["Jr.", "Jr", "Sr.", "Sr", "II", "III", "IV", "V"]:
+                if len(parts) >= 3:
+                    return f"{parts[0][0]}. {parts[-2]}"
+                else:
+                    return name  # Fallback if only 2 parts with suffix
+            else:
+                return f"{parts[0][0]}. {parts[-1]}"
+        return name  # Fallback for single-word names
+    
+    def on_resize(self, event):
+        """Handle window resize events"""
+        if not self.canvas or not self.scrollable_frame:
+            return
+            
+        # Only respond to width changes
+        if hasattr(self, '_last_width') and self._last_width == event.width:
+            return
+            
+        self._last_width = event.width
+        
+        # Calculate new column width
+        available_width = event.width - 40  # Subtract padding and scrollbar
+        new_col_width = max(120, available_width // self.num_teams)
+        
+        # Update all column widths
+        for i in range(self.num_teams):
+            self.scrollable_frame.grid_columnconfigure(i, minsize=new_col_width)
+        
+        # Update canvas scroll region
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))

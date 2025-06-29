@@ -21,12 +21,12 @@ class MockDraftApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Mock Draft Simulator 2025")
-        # Optimized window size
-        self.root.geometry("1600x900")
+        # Optimized window size - wider for draft board
+        self.root.geometry("1920x900")
         self.root.configure(bg=DARK_THEME['bg_primary'])
         
         # Set minimum window size
-        self.root.minsize(1400, 800)
+        self.root.minsize(1800, 800)
         
         # Initialize draft components
         self.teams = self._create_teams()
@@ -140,19 +140,29 @@ class MockDraftApp:
         )
         self.draft_button.pack(side='left')
         
-        # Main content area - two row layout
+        # Main content area with draggable divider
         content_frame = StyledFrame(main_frame, bg_type='primary')
         content_frame.pack(fill='both', expand=True)
         
-        # Configure grid
-        content_frame.grid_rowconfigure(0, weight=3, minsize=400)  # Draft board and roster
-        content_frame.grid_rowconfigure(1, weight=1, minsize=250)  # Available players
-        content_frame.grid_columnconfigure(0, weight=7)  # Draft board column - wider
-        content_frame.grid_columnconfigure(1, weight=1, minsize=200)  # Roster column - narrower
+        # Create vertical PanedWindow for draggable divider
+        paned_window = ttk.PanedWindow(content_frame, orient='vertical')
+        paned_window.pack(fill='both', expand=True)
         
-        # Top row - Draft board and Roster
+        # Configure PanedWindow style
+        style = ttk.Style()
+        style.configure('Sash', sashthickness=8)
+        style.configure('TPanedwindow', background=DARK_THEME['bg_primary'])
+        
+        # Top section - Draft board and Roster
+        top_frame = StyledFrame(paned_window, bg_type='primary')
+        
+        # Use grid for draft board and roster side by side
+        top_frame.grid_rowconfigure(0, weight=1)
+        top_frame.grid_columnconfigure(0, weight=1)  # Draft board column - expand to fill
+        top_frame.grid_columnconfigure(1, weight=0, minsize=250)  # Roster column - fixed width
+        
         # Draft board
-        draft_panel = StyledFrame(content_frame, bg_type='secondary')
+        draft_panel = StyledFrame(top_frame, bg_type='secondary')
         draft_panel.grid(row=0, column=0, sticky='nsew', padx=(0, 10))
         
         total_rounds = sum(config.roster_spots.values())
@@ -168,18 +178,21 @@ class MockDraftApp:
         self.draft_board.pack(fill='both', expand=True, padx=10, pady=10)
         
         # Roster panel (narrow)
-        roster_panel = StyledFrame(content_frame, bg_type='secondary')
+        roster_panel = StyledFrame(top_frame, bg_type='secondary')
         roster_panel.grid(row=0, column=1, sticky='nsew')
         
         self.roster_view = RosterView(roster_panel, self.teams)
         self.roster_view.pack(fill='both', expand=True, padx=10, pady=10)
         
-        # Bottom row - Available players (spans both columns)
-        player_panel = StyledFrame(content_frame, bg_type='secondary')
-        player_panel.grid(row=1, column=0, columnspan=2, sticky='nsew', pady=(10, 0))
+        # Bottom section - Available players
+        player_panel = StyledFrame(paned_window, bg_type='secondary')
         
-        self.player_list = PlayerList(player_panel, on_draft=self.draft_player)
+        self.player_list = PlayerList(player_panel, on_draft=self.draft_player, image_service=self.image_service)
         self.player_list.pack(fill='both', expand=True, padx=10, pady=10)
+        
+        # Add frames to PanedWindow
+        paned_window.add(top_frame, weight=3)
+        paned_window.add(player_panel, weight=1)
     
     def update_display(self, full_update=True):
         # Update status

@@ -1,17 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
 from typing import List, Optional, Callable
-from PIL import Image, ImageTk
-import requests
-from io import BytesIO
 from ..models import Player
 from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
-from ..utils.player_extensions import get_player_image_url
 
 
 class PlayerList(StyledFrame):
-    def __init__(self, parent, on_select: Optional[Callable] = None, on_draft: Optional[Callable] = None, **kwargs):
+    def __init__(self, parent, on_select: Optional[Callable] = None, on_draft: Optional[Callable] = None, image_service=None, **kwargs):
         super().__init__(parent, bg_type='secondary', **kwargs)
         self.on_select = on_select
         self.on_draft = on_draft
@@ -20,6 +16,12 @@ class PlayerList(StyledFrame):
         self.image_cache = {}  # Cache loaded images
         self.player_cards = []
         self.draft_enabled = False
+        self.image_service = image_service
+        self.all_players: List[Player] = []  # Store all players
+        self.selected_position = "ALL"  # Current filter
+        self.sort_by = "rank"  # Default sort by rank
+        self.table_expanded = False  # Track table expansion state
+        self.view_mode = "cards"  # "cards" or "table"
         self.setup_ui()
         
     def setup_ui(self):
@@ -40,12 +42,101 @@ class PlayerList(StyledFrame):
         )
         title.pack(side='left')
         
-        # Position filter buttons (future enhancement)
+        # Sort controls
+        sort_frame = StyledFrame(header_frame, bg_type='secondary')
+        sort_frame.pack(side='left', padx=20)
+        
+        sort_label = tk.Label(
+            sort_frame,
+            text="Sort:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 9)
+        )
+        sort_label.pack(side='left', padx=(0, 5))
+        
+        # Sort buttons
+        self.sort_buttons = {}
+        sort_options = [("Rank", "rank"), ("ADP", "adp")]
+        
+        for label, value in sort_options:
+            btn = tk.Button(
+                sort_frame,
+                text=label,
+                bg=DARK_THEME['button_active'] if value == "rank" else DARK_THEME['button_bg'],
+                fg='white',
+                font=(DARK_THEME['font_family'], 9),
+                bd=1,
+                relief='solid',
+                padx=8,
+                pady=2,
+                command=lambda v=value: self.sort_players(v),
+                cursor='hand2'
+            )
+            btn.pack(side='left', padx=2)
+            self.sort_buttons[value] = btn
+        
+        # Position filter buttons
         filter_frame = StyledFrame(header_frame, bg_type='secondary')
         filter_frame.pack(side='right')
         
+        # Add position filter buttons
+        positions = ["ALL", "QB", "RB", "WR", "TE"]
+        self.position_buttons = {}
+        
+        for pos in positions:
+            btn = tk.Button(
+                filter_frame,
+                text=pos,
+                bg=DARK_THEME['button_bg'] if pos != "ALL" else DARK_THEME['button_active'],
+                fg='white',
+                font=(DARK_THEME['font_family'], 9),
+                bd=1,
+                relief='solid',
+                padx=10,
+                pady=3,
+                command=lambda p=pos: self.filter_by_position(p),
+                cursor='hand2'
+            )
+            btn.pack(side='left', padx=2)
+            self.position_buttons[pos] = btn
+        
+        # View toggle button
+        view_toggle_frame = StyledFrame(header_frame, bg_type='secondary')
+        view_toggle_frame.pack(side='right', padx=(10, 0))
+        
+        self.toggle_btn = tk.Button(
+            view_toggle_frame,
+            text="⬇ Table View",
+            bg=DARK_THEME['button_bg'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 9),
+            bd=1,
+            relief='solid',
+            padx=10,
+            pady=3,
+            command=self.toggle_view_mode,
+            cursor='hand2'
+        )
+        self.toggle_btn.pack()
+        
+        # Content container that will hold either cards or table
+        self.content_container = StyledFrame(container, bg_type='secondary')
+        self.content_container.pack(fill='both', expand=True)
+        
+        # Create both views but only show one
+        self.create_cards_view()
+        self.create_table_view()
+        
+        # Initially show cards view
+        self.show_cards_view()
+    
+    def create_cards_view(self):
+        """Create the horizontal scrollable cards view"""
+        self.cards_container = StyledFrame(self.content_container, bg_type='secondary')
+        
         # Horizontal scrollable container
-        scroll_container = StyledFrame(container, bg_type='secondary')
+        scroll_container = StyledFrame(self.cards_container, bg_type='secondary')
         scroll_container.pack(fill='both', expand=True)
         
         # Canvas for horizontal scrolling
@@ -78,29 +169,148 @@ class PlayerList(StyledFrame):
         # Player cards container
         self.player_cards = []
     
+    def create_table_view(self):
+        """Create the table view for players"""
+        self.table_container = StyledFrame(self.content_container, bg_type='secondary')
+        
+        # Table with scrollbar
+        table_scroll_container = StyledFrame(self.table_container, bg_type='secondary')
+        table_scroll_container.pack(fill='both', expand=True)
+        
+        # Create Treeview for table
+        style = ttk.Style()
+        style.theme_use('clam')
+        
+        # Configure dark theme for Treeview
+        style.configure("Treeview",
+                       background=DARK_THEME['bg_tertiary'],
+                       foreground=DARK_THEME['text_primary'],
+                       fieldbackground=DARK_THEME['bg_tertiary'],
+                       borderwidth=0,
+                       font=(DARK_THEME['font_family'], 10))
+        style.configure("Treeview.Heading",
+                       background=DARK_THEME['bg_secondary'],
+                       foreground=DARK_THEME['text_primary'],
+                       borderwidth=1,
+                       font=(DARK_THEME['font_family'], 10, 'bold'))
+        style.map('Treeview', background=[('selected', DARK_THEME['button_active'])])
+        
+        # Create treeview with columns
+        columns = ('rank', 'pos', 'name', 'team', 'adp')
+        self.table = ttk.Treeview(table_scroll_container, columns=columns, show='headings', height=10)
+        
+        # Define column headings and widths
+        self.table.heading('rank', text='Rank')
+        self.table.heading('pos', text='Pos')
+        self.table.heading('name', text='Name')
+        self.table.heading('team', text='Team')
+        self.table.heading('adp', text='ADP')
+        
+        self.table.column('rank', width=50, anchor='center')
+        self.table.column('pos', width=50, anchor='center')
+        self.table.column('name', width=200, anchor='w')
+        self.table.column('team', width=50, anchor='center')
+        self.table.column('adp', width=60, anchor='center')
+        
+        # Scrollbar for table
+        table_scrollbar = tk.Scrollbar(table_scroll_container, orient='vertical', command=self.table.yview)
+        self.table.configure(yscrollcommand=table_scrollbar.set)
+        
+        self.table.pack(side='left', fill='both', expand=True)
+        table_scrollbar.pack(side='right', fill='y')
+        
+        # Bind double-click to draft
+        self.table.bind('<Double-Button-1>', self.on_table_double_click)
+        self.table.bind('<<TreeviewSelect>>', self.on_table_select)
+        
+        # Make headers clickable for sorting
+        self.table.heading('rank', text='Rank', command=lambda: self.sort_table_by('rank'))
+        self.table.heading('pos', text='Pos', command=lambda: self.sort_table_by('position'))
+        self.table.heading('name', text='Name', command=lambda: self.sort_table_by('name'))
+        self.table.heading('team', text='Team', command=lambda: self.sort_table_by('team'))
+        self.table.heading('adp', text='ADP', command=lambda: self.sort_table_by('adp'))
+    
+    def toggle_view_mode(self):
+        """Toggle between cards and table view"""
+        if self.view_mode == "cards":
+            self.view_mode = "table"
+            self.table_expanded = not self.table_expanded
+            self.show_table_view()
+            self.toggle_btn.config(text="⬆ Card View" if self.table_expanded else "⬇ Table View")
+        else:
+            self.view_mode = "cards"
+            self.table_expanded = False
+            self.show_cards_view()
+            self.toggle_btn.config(text="⬇ Table View")
+        
+        # Update the display
+        self.update_players(self.all_players)
+    
+    def show_cards_view(self):
+        """Show the cards view and hide table view"""
+        if hasattr(self, 'table_container'):
+            self.table_container.pack_forget()
+        self.cards_container.pack(fill='both', expand=True)
+        self.content_container.configure(height=200)
+    
+    def show_table_view(self):
+        """Show the table view and hide cards view"""
+        self.cards_container.pack_forget()
+        self.table_container.pack(fill='both', expand=True)
+        # Adjust height based on expanded state
+        if self.table_expanded:
+            self.content_container.configure(height=400)
+        else:
+            self.content_container.configure(height=200)
+    
     def update_players(self, players: List[Player], limit: int = 30):
-        self.players = players[:limit]
+        # Store all players
+        self.all_players = players
+        
+        # Apply position filter
+        if self.selected_position == "ALL":
+            filtered_players = players
+        else:
+            filtered_players = [p for p in players if p.position == self.selected_position]
+        
+        # Apply sorting
+        if self.sort_by == "adp":
+            # Sort by ADP, putting players without ADP at the end
+            filtered_players = sorted(filtered_players, 
+                                    key=lambda p: p.adp if p.adp else float('inf'))
+        else:  # Default sort by rank
+            filtered_players = sorted(filtered_players, key=lambda p: p.rank)
+        
+        self.players = filtered_players[:limit if self.view_mode == "cards" else len(filtered_players)]
         self.selected_index = None
         
-        # Clear existing player cards
-        for card in self.player_cards:
-            card.destroy()
-        self.player_cards.clear()
-        
-        # Create new player cards in a horizontal layout
-        for i, player in enumerate(self.players):
-            card = self.create_player_card(i, player)
-            card.pack(side='left', padx=5, pady=10)
-            self.player_cards.append(card)
+        if self.view_mode == "cards":
+            # Clear existing player cards
+            for card in self.player_cards:
+                card.destroy()
+            self.player_cards.clear()
+            
+            # Create new player cards in a horizontal layout
+            for i, player in enumerate(self.players):
+                card = self.create_player_card(i, player)
+                card.pack(side='left', padx=5, pady=10)
+                self.player_cards.append(card)
+        else:
+            # Update table view
+            self.update_table_view()
     
     def remove_player_card(self, index: int):
         """Remove a specific player card without refreshing all players"""
-        if 0 <= index < len(self.player_cards):
-            self.player_cards[index].destroy()
-            self.player_cards.pop(index)
-            self.players.pop(index)
-            
-            # No need to update indices anymore since we use player objects
+        if self.view_mode == "cards":
+            if 0 <= index < len(self.player_cards):
+                self.player_cards[index].destroy()
+                self.player_cards.pop(index)
+                self.players.pop(index)
+        else:
+            # For table view, remove the player and update
+            if 0 <= index < len(self.players):
+                self.players.pop(index)
+                self.update_table_view()
     
     def remove_players(self, players_to_remove: List[Player]):
         """Remove multiple players from the list efficiently"""
@@ -115,14 +325,19 @@ class PlayerList(StyledFrame):
         # Sort in reverse order so we remove from the end first
         indices_to_remove.sort(reverse=True)
         
-        # Remove each player
-        for index in indices_to_remove:
-            if 0 <= index < len(self.player_cards):
-                self.player_cards[index].destroy()
-                self.player_cards.pop(index)
-                self.players.pop(index)
-        
-        # No need to update indices anymore since we use player objects
+        if self.view_mode == "cards":
+            # Remove each player card
+            for index in indices_to_remove:
+                if 0 <= index < len(self.player_cards):
+                    self.player_cards[index].destroy()
+                    self.player_cards.pop(index)
+                    self.players.pop(index)
+        else:
+            # For table view, remove players and update
+            for index in indices_to_remove:
+                if 0 <= index < len(self.players):
+                    self.players.pop(index)
+            self.update_table_view()
     
     def create_player_card(self, index: int, player: Player) -> tk.Frame:
         # Player card container - vertical layout
@@ -153,33 +368,80 @@ class PlayerList(StyledFrame):
         inner.bind("<Button-1>", on_click)
         inner.bind("<Double-Button-1>", on_double_click)
         
-        # Player image placeholder
-        image_label = None
-        if player.player_id:
-            # Check cache first
-            if player.player_id in self.image_cache:
-                photo = self.image_cache[player.player_id]
-                image_label = tk.Label(
-                    inner,
-                    image=photo,
+        # Player image container (for player + team logo)
+        image_container = tk.Frame(inner, bg=DARK_THEME['bg_tertiary'], width=40, height=32)
+        image_container.pack(pady=(0, 5))
+        image_container.bind("<Button-1>", lambda e: on_click(e))
+        
+        # Player image
+        if self.image_service and player.player_id:
+            # Player image
+            player_image = self.image_service.get_image(player.player_id, size=(40, 32))
+            if player_image:
+                img_label = tk.Label(
+                    image_container,
+                    image=player_image,
                     bg=DARK_THEME['bg_tertiary']
                 )
-                image_label.image = photo  # Keep a reference
-                image_label.pack(pady=(0, 5))
-                image_label.bind("<Button-1>", lambda e: on_click(e))
+                img_label.image = player_image  # Keep reference
+                img_label.place(x=0, y=0)
+                img_label.bind("<Button-1>", lambda e: on_click(e))
             else:
-                # Create placeholder for image
-                image_label = tk.Label(
-                    inner,
-                    text="",
+                # Create placeholder
+                img_label = tk.Label(
+                    image_container,
                     bg=DARK_THEME['bg_tertiary'],
-                    height=3,
-                    width=5
+                    width=5,
+                    height=2
                 )
-                image_label.pack(pady=(0, 5))
-                image_label.bind("<Button-1>", lambda e: on_click(e))
+                img_label.place(x=0, y=0, width=40, height=32)
+                img_label.bind("<Button-1>", lambda e: on_click(e))
+                
                 # Schedule image loading
-                self.after(1, lambda pid=player.player_id, lbl=image_label: self._load_player_image(pid, lbl))
+                def update_player_image(photo):
+                    if img_label.winfo_exists():
+                        img_label.configure(image=photo)
+                        img_label.image = photo
+                
+                self.image_service.load_image_async(
+                    player.player_id,
+                    size=(40, 32),
+                    callback=update_player_image,
+                    widget=self
+                )
+            
+            # Team logo overlay
+            if player.team:
+                team_logo = self.image_service.get_image(f"team_{player.team}", size=(16, 16))
+                if team_logo:
+                    logo_label = tk.Label(
+                        image_container,
+                        image=team_logo,
+                        bg=DARK_THEME['bg_tertiary']
+                    )
+                    logo_label.image = team_logo
+                    logo_label.place(x=26, y=14)  # Position like Sleeper
+                    logo_label.bind("<Button-1>", lambda e: on_click(e))
+                else:
+                    # Schedule team logo loading
+                    def update_team_logo(photo):
+                        if image_container.winfo_exists():
+                            logo_label = tk.Label(
+                                image_container,
+                                image=photo,
+                                bg=DARK_THEME['bg_tertiary']
+                            )
+                            logo_label.image = photo
+                            logo_label.place(x=26, y=14)
+                            logo_label.bind("<Button-1>", lambda e: on_click(e))
+                    
+                    # Load team logo using special ID
+                    self.image_service.load_image_async(
+                        f"team_{player.team}",
+                        size=(16, 16),
+                        callback=update_team_logo,
+                        widget=self
+                    )
         
         # Rank at top
         rank_label = tk.Label(
@@ -222,6 +484,17 @@ class PlayerList(StyledFrame):
         name_label.pack(fill='x')
         name_label.bind("<Button-1>", lambda e: on_click(e))
         
+        # ADP display
+        adp_label = tk.Label(
+            inner,
+            text=f"ADP: {player.adp:.1f}" if player.adp else "ADP: -",
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_muted'],
+            font=(DARK_THEME['font_family'], 9)
+        )
+        adp_label.pack(fill='x')
+        adp_label.bind("<Button-1>", lambda e: on_click(e))
+        
         # Draft button
         if self.on_draft:
             draft_btn = tk.Button(
@@ -255,26 +528,6 @@ class PlayerList(StyledFrame):
         
         return card
     
-    def _load_player_image(self, player_id, image_label=None):
-        """Load player image asynchronously"""
-        if player_id not in self.image_cache:
-            try:
-                image_url = get_player_image_url(player_id)
-                response = requests.get(image_url, timeout=2)
-                if response.status_code == 200:
-                    img = Image.open(BytesIO(response.content))
-                    # Resize image to consistent 40x40 size
-                    img = img.resize((40, 40), Image.Resampling.LANCZOS)
-                    photo = ImageTk.PhotoImage(img)
-                    # Cache it
-                    self.image_cache[player_id] = photo
-                    
-                    # If image_label is provided, update it
-                    if image_label and image_label.winfo_exists():
-                        image_label.configure(image=photo, height=40, width=40)
-                        image_label.image = photo
-            except:
-                pass
     
     def select_player(self, index: int):
         # Deselect previous
@@ -321,6 +574,34 @@ class PlayerList(StyledFrame):
         # Player not found - might have been drafted already
         return
     
+    def filter_by_position(self, position: str):
+        """Filter players by position"""
+        self.selected_position = position
+        
+        # Update button appearances
+        for pos, btn in self.position_buttons.items():
+            if pos == position:
+                btn.config(bg=DARK_THEME['button_active'])
+            else:
+                btn.config(bg=DARK_THEME['button_bg'])
+        
+        # Refresh the player list with the filter applied
+        self.update_players(self.all_players)
+    
+    def sort_players(self, sort_by: str):
+        """Sort players by specified criteria"""
+        self.sort_by = sort_by
+        
+        # Update button appearances
+        for key, btn in self.sort_buttons.items():
+            if key == sort_by:
+                btn.config(bg=DARK_THEME['button_active'])
+            else:
+                btn.config(bg=DARK_THEME['button_bg'])
+        
+        # Refresh the player list with the new sort
+        self.update_players(self.all_players)
+    
     def set_draft_enabled(self, enabled: bool):
         """Enable or disable all draft buttons"""
         self.draft_enabled = enabled
@@ -332,3 +613,62 @@ class PlayerList(StyledFrame):
                     for child in widget.winfo_children():
                         if isinstance(child, tk.Button) and child.cget('text') == 'DRAFT':
                             child.config(state='normal' if enabled else 'disabled')
+    
+    def update_table_view(self):
+        """Update the table view with current players"""
+        # Clear existing items
+        for item in self.table.get_children():
+            self.table.delete(item)
+        
+        # Add players to table
+        for i, player in enumerate(self.players):
+            values = (
+                f"#{player.rank}",
+                player.position,
+                player.name,
+                player.team or '-',
+                f"{player.adp:.1f}" if player.adp else '-'
+            )
+            self.table.insert('', 'end', values=values, tags=(player.position,))
+        
+        # Apply position colors to tags
+        for pos in ['QB', 'RB', 'WR', 'TE']:
+            self.table.tag_configure(pos, foreground=get_position_color(pos))
+    
+    def on_table_select(self, event):
+        """Handle table row selection"""
+        selection = self.table.selection()
+        if selection:
+            item = selection[0]
+            index = self.table.index(item)
+            if index < len(self.players):
+                self.selected_index = index
+                if self.on_select:
+                    self.on_select(self.players[index])
+    
+    def on_table_double_click(self, event):
+        """Handle double-click on table row to draft"""
+        selection = self.table.selection()
+        if selection and self.draft_enabled:
+            item = selection[0]
+            index = self.table.index(item)
+            if index < len(self.players) and self.on_draft:
+                self.selected_index = index
+                self.on_draft()
+    
+    def sort_table_by(self, column: str):
+        """Sort the table by the specified column"""
+        # Sort the players list based on column
+        if column == 'rank':
+            self.players.sort(key=lambda p: p.rank)
+        elif column == 'position':
+            self.players.sort(key=lambda p: p.position)
+        elif column == 'name':
+            self.players.sort(key=lambda p: p.name)
+        elif column == 'team':
+            self.players.sort(key=lambda p: p.team if p.team else 'ZZZ')
+        elif column == 'adp':
+            self.players.sort(key=lambda p: p.adp if p.adp else float('inf'))
+        
+        # Update the table view
+        self.update_table_view()

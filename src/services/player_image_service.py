@@ -3,7 +3,7 @@ from PIL import Image, ImageTk
 import requests
 from io import BytesIO
 import tkinter as tk
-from ..utils.player_extensions import get_player_image_url
+from ..utils.player_extensions import get_player_image_url, get_team_logo_url
 
 
 class PlayerImageService:
@@ -55,7 +55,13 @@ class PlayerImageService:
         cache_key = f"{player_id}_{size[0]}x{size[1]}"
         
         try:
-            image_url = get_player_image_url(player_id)
+            # Check if this is a team logo request
+            if player_id.startswith("team_"):
+                team_abbr = player_id[5:]  # Remove "team_" prefix
+                image_url = get_team_logo_url(team_abbr)
+            else:
+                image_url = get_player_image_url(player_id)
+            
             if not image_url:
                 return
             
@@ -73,7 +79,7 @@ class PlayerImageService:
                 if callback and widget and widget.winfo_exists():
                     callback(photo)
         except Exception as e:
-            print(f"Error loading image for player {player_id}: {e}")
+            print(f"Error loading image for {player_id}: {e}")
         finally:
             self._loading_images.discard(cache_key)
     

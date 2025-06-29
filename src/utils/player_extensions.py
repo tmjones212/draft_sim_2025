@@ -44,3 +44,10 @@ def get_player_image_url(player_id):
     if player_id:
         return f"https://sleepercdn.com/content/nfl/players/{player_id}.jpg"
     return None
+
+
+def get_team_logo_url(team_abbr):
+    """Get the Sleeper CDN logo URL for a team"""
+    if team_abbr:
+        return f"https://sleepercdn.com/images/team_logos/nfl/{team_abbr.lower()}.png"
+    return None
