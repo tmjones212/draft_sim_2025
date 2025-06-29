@@ -8,7 +8,7 @@ from .styled_widgets import StyledFrame
 
 
 class DraftBoard(StyledFrame):
-    def __init__(self, parent, teams: Dict[int, Team], total_rounds: int, max_visible_rounds: int = 9, **kwargs):
+    def __init__(self, parent, teams: Dict[int, Team], total_rounds: int, max_visible_rounds: int = 9, on_team_select=None, on_pick_click=None, **kwargs):
         super().__init__(parent, bg_type='secondary', **kwargs)
         self.teams = teams
         self.num_teams = len(teams)
@@ -16,6 +16,11 @@ class DraftBoard(StyledFrame):
         self.max_visible_rounds = max_visible_rounds
         self.pick_widgets: Dict[int, tk.Frame] = {}  # pick_number -> widget
         self.current_pick_num = 1
+        self.on_team_select = on_team_select
+        self.on_pick_click = on_pick_click
+        self.selected_team_id = None
+        self.team_buttons = {}  # team_id -> button widget
+        self.draft_results = []  # Store draft picks
         self.setup_ui()
         
     def setup_ui(self):
@@ -61,6 +66,32 @@ class DraftBoard(StyledFrame):
         col_width = 120  # Slightly wider for better readability
         row_height = 55  # More compact
         header_height = 40
+        button_height = 25
+        
+        # Team selection buttons
+        for team_id in range(1, self.num_teams + 1):
+            button_frame = StyledFrame(
+                self.scrollable_frame,
+                bg_type='secondary',
+                width=col_width,
+                height=button_height
+            )
+            button_frame.grid(row=0, column=team_id - 1, sticky='nsew', padx=2, pady=(0, 2))
+            button_frame.grid_propagate(False)
+            
+            button = tk.Button(
+                button_frame,
+                text=f"Control",
+                bg=DARK_THEME['button_bg'],
+                fg=DARK_THEME['text_secondary'],
+                font=(DARK_THEME['font_family'], 9),
+                bd=1,
+                relief='solid',
+                command=lambda tid=team_id: self.select_team(tid),
+                cursor='hand2'
+            )
+            button.pack(fill='both', expand=True)
+            self.team_buttons[team_id] = button
         
         # Team headers
         for team_id in range(1, self.num_teams + 1):
@@ -73,7 +104,7 @@ class DraftBoard(StyledFrame):
                 width=col_width,
                 height=header_height
             )
-            header_frame.grid(row=0, column=team_id - 1, sticky='nsew', padx=2, pady=2)
+            header_frame.grid(row=1, column=team_id - 1, sticky='nsew', padx=2, pady=2)
             header_frame.grid_propagate(False)
             
             team_label = tk.Label(
@@ -93,17 +124,16 @@ class DraftBoard(StyledFrame):
             # Determine order for this round (with 3rd round reversal)
             if round_num == 1:
                 order = list(range(1, self.num_teams + 1))
-            elif round_num == 2:
-                order = list(range(self.num_teams, 0, -1))
-            elif round_num == 3:
-                # 3rd round reversal - same direction as round 2
+            elif round_num == 2 or round_num == 3:
+                # Rounds 2 and 3 go the same direction (reverse)
                 order = list(range(self.num_teams, 0, -1))
             else:
-                # After round 3, continue normal snake
+                # After round 3, normal snake draft
+                # Round 4 goes forward, round 5 reverse, etc.
                 if round_num % 2 == 0:
-                    order = list(range(self.num_teams, 0, -1))
-                else:
                     order = list(range(1, self.num_teams + 1))
+                else:
+                    order = list(range(self.num_teams, 0, -1))
             
             # Create pick slots
             for pos, team_id in enumerate(order):
@@ -115,7 +145,7 @@ class DraftBoard(StyledFrame):
                     height=row_height
                 )
                 pick_frame.grid(
-                    row=round_num,
+                    row=round_num + 1,
                     column=team_id - 1,
                     sticky='nsew',
                     padx=2,
@@ -145,21 +175,66 @@ class DraftBoard(StyledFrame):
                 
                 # Store reference
                 self.pick_widgets[pick_number] = pick_frame
+                
+                # Make pick clickable
+                def on_pick_click(pn=pick_number):
+                    if self.on_pick_click and pn <= len(self.draft_results):
+                        self.on_pick_click(pn)
+                
+                pick_frame.bind("<Button-1>", lambda e: on_pick_click())
+                pick_frame.config(cursor="hand2")
+                
                 pick_number += 1
         
         # Configure grid weights
         for i in range(self.num_teams):
             self.scrollable_frame.grid_columnconfigure(i, minsize=col_width)
-        for i in range(self.total_rounds + 1):
-            self.scrollable_frame.grid_rowconfigure(i, minsize=header_height if i == 0 else row_height)
+        for i in range(self.total_rounds + 2):
+            if i == 0:
+                self.scrollable_frame.grid_rowconfigure(i, minsize=button_height)
+            elif i == 1:
+                self.scrollable_frame.grid_rowconfigure(i, minsize=header_height)
+            else:
+                self.scrollable_frame.grid_rowconfigure(i, minsize=row_height)
+    
+    def select_team(self, team_id: int):
+        """Handle team selection for user control"""
+        self.selected_team_id = team_id
+        
+        # Update button appearances
+        for tid, button in self.team_buttons.items():
+            if tid == team_id:
+                button.config(
+                    bg=DARK_THEME['button_active'],
+                    fg='white',
+                    text='Controlling'
+                )
+            else:
+                button.config(
+                    bg=DARK_THEME['button_bg'],
+                    fg=DARK_THEME['text_secondary'],
+                    text='Control'
+                )
+        
+        # Notify parent if callback provided
+        if self.on_team_select:
+            self.on_team_select(team_id)
     
     def update_picks(self, picks: List[DraftPick], current_pick_num: int):
         self.current_pick_num = current_pick_num
+        self.draft_results = picks  # Store all picks
         
-        # Update pick slots with drafted players
-        for pick in picks:
+        # Only update new picks since last update
+        if not hasattr(self, '_last_pick_count'):
+            self._last_pick_count = 0
+        
+        # Update only new picks
+        new_picks = picks[self._last_pick_count:]
+        for pick in new_picks:
             if pick.pick_number in self.pick_widgets:
                 self.update_pick_slot(pick)
+        
+        self._last_pick_count = len(picks)
         
         # Highlight current pick
         self.highlight_current_pick()

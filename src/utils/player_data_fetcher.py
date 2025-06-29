@@ -43,52 +43,91 @@ def fetch_adp_data() -> Optional[Dict]:
     try:
         response = requests.post(url, headers=headers, data=data, timeout=10)
         response.raise_for_status()
-        return response.json()
+        # Return the text content for HTML parsing
+        return response.text
     except Exception as e:
         print(f"Error fetching ADP data: {e}")
         return None
 
 
-def parse_player_data(raw_data: Dict) -> List[Dict]:
-    """Parse the raw ADP data into our player format"""
-    players = []
+def parse_player_data(raw_data: str) -> List[Dict]:
+    """Parse the HTML ADP data into our player format"""
+    import re
+    from html.parser import HTMLParser
     
-    if not raw_data or 'data' not in raw_data:
-        return players
+    class ADPHTMLParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.players = []
+            self.current_player = {}
+            self.in_rank = False
+            self.in_player_link = False
+            self.current_data = ""
+            
+        def handle_starttag(self, tag, attrs):
+            attrs_dict = dict(attrs)
+            
+            if tag == "span" and attrs_dict.get("class") == "rank":
+                self.in_rank = True
+            elif tag == "a" and "PlayerLinkV" in attrs_dict.get("class", ""):
+                self.in_player_link = True
+                # Extract player name from href
+                href = attrs_dict.get("href", "")
+                if href:
+                    parts = href.split("/")
+                    if len(parts) > 0:
+                        name = parts[-1].replace("%20", " ").replace("%27", "'")
+                        self.current_player["name"] = name
+            elif tag == "tr":
+                # Extract position from filter-pos attribute
+                filter_pos = attrs_dict.get("filter-pos", "")
+                if filter_pos:
+                    # Get first position (primary position)
+                    pos = filter_pos.split(",")[0]
+                    if pos in ["QB", "RB", "WR", "TE"]:
+                        self.current_player["position"] = pos
+                # Extract team
+                filter_team = attrs_dict.get("filter-team", "")
+                if filter_team:
+                    self.current_player["team"] = filter_team
+                    
+        def handle_data(self, data):
+            if self.in_rank:
+                try:
+                    self.current_player["rank"] = int(data.strip())
+                except:
+                    pass
+                    
+        def handle_endtag(self, tag):
+            if tag == "span" and self.in_rank:
+                self.in_rank = False
+            elif tag == "a" and self.in_player_link:
+                self.in_player_link = False
+            elif tag == "tr" and self.current_player:
+                if all(k in self.current_player for k in ["rank", "name", "position"]):
+                    self.players.append(self.current_player)
+                self.current_player = {}
     
-    # The data comes as a list of lists in the 'data' field
-    for row in raw_data['data']:
-        try:
-            # Typical format: [rank, player_name, position, team, adp, etc.]
-            # This may need adjustment based on actual response format
-            if len(row) >= 5:
-                rank = int(row[0]) if row[0] else 0
-                player_name = row[1]
-                position = row[2].upper()
-                team = row[3]
-                adp = float(row[4]) if row[4] else rank
-                
-                # Only include offensive positions
-                if position in ['QB', 'RB', 'WR', 'TE']:
-                    players.append({
-                        'name': player_name,
-                        'position': position,
-                        'team': team,
-                        'rank': rank,
-                        'adp': adp
-                    })
-        except (IndexError, ValueError) as e:
-            print(f"Error parsing player row: {e}")
-            continue
+    # If it's already a dict (JSON response), return empty
+    if isinstance(raw_data, dict):
+        return []
     
-    # Sort by rank/ADP
-    players.sort(key=lambda x: x['rank'] if x['rank'] > 0 else x['adp'])
+    # Parse HTML
+    parser = ADPHTMLParser()
+    parser.feed(raw_data)
     
-    # Re-rank based on sorted order
-    for i, player in enumerate(players):
-        player['rank'] = i + 1
+    # Extract ADP values from the HTML using regex
+    adp_pattern = r'<td class="numeric">(\d+\.\d+)</td>'
+    adp_values = re.findall(adp_pattern, raw_data)
     
-    return players
+    # Match ADP values to players
+    for i, player in enumerate(parser.players):
+        if i < len(adp_values):
+            player['adp'] = float(adp_values[i])
+        else:
+            player['adp'] = player['rank']
+    
+    return parser.players[:150]  # Return top 150
 
 
 def save_player_cache(players: List[Dict], cache_file: str = "player_cache.json"):

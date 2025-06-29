@@ -9,7 +9,8 @@
       "Bash(rm:*)",
       "Bash(chmod:*)",
       "Bash(./sync_to_windows.sh:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }

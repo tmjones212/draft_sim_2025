@@ -7,9 +7,10 @@ from .styled_widgets import StyledFrame
 
 
 class PlayerList(StyledFrame):
-    def __init__(self, parent, on_select: Optional[Callable] = None, **kwargs):
+    def __init__(self, parent, on_select: Optional[Callable] = None, on_draft: Optional[Callable] = None, **kwargs):
         super().__init__(parent, bg_type='secondary', **kwargs)
         self.on_select = on_select
+        self.on_draft = on_draft
         self.players: List[Player] = []
         self.selected_index = None
         self.setup_ui()
@@ -45,7 +46,7 @@ class PlayerList(StyledFrame):
             scroll_container,
             bg=DARK_THEME['bg_secondary'],
             highlightthickness=0,
-            height=180
+            height=200
         )
         h_scrollbar = tk.Scrollbar(
             scroll_container,
@@ -92,20 +93,27 @@ class PlayerList(StyledFrame):
             bg_type='tertiary',
             relief='flat',
             width=130,
-            height=140
+            height=160
         )
         card.pack_propagate(False)
         
-        # Make card clickable
+        # Make card clickable and double-clickable
         def on_click(event):
             self.select_player(index)
         
+        def on_double_click(event):
+            self.select_player(index)
+            if self.on_draft:
+                self.on_draft()
+        
         card.bind("<Button-1>", on_click)
+        card.bind("<Double-Button-1>", on_double_click)
         
         # Inner container with padding
         inner = StyledFrame(card, bg_type='tertiary')
         inner.pack(fill='both', expand=True, padx=10, pady=10)
         inner.bind("<Button-1>", on_click)
+        inner.bind("<Double-Button-1>", on_double_click)
         
         # Rank at top
         rank_label = tk.Label(
@@ -148,16 +156,35 @@ class PlayerList(StyledFrame):
         name_label.pack(fill='x')
         name_label.bind("<Button-1>", on_click)
         
-        # ADP/Value info (placeholder)
-        value_label = tk.Label(
-            inner,
-            text=f"ADP: {player.adp}",
-            bg=DARK_THEME['bg_tertiary'],
-            fg=DARK_THEME['text_muted'],
-            font=(DARK_THEME['font_family'], 9)
-        )
-        value_label.pack(pady=(5, 0))
-        value_label.bind("<Button-1>", on_click)
+        # Draft button
+        if self.on_draft:
+            draft_btn = tk.Button(
+                inner,
+                text="DRAFT",
+                bg=DARK_THEME['button_active'],
+                fg='white',
+                font=(DARK_THEME['font_family'], 8, 'bold'),
+                relief='flat',
+                cursor='hand2',
+                command=lambda: self.draft_player(index)
+            )
+            draft_btn.pack(pady=(5, 0))
+            
+            # Hover effect
+            draft_btn.bind('<Enter>', lambda e: draft_btn.config(bg='#2ecc71'))
+            draft_btn.bind('<Leave>', lambda e: draft_btn.config(bg=DARK_THEME['button_active']))
+        
+        # Remove ADP label if draft button is shown
+        if not self.on_draft:
+            value_label = tk.Label(
+                inner,
+                text=f"ADP: {player.adp}",
+                bg=DARK_THEME['bg_tertiary'],
+                fg=DARK_THEME['text_muted'],
+                font=(DARK_THEME['font_family'], 9)
+            )
+            value_label.pack(pady=(5, 0))
+            value_label.bind("<Button-1>", on_click)
         
         return card
     
@@ -187,3 +214,9 @@ class PlayerList(StyledFrame):
         if self.selected_index is not None and self.selected_index < len(self.players):
             return self.players[self.selected_index]
         return None
+    
+    def draft_player(self, index: int):
+        """Draft a specific player by index"""
+        self.select_player(index)
+        if self.on_draft:
+            self.on_draft()

@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import sys
 import os
+import random
 
 # Add the current directory to Python path for cross-platform compatibility
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -40,8 +41,16 @@ class MockDraftApp:
         self.all_players = generate_mock_players()
         self.available_players = list(self.all_players)
         
+        # User control state
+        self.user_team_id = None  # Which team the user controls
+        
+        # Draft reversion state
+        self.draft_state_before_reversion = None
+        self.players_before_reversion = None
+        
         # Setup UI
         self.setup_ui()
+        self.setup_keyboard_shortcuts()
         self.update_display()
     
     def _create_teams(self):
@@ -85,9 +94,38 @@ class MockDraftApp:
         )
         self.on_clock_label.pack(anchor='w', pady=(3, 0))
         
+        # Button container
+        button_container = StyledFrame(header_frame, bg_type='primary')
+        button_container.pack(side='right')
+        
+        # Undo button
+        self.undo_button = StyledButton(
+            button_container,
+            text="UNDO",
+            command=self.undo_reversion,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            padx=20,
+            pady=10,
+            state='disabled'
+        )
+        self.undo_button.pack(side='left', padx=(0, 10))
+        
+        # Restart button
+        self.restart_button = StyledButton(
+            button_container,
+            text="RESTART DRAFT",
+            command=self.restart_draft,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            padx=20,
+            pady=10
+        )
+        self.restart_button.pack(side='left', padx=(0, 10))
+        
         # Draft button
         self.draft_button = StyledButton(
-            header_frame,
+            button_container,
             text="DRAFT PLAYER",
             command=self.draft_player,
             bg=DARK_THEME['button_active'],
@@ -95,7 +133,7 @@ class MockDraftApp:
             padx=25,
             pady=10
         )
-        self.draft_button.pack(side='right')
+        self.draft_button.pack(side='left')
         
         # Main content area - two row layout
         content_frame = StyledFrame(main_frame, bg_type='primary')
@@ -113,7 +151,14 @@ class MockDraftApp:
         draft_panel.grid(row=0, column=0, sticky='nsew', padx=(0, 10))
         
         total_rounds = sum(config.roster_spots.values())
-        self.draft_board = DraftBoard(draft_panel, self.teams, total_rounds, max_visible_rounds=9)
+        self.draft_board = DraftBoard(
+            draft_panel, 
+            self.teams, 
+            total_rounds, 
+            max_visible_rounds=9,
+            on_team_select=self.on_team_selected,
+            on_pick_click=self.on_pick_clicked
+        )
         self.draft_board.pack(fill='both', expand=True, padx=10, pady=10)
         
         # Roster panel (narrow)
@@ -127,10 +172,10 @@ class MockDraftApp:
         player_panel = StyledFrame(content_frame, bg_type='secondary')
         player_panel.grid(row=1, column=0, columnspan=2, sticky='nsew', pady=(10, 0))
         
-        self.player_list = PlayerList(player_panel)
+        self.player_list = PlayerList(player_panel, on_draft=self.draft_player)
         self.player_list.pack(fill='both', expand=True, padx=10, pady=10)
     
-    def update_display(self):
+    def update_display(self, full_update=True):
         # Update status
         pick_num, round_num, pick_in_round, team_on_clock = self.draft_engine.get_current_pick_info()
         
@@ -143,12 +188,20 @@ class MockDraftApp:
             self.on_clock_label.config(text=f"On the Clock: {self.teams[team_on_clock].name}")
         
         # Update components
-        self.player_list.update_players(self.available_players)
+        if full_update:
+            self.player_list.update_players(self.available_players)
+        
+        # Always update draft board with just the last pick
         self.draft_board.update_picks(
             self.draft_engine.get_draft_results(),
             pick_num
         )
-        self.roster_view.update_all_rosters()
+        
+        # Only update the current team's roster
+        if team_on_clock > 0:
+            self.roster_view.current_team_id = team_on_clock
+            self.roster_view.team_var.set(f"Team {team_on_clock}")
+            self.roster_view.update_roster_display()
     
     def draft_player(self):
         player = self.player_list.get_selected_player()
@@ -166,13 +219,421 @@ class MockDraftApp:
         try:
             self.draft_engine.make_pick(current_team, player)
             self.available_players.remove(player)
-            self.update_display()
+            # Quick update - don't reload all players
+            self.update_display(full_update=False)
+            # Remove the drafted player from the UI
+            if self.player_list.selected_index is not None:
+                self.player_list.player_cards[self.player_list.selected_index].destroy()
+                self.player_list.player_cards.pop(self.player_list.selected_index)
+                self.player_list.players.pop(self.player_list.selected_index)
+                self.player_list.selected_index = None
+            
+            # Check if we need to auto-draft next
+            self.check_auto_draft()
         except ValueError as e:
             messagebox.showerror(
                 "Invalid Pick", 
                 str(e),
                 parent=self.root
             )
+    
+    def setup_keyboard_shortcuts(self):
+        """Setup keyboard shortcuts for drafting"""
+        # Enter or Space to draft selected player
+        self.root.bind('<Return>', lambda e: self.draft_player())
+        self.root.bind('<space>', lambda e: self.draft_player())
+        
+        # Arrow keys to navigate players
+        self.root.bind('<Left>', lambda e: self.navigate_players(-1))
+        self.root.bind('<Right>', lambda e: self.navigate_players(1))
+        
+        # Numbers 1-9 to quick-select top players
+        for i in range(1, 10):
+            self.root.bind(str(i), lambda e, idx=i-1: self.select_player_by_index(idx))
+    
+    def navigate_players(self, direction):
+        """Navigate through player cards with arrow keys"""
+        if not self.player_list.player_cards:
+            return
+            
+        current = self.player_list.selected_index or 0
+        new_index = current + direction
+        
+        if 0 <= new_index < len(self.player_list.player_cards):
+            self.player_list.select_player(new_index)
+    
+    def select_player_by_index(self, index):
+        """Select player by index (for number keys)"""
+        if index < len(self.player_list.player_cards):
+            self.player_list.select_player(index)
+    
+    def on_team_selected(self, team_id):
+        """Handle team selection for user control"""
+        self.user_team_id = team_id
+        # Check if we need to auto-draft for current pick
+        self.check_auto_draft()
+    
+    def check_auto_draft(self):
+        """Check if current pick should be automated"""
+        if self.draft_engine.is_draft_complete():
+            return
+            
+        _, _, _, team_on_clock = self.draft_engine.get_current_pick_info()
+        
+        # If user hasn't selected a team or it's not their turn, auto-draft
+        if self.user_team_id is None or team_on_clock != self.user_team_id:
+            # Process all auto-picks until it's the user's turn again
+            self.auto_draft_until_user_turn()
+    
+    def auto_draft_until_user_turn(self):
+        """Automatically draft for all teams until it's the user's turn"""
+        while not self.draft_engine.is_draft_complete():
+            _, _, _, team_on_clock = self.draft_engine.get_current_pick_info()
+            
+            # Stop if it's the user's turn
+            if self.user_team_id is not None and team_on_clock == self.user_team_id:
+                break
+            
+            # Make auto pick
+            if not self.available_players:
+                break
+                
+            current_team = self.teams[team_on_clock]
+            pick_num = self.draft_engine.get_current_pick_info()[0]
+            
+            # Smart pick selection
+            selected_player = self._select_computer_pick(current_team, pick_num)
+            
+            if selected_player:
+                try:
+                    self.draft_engine.make_pick(current_team, selected_player)
+                    self.available_players.remove(selected_player)
+                except ValueError:
+                    # Pick failed, try next player
+                    continue
+        
+        # Update display once after all auto-picks
+        self.update_display()
+    
+    def _select_computer_pick(self, team, pick_num):
+        """Select a player for computer team based on smart drafting logic"""
+        # Get team's current roster
+        roster_needs = self._get_team_needs(team)
+        
+        # Count current players by position
+        position_counts = self._get_position_counts(team)
+        
+        # Filter players by position needs
+        eligible_players = []
+        for player in self.available_players[:20]:  # Consider top 20 players
+            pos = player.position
+            
+            # Check position limits
+            if pos == 'QB' and position_counts.get('QB', 0) >= 2:
+                continue  # Max 2 QBs
+            elif pos == 'RB' and position_counts.get('RB', 0) >= 5:
+                continue  # Max 5 RBs
+            elif pos == 'WR' and position_counts.get('WR', 0) >= 5:
+                continue  # Max 5 WRs
+            elif pos == 'TE' and position_counts.get('TE', 0) >= 1:
+                continue  # Max 1 TE (special case)
+            elif pos == 'DEF' and position_counts.get('DEF', 0) >= 1:
+                continue  # Max 1 DEF
+            elif pos == 'K' and position_counts.get('K', 0) >= 1:
+                continue  # Max 1 K
+            
+            eligible_players.append(player)
+        
+        if not eligible_players:
+            # If no eligible players in top 20, just take best available
+            return self.available_players[0] if self.available_players else None
+        
+        # Calculate pick value for each player based on ADP
+        player_values = []
+        for player in eligible_players:
+            # Calculate how good the value is (negative = reach, positive = value)
+            adp_value = pick_num - player.adp
+            
+            # Adjust value based on roster need
+            need_multiplier = 1.0
+            if player.position in roster_needs[:2]:  # Top 2 needs
+                need_multiplier = 1.3
+            elif player.position in roster_needs[:3]:  # Top 3 needs
+                need_multiplier = 1.15
+            
+            # Calculate probability of picking this player
+            # Players with ADP close to current pick are more likely
+            # But with some randomness for realism
+            if adp_value > 10:  # Great value (ADP much later than current pick)
+                base_prob = 0.4
+            elif adp_value > 5:  # Good value
+                base_prob = 0.3
+            elif adp_value > -3:  # Fair value (within 3 picks of ADP)
+                base_prob = 0.25
+            elif adp_value > -10:  # Slight reach
+                base_prob = 0.1
+            else:  # Big reach
+                base_prob = 0.02
+            
+            final_prob = base_prob * need_multiplier
+            player_values.append((player, final_prob))
+        
+        # Normalize probabilities
+        total_prob = sum(prob for _, prob in player_values)
+        if total_prob > 0:
+            player_values = [(p, prob/total_prob) for p, prob in player_values]
+        else:
+            # Fallback to equal probability
+            player_values = [(p, 1.0/len(player_values)) for p, _ in player_values]
+        
+        # Select player based on weighted random choice
+        rand = random.random()
+        cumulative = 0
+        for player, prob in player_values:
+            cumulative += prob
+            if rand <= cumulative:
+                return player
+        
+        # Fallback
+        return player_values[0][0] if player_values else None
+    
+    def _get_position_counts(self, team):
+        """Get count of players by position for a team"""
+        position_counts = {'QB': 0, 'RB': 0, 'WR': 0, 'TE': 0, 'DEF': 0, 'K': 0}
+        
+        for pos_slot, players in team.roster.items():
+            for player in players:
+                if player.position in position_counts:
+                    position_counts[player.position] += 1
+        
+        return position_counts
+    
+    def _get_team_needs(self, team):
+        """Determine team's positional needs based on roster construction"""
+        needs = []
+        
+        # Count players by position across all roster spots
+        position_counts = {'QB': 0, 'RB': 0, 'WR': 0, 'TE': 0, 'DEF': 0, 'K': 0}
+        
+        for pos_slot, players in team.roster.items():
+            for player in players:
+                if player.position in position_counts:
+                    position_counts[player.position] += 1
+        
+        # Get counts
+        qb_count = position_counts['QB']
+        rb_count = position_counts['RB']
+        wr_count = position_counts['WR']
+        te_count = position_counts['TE']
+        def_count = position_counts['DEF']
+        k_count = position_counts['K']
+        
+        # Determine needs in priority order
+        # Starting positions first
+        if qb_count < 1:
+            needs.append('QB')
+        if rb_count < 2:
+            needs.extend(['RB'] * (2 - rb_count))
+        if wr_count < 2:
+            needs.extend(['WR'] * (2 - wr_count))
+        if te_count < 1:
+            needs.append('TE')
+        
+        # FLEX considerations (prefer RB/WR)
+        flex_filled = max(0, rb_count - 2) + max(0, wr_count - 2) + max(0, te_count - 1)
+        if flex_filled < 1:
+            needs.extend(['RB', 'WR'])  # Prefer RB/WR for flex
+        
+        # Bench depth
+        if rb_count < 4:
+            needs.append('RB')
+        if wr_count < 4:
+            needs.append('WR')
+        if qb_count < 2:
+            needs.append('QB')
+        
+        # Late round needs
+        if def_count < 1:
+            needs.append('DEF')
+        if k_count < 1:
+            needs.append('K')
+        
+        return needs
+    
+    def restart_draft(self):
+        """Reset the draft to start over"""
+        # Reset teams
+        self.teams = self._create_teams()
+        
+        # Reset draft engine
+        self.draft_engine = DraftEngine(
+            num_teams=config.num_teams,
+            roster_spots=config.roster_spots,
+            draft_type=config.draft_type,
+            reversal_round=config.reversal_round
+        )
+        
+        # Reset players
+        self.all_players = generate_mock_players()
+        self.available_players = list(self.all_players)
+        
+        # Reset user selection
+        self.user_team_id = None
+        
+        # Reset UI
+        self.draft_board.draft_results = []
+        self.draft_board._last_pick_count = 0
+        self.draft_board.selected_team_id = None
+        
+        # Reset team buttons
+        for tid, button in self.draft_board.team_buttons.items():
+            button.config(
+                bg=DARK_THEME['button_bg'],
+                fg=DARK_THEME['text_secondary'],
+                text='Control'
+            )
+        
+        # Clear all pick widgets
+        for pick_widget in self.draft_board.pick_widgets.values():
+            for widget in pick_widget.winfo_children():
+                if isinstance(widget, tk.Frame) and widget.winfo_y() > 20:
+                    widget.destroy()
+        
+        # Reset roster view
+        self.roster_view.current_team_id = 1
+        self.roster_view.team_var.set("Team 1")
+        
+        # Update display
+        self.update_display()
+        
+        # Re-enable draft button
+        self.draft_button.config(state="normal", bg=DARK_THEME['button_active'])
+        
+        # Disable undo button
+        self.undo_button.config(state='disabled')
+        self.draft_state_before_reversion = None
+        self.players_before_reversion = None
+    
+    def on_pick_clicked(self, pick_number):
+        """Handle clicking on a completed pick to revert draft to that point"""
+        if pick_number >= self.draft_engine.get_current_pick_info()[0]:
+            return  # Can't revert to future picks
+        
+        # Confirm with user
+        result = messagebox.askyesno(
+            "Revert Draft",
+            f"Revert draft to pick #{pick_number}? This will undo all picks after this one.",
+            parent=self.root
+        )
+        
+        if not result:
+            return
+        
+        # Save current state for undo
+        self.draft_state_before_reversion = {
+            'picks': list(self.draft_engine.draft_results),
+            'teams': self._save_team_state(),
+            'current_pick': self.draft_engine.get_current_pick_info()[0]
+        }
+        self.players_before_reversion = list(self.available_players)
+        
+        # Revert the draft
+        self._revert_to_pick(pick_number)
+        
+        # Enable undo button
+        self.undo_button.config(state='normal')
+    
+    def undo_reversion(self):
+        """Undo the last draft reversion"""
+        if not self.draft_state_before_reversion:
+            return
+        
+        # Restore the draft state
+        self._restore_draft_state(self.draft_state_before_reversion)
+        self.available_players = list(self.players_before_reversion)
+        
+        # Update display
+        self.update_display()
+        
+        # Disable undo button
+        self.undo_button.config(state='disabled')
+        self.draft_state_before_reversion = None
+        self.players_before_reversion = None
+        
+        # Check if we need to auto-draft
+        self.check_auto_draft()
+    
+    def _save_team_state(self):
+        """Save current state of all teams"""
+        state = {}
+        for team_id, team in self.teams.items():
+            # Deep copy roster with all players
+            roster_copy = {}
+            for pos, players in team.roster.items():
+                roster_copy[pos] = list(players)
+            state[team_id] = {
+                'roster': roster_copy
+            }
+        return state
+    
+    def _revert_to_pick(self, target_pick_number):
+        """Revert draft to specified pick number"""
+        # Keep only picks before the target
+        picks_to_keep = [p for p in self.draft_engine.draft_results if p.pick_number < target_pick_number]
+        
+        # Reset teams
+        for team in self.teams.values():
+            team.roster = {pos: [] for pos in team.roster}
+        
+        # Reset available players
+        self.available_players = list(self.all_players)
+        
+        # Replay kept picks
+        self.draft_engine.draft_results = []
+        for pick in picks_to_keep:
+            team = self.teams[pick.team_id]
+            team.add_player(pick.player)
+            self.draft_engine.draft_results.append(pick)
+            self.available_players.remove(pick.player)
+        
+        # Clear visual picks after the target
+        for pick_num in range(target_pick_number, len(self.draft_board.pick_widgets) + 1):
+            if pick_num in self.draft_board.pick_widgets:
+                pick_frame = self.draft_board.pick_widgets[pick_num]
+                for widget in pick_frame.winfo_children():
+                    if isinstance(widget, tk.Frame) and widget.winfo_y() > 20:
+                        widget.destroy()
+        
+        # Reset the last pick count
+        self.draft_board._last_pick_count = len(picks_to_keep)
+        
+        # Update display
+        self.update_display()
+        
+        # Check if we need to auto-draft
+        self.check_auto_draft()
+    
+    def _restore_draft_state(self, state):
+        """Restore a saved draft state"""
+        # Reset teams
+        for team_id, team_state in state['teams'].items():
+            team = self.teams[team_id]
+            # Deep copy the roster
+            for pos, players in team_state['roster'].items():
+                team.roster[pos] = list(players)
+        
+        # Restore picks
+        self.draft_engine.draft_results = list(state['picks'])
+        
+        # Clear and redraw all picks
+        for pick_widget in self.draft_board.pick_widgets.values():
+            for widget in pick_widget.winfo_children():
+                if isinstance(widget, tk.Frame) and widget.winfo_y() > 20:
+                    widget.destroy()
+        
+        # Reset and redraw
+        self.draft_board._last_pick_count = 0
+        self.draft_board.update_picks(self.draft_engine.draft_results, state['current_pick'])
 
 
 def main():
