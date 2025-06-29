@@ -207,6 +207,7 @@ class PlayerList(StyledFrame):
         # Store row frames
         self.row_frames = []
         self.selected_row = None
+        self.hidden_rows = []  # Pool of hidden rows to reuse
     
     def update_players(self, players: List[Player], limit: int = 30):
         # Store all players
@@ -234,64 +235,33 @@ class PlayerList(StyledFrame):
     
     def remove_player_card(self, index: int):
         """Remove a specific player without refreshing all players"""
-        if 0 <= index < len(self.players):
+        if 0 <= index < len(self.players) and 0 <= index < len(self.row_frames):
+            # Get the player and row
+            player = self.players[index]
+            row = self.row_frames[index]
+            
             # Remove from data
             self.players.pop(index)
             
-            # Just remove the specific row from UI
-            if 0 <= index < len(self.row_frames):
-                self.row_frames[index].destroy()
-                self.row_frames.pop(index)
-                
-            # Update indices for remaining rows
-            for i in range(index, len(self.row_frames)):
-                # Update the click handler to use new index
-                new_index = i
-                row = self.row_frames[i]
-                
-                # Update background color for alternating rows
-                bg = DARK_THEME['bg_tertiary'] if new_index % 2 == 0 else DARK_THEME['bg_secondary']
-                row.configure(bg=bg)
-                
-                # Update all child widgets' backgrounds
-                for widget in row.winfo_children():
-                    if isinstance(widget, tk.Frame):
-                        widget.configure(bg=bg)
-                        for child in widget.winfo_children():
-                            if hasattr(child, 'configure') and not isinstance(child, tk.Button):
-                                try:
-                                    child.configure(bg=bg)
-                                except:
-                                    pass
-    
-    def remove_players(self, players_to_remove: List[Player]):
-        """Remove multiple players from the list efficiently"""
-        if not players_to_remove:
-            return
+            # Remove the row
+            row.pack_forget()
+            self.row_frames.pop(index)
+            self.hidden_rows.append(row)
             
-        # Create a set for O(1) lookup
-        players_to_remove_set = set(players_to_remove)
-        
-        # Find indices to remove
-        indices_to_remove = []
-        for i, player in enumerate(self.players):
-            if player in players_to_remove_set:
-                indices_to_remove.append(i)
-        
-        # Sort in reverse to remove from end first
-        indices_to_remove.sort(reverse=True)
-        
-        # Remove from data and UI
-        for idx in indices_to_remove:
-            self.players.pop(idx)
-            if idx < len(self.row_frames):
-                self.row_frames[idx].destroy()
-                self.row_frames.pop(idx)
-        
-        # Fix alternating colors for remaining rows
-        for i, row in enumerate(self.row_frames):
+            # Update indices and colors for remaining rows
+            for i in range(index, len(self.row_frames)):
+                self.row_frames[i].index = i
+                bg = DARK_THEME['bg_tertiary'] if i % 2 == 0 else DARK_THEME['bg_secondary']
+                self._update_row_background(self.row_frames[i], bg)
+    
+    def _update_row_colors(self, start_index):
+        """Update alternating row colors starting from given index"""
+        for i in range(start_index, len(self.row_frames)):
+            row = self.row_frames[i]
             bg = DARK_THEME['bg_tertiary'] if i % 2 == 0 else DARK_THEME['bg_secondary']
             row.configure(bg=bg)
+            
+            # Update all child widgets
             for widget in row.winfo_children():
                 if isinstance(widget, tk.Frame):
                     widget.configure(bg=bg)
@@ -301,6 +271,68 @@ class PlayerList(StyledFrame):
                                 child.configure(bg=bg)
                             except:
                                 pass
+                elif isinstance(widget, tk.Label):
+                    widget.configure(bg=bg)
+    
+    def remove_players(self, players_to_remove: List[Player]):
+        """Remove multiple players from the list efficiently"""
+        if not players_to_remove:
+            return
+        
+        import time
+        method_start = time.time()
+        
+        # Create a set for O(1) lookup
+        players_to_remove_set = set(players_to_remove)
+        
+        # Find which rows to remove
+        rows_to_remove = []
+        for i, row in enumerate(self.row_frames):
+            if hasattr(row, 'player') and row.player in players_to_remove_set:
+                rows_to_remove.append((i, row))
+        
+        # Remove from data
+        self.players = [p for p in self.players if p not in players_to_remove_set]
+        
+        # Smoothly slide up the remaining rows
+        if rows_to_remove:
+            # First, mark rows for removal with a fade effect
+            for idx, row in rows_to_remove:
+                row.pack_forget()
+                
+            # Remove from our list
+            for idx, row in sorted(rows_to_remove, reverse=True):
+                self.row_frames.remove(row)
+                self.hidden_rows.append(row)
+            
+            # Update indices and colors for remaining rows
+            for i, row in enumerate(self.row_frames):
+                row.index = i
+                # Update background color
+                bg = DARK_THEME['bg_tertiary'] if i % 2 == 0 else DARK_THEME['bg_secondary']
+                self._update_row_background(row, bg)
+        
+        print(f"  [remove_players] Removed {len(rows_to_remove)} players in {time.time()-method_start:.3f}s")
+    
+    def _update_row_background(self, row, bg):
+        """Update background color of a row and all its children"""
+        row.configure(bg=bg)
+        
+        # Update all child widgets
+        for widget in row.winfo_children():
+            if isinstance(widget, tk.Frame):
+                # Don't change button frames or position badges
+                has_button = any(isinstance(child, tk.Button) for child in widget.winfo_children())
+                has_position = any(isinstance(child, tk.Frame) and child.cget('bg') in ['#FF5E5B', '#23CDCD', '#5E9BFF', '#FF8C42'] for child in widget.winfo_children())
+                
+                if not has_button and not has_position:
+                    widget.configure(bg=bg)
+                    # Update label children
+                    for child in widget.winfo_children():
+                        if isinstance(child, tk.Label) and not has_position:
+                            child.configure(bg=bg)
+            elif isinstance(widget, tk.Label):
+                widget.configure(bg=bg)
     
     def select_player(self, index: int):
         """Select a player by index"""
@@ -370,15 +402,18 @@ class PlayerList(StyledFrame):
     
     def update_table_view(self):
         """Update the table view with current players"""
-        # Clear existing rows
-        for row in self.row_frames:
-            row.destroy()
-        self.row_frames = []
+        # If we're just filtering/sorting, try to do a smart update
+        if hasattr(self, '_initialized') and self._initialized:
+            self._smart_update_table()
+            return
+        
+        # First time initialization
+        self._initialized = True
         
         # Limit display to first 100 players for performance
         max_display = min(100, len(self.players))
         
-        # Show limited players
+        # Create all rows at once
         for i in range(max_display):
             self.create_player_row(i, self.players[i])
         
@@ -395,6 +430,57 @@ class PlayerList(StyledFrame):
         
         # Update canvas scroll region after adding all rows
         self.table_frame.update_idletasks()
+        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+    
+    def _smart_update_table(self):
+        """Smart update that reuses existing rows when possible"""
+        # Clear any "more players" label
+        for child in self.table_frame.winfo_children():
+            if isinstance(child, tk.Label) and hasattr(child, 'cget'):
+                try:
+                    if "more players" in str(child.cget("text")):
+                        child.destroy()
+                except:
+                    pass
+        
+        max_display = min(100, len(self.players))
+        current_row_count = len(self.row_frames)
+        
+        # Update existing rows
+        for i in range(min(current_row_count, max_display)):
+            self.update_player_row(self.row_frames[i], i, self.players[i])
+        
+        # Hide extra rows if we have fewer players
+        if current_row_count > max_display:
+            for i in range(max_display, current_row_count):
+                row = self.row_frames[i]
+                row.pack_forget()
+                self.hidden_rows.append(row)
+            self.row_frames = self.row_frames[:max_display]
+        
+        # Add new rows if we need more
+        elif max_display > current_row_count:
+            for i in range(current_row_count, max_display):
+                if self.hidden_rows:
+                    row = self.hidden_rows.pop()
+                    self.update_player_row(row, i, self.players[i])
+                    row.pack(fill='x', pady=1)
+                    self.row_frames.append(row)
+                else:
+                    self.create_player_row(i, self.players[i])
+        
+        # If there are more players, show a message
+        if len(self.players) > max_display:
+            more_label = tk.Label(
+                self.table_frame,
+                text=f"... and {len(self.players) - max_display} more players. Use search to find specific players.",
+                bg=DARK_THEME['bg_secondary'],
+                fg=DARK_THEME['text_secondary'],
+                font=(DARK_THEME['font_family'], 10, 'italic')
+            )
+            more_label.pack(pady=10)
+        
+        # Update scroll region
         self.canvas.configure(scrollregion=self.canvas.bbox('all'))
     
     def get_display_players(self):
@@ -436,6 +522,23 @@ class PlayerList(StyledFrame):
         
         return all_top_players
     
+    def update_player_row(self, row, index, player):
+        """Update an existing row with new player data"""
+        # Update background color
+        bg = DARK_THEME['bg_tertiary'] if index % 2 == 0 else DARK_THEME['bg_secondary']
+        row.configure(bg=bg)
+        
+        # Update player reference
+        row.player = player
+        row.index = index
+        
+        # Clear all existing widgets
+        for widget in row.winfo_children():
+            widget.destroy()
+        
+        # Recreate row content
+        self._create_row_content(row, player, bg)
+    
     def create_player_row(self, index, player):
         """Create a row with player data"""
         # Row container
@@ -454,6 +557,13 @@ class PlayerList(StyledFrame):
         row.player = player
         row.index = index
         
+        # Create row content
+        self._create_row_content(row, player, bg)
+        
+        self.row_frames.append(row)
+    
+    def _create_row_content(self, row, player, bg):
+        """Create the content for a player row"""
         # Make row selectable
         def select_row(e=None):
             # Find current index of this player
@@ -526,8 +636,6 @@ class PlayerList(StyledFrame):
             if hasattr(self, '_mousewheel_handler'):
                 btn_frame.bind('<MouseWheel>', self._mousewheel_handler)
                 draft_btn.bind('<MouseWheel>', self._mousewheel_handler)
-        
-        self.row_frames.append(row)
     
     def create_cell(self, parent, text, width, bg, click_handler, anchor='center'):
         """Create a table cell with exact pixel width"""

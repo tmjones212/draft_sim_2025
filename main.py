@@ -234,6 +234,10 @@ class MockDraftApp:
             self._last_roster_team = team_on_clock
     
     def draft_player(self):
+        import time
+        self._draft_start_time = time.time()
+        start_time = self._draft_start_time
+        
         # Check if user has selected a team first
         if not self.user_team_id:
             messagebox.showwarning(
@@ -252,38 +256,43 @@ class MockDraftApp:
             )
             return
         
+        print(f"\n=== USER DRAFT START ===")
+        print(f"[{time.time()-start_time:.3f}s] Starting draft for {player.name}")
+        
         _, _, _, team_on_clock = self.draft_engine.get_current_pick_info()
         current_team = self.teams[team_on_clock]
         
         try:
             # First make the pick in the engine
+            print(f"[{time.time()-start_time:.3f}s] Making pick in engine...")
             self.draft_engine.make_pick(current_team, player)
             
             # Remove from available players list
+            print(f"[{time.time()-start_time:.3f}s] Removing from available list...")
             if player in self.available_players:
                 self.available_players.remove(player)
             
-            # Remove the drafted player from the UI immediately
-            if self.player_list.selected_index is not None:
-                # Find the actual index of this player in case it changed
-                actual_index = None
-                for i, p in enumerate(self.player_list.players):
-                    if p == player:
-                        actual_index = i
-                        break
-                
-                if actual_index is not None:
-                    self.player_list.remove_player_card(actual_index)
-                    self.player_list.selected_index = None
+            # Remove player from UI immediately
+            print(f"[{time.time()-start_time:.3f}s] Removing from UI...")
+            self._remove_drafted_player(player)
+            print(f"[{time.time()-start_time:.3f}s] UI removal complete")
             
-            # Update draft board with new pick immediately
+            # Update draft board immediately
+            print(f"[{time.time()-start_time:.3f}s] Updating draft board...")
+            pick_info = self.draft_engine.get_current_pick_info()
             self.draft_board.update_picks(
                 self.draft_engine.get_draft_results(),
-                self.draft_engine.get_current_pick_info()[0]
+                pick_info[0]
             )
+            print(f"[{time.time()-start_time:.3f}s] Draft board updated")
             
             # Check if we need to auto-draft next
-            self.check_auto_draft()
+            print(f"[{time.time()-start_time:.3f}s] Checking auto-draft...")
+            
+            # Schedule auto-draft to run after UI updates
+            self.root.after(1, self.check_auto_draft)
+            
+            print(f"[{time.time()-start_time:.3f}s] Draft player complete (scheduled auto-draft)")
         except ValueError as e:
             messagebox.showerror(
                 "Invalid Pick", 
@@ -328,8 +337,22 @@ class MockDraftApp:
         self.draft_button.config(state='normal', bg=DARK_THEME['button_active'])
         # Enable player draft buttons
         self.player_list.set_draft_enabled(True)
-        # Check if we need to auto-draft for current pick
-        self.check_auto_draft()
+        # Check if we need to auto-draft for current pick after UI updates
+        self.root.after(1, self.check_auto_draft)
+    
+    def _remove_drafted_player(self, player):
+        """Remove a drafted player from the UI"""
+        if self.player_list.selected_index is not None:
+            # Find the actual index of this player
+            actual_index = None
+            for i, p in enumerate(self.player_list.players):
+                if p == player:
+                    actual_index = i
+                    break
+            
+            if actual_index is not None:
+                self.player_list.remove_player_card(actual_index)
+                self.player_list.selected_index = None
     
     def check_auto_draft(self):
         """Check if current pick should be automated"""
@@ -340,11 +363,16 @@ class MockDraftApp:
         
         # If user hasn't selected a team or it's not their turn, auto-draft
         if self.user_team_id is None or team_on_clock != self.user_team_id:
-            # Process all auto-picks until it's the user's turn again
+            # Process all auto-picks immediately
             self.auto_draft_until_user_turn()
     
     def auto_draft_until_user_turn(self):
         """Automatically draft for all teams until it's the user's turn"""
+        import time
+        start_time = time.time()
+        total_elapsed = time.time() - getattr(self, '_draft_start_time', time.time())
+        print(f"\n[AUTO-DRAFT] Starting auto-draft sequence at {total_elapsed:.3f}s from initial click...")
+        
         picks_made = []
         
         while not self.draft_engine.is_draft_complete():
@@ -362,6 +390,7 @@ class MockDraftApp:
             pick_num = self.draft_engine.get_current_pick_info()[0]
             
             # Smart pick selection
+            pick_start = time.time()
             selected_player = self._select_computer_pick(current_team, pick_num)
             
             if selected_player:
@@ -372,34 +401,59 @@ class MockDraftApp:
                     
                     # Debug print
                     adp_diff = pick_num - selected_player.adp
-                    print(f"Pick #{pick_num}: {current_team.name} selects {selected_player.name} ({selected_player.position}) "
+                    print(f"[{time.time()-pick_start:.3f}s] Pick #{pick_num}: {current_team.name} selects {selected_player.name} ({selected_player.position}) "
                           f"- ADP: {selected_player.adp:.1f} (diff: {adp_diff:+.1f})")
                 except ValueError:
                     # Pick failed, try next player
                     continue
         
+        print(f"[{time.time()-start_time:.3f}s] Made {len(picks_made)} auto-picks")
+        
         # Update everything at once after all auto-picks
         if picks_made:
+            ui_start = time.time()
+            
             # Remove auto-drafted players from the UI
             players_to_remove = [player for _, _, player in picks_made]
+            print(f"[{time.time()-start_time:.3f}s] Removing {len(players_to_remove)} players from UI...")
             self.player_list.remove_players(players_to_remove)
+            print(f"[{time.time()-start_time:.3f}s] Players removed")
             
-            # Update draft board with all new picks
-            self.draft_board.update_picks(
-                self.draft_engine.get_draft_results(),
-                self.draft_engine.get_current_pick_info()[0]
-            )
+            # Check if it's the user's turn
+            pick_num, round_num, pick_in_round, team_on_clock = self.draft_engine.get_current_pick_info()
+            is_user_turn = self.user_team_id and team_on_clock == self.user_team_id
+            
+            # Only update draft board if it's the user's turn
+            if is_user_turn:
+                print(f"[{time.time()-start_time:.3f}s] User's turn - updating draft board...")
+                self.draft_board.update_picks(
+                    self.draft_engine.get_draft_results(),
+                    pick_num
+                )
+                print(f"[{time.time()-start_time:.3f}s] Draft board updated")
+            else:
+                print(f"[{time.time()-start_time:.3f}s] Not user's turn - skipping draft board update")
             
             # Update status labels
-            pick_num, round_num, pick_in_round, team_on_clock = self.draft_engine.get_current_pick_info()
+            print(f"[{time.time()-start_time:.3f}s] Updating status...")
             self.status_label.config(text=f"Round {round_num} • Pick {pick_in_round}")
             self.on_clock_label.config(text=f"On the Clock: {self.teams[team_on_clock].name}")
             
             # Enable draft button if it's user's turn
-            if self.user_team_id and team_on_clock == self.user_team_id:
+            if is_user_turn:
                 self.draft_button.config(state="normal", bg=DARK_THEME['button_active'])
             else:
                 self.draft_button.config(state="disabled", bg=DARK_THEME['button_bg'])
+            
+            print(f"[{time.time()-start_time:.3f}s] UI updates complete (took {time.time()-ui_start:.3f}s)")
+            
+            # Just update idle tasks, not full update
+            print(f"[{time.time()-start_time:.3f}s] Processing idle tasks...")
+            self.root.update_idletasks()
+            
+            total_time = time.time() - getattr(self, '_draft_start_time', start_time)
+            print(f"[AUTO-DRAFT] Complete in {time.time()-start_time:.3f}s")
+            print(f"=== TOTAL TIME FROM CLICK: {total_time:.3f}s ===\n")
     
     def _select_computer_pick(self, team, pick_num):
         """Select a player for computer team based on smart drafting logic"""
@@ -614,31 +668,61 @@ class MockDraftApp:
         # Restore user team selection
         self.user_team_id = saved_user_team
         
-        # Reset UI
+        # Reset draft board UI completely
         self.draft_board.draft_results = []
         self.draft_board._last_pick_count = 0
+        if hasattr(self.draft_board, '_last_highlighted_pick'):
+            delattr(self.draft_board, '_last_highlighted_pick')
+        if hasattr(self.draft_board, '_update_pending'):
+            self.draft_board._update_pending = False
         
-        # Clear all pick widgets
-        for pick_widget in self.draft_board.pick_widgets.values():
+        # Clear all pick widgets content
+        for pick_num, pick_widget in self.draft_board.pick_widgets.items():
+            # Clear any player info but keep the frame structure
             for widget in pick_widget.winfo_children():
                 if isinstance(widget, tk.Frame) and widget.winfo_y() > 20:
                     widget.destroy()
+            # Reset background color
+            pick_widget.config(bg=DARK_THEME['bg_tertiary'], relief='flat')
         
-        # Update display
-        self.update_display()
+        # Reset player list to show all players
+        self.player_list._initialized = False  # Force full refresh
+        self.player_list.row_frames = []
+        self.player_list.hidden_rows = []
         
-        # Force roster view to update
+        # Clear the table frame completely
+        for widget in self.player_list.table_frame.winfo_children():
+            widget.destroy()
+        
+        # Update display with full refresh
+        self.update_display(full_update=True)
+        
+        # Force roster view to clear and update
+        self.roster_view.current_team_id = None
         self.roster_view.update_roster_display()
         
-        # Re-enable draft button
-        self.draft_button.config(state="normal", bg=DARK_THEME['button_active'])
+        # Reset last roster team tracking
+        if hasattr(self, '_last_roster_team'):
+            delattr(self, '_last_roster_team')
+        
+        # Update button states based on user team
+        if self.user_team_id:
+            # Check if it's user's turn at pick 1
+            _, _, _, team_on_clock = self.draft_engine.get_current_pick_info()
+            if team_on_clock == self.user_team_id:
+                self.draft_button.config(state="normal", bg=DARK_THEME['button_active'])
+            else:
+                self.draft_button.config(state="disabled", bg=DARK_THEME['button_bg'])
         
         # Disable undo button
         self.undo_button.config(state='disabled')
         self.draft_state_before_reversion = None
         self.players_before_reversion = None
         
-        # Start auto-drafting from the beginning
+        # Highlight pick 1 on the draft board
+        self.draft_board.highlight_current_pick()
+        
+        # Start auto-drafting from the beginning if needed
         self.check_auto_draft()
     
     def on_pick_clicked(self, pick_number):

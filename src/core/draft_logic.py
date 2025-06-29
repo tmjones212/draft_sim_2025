@@ -31,16 +31,19 @@ class DraftEngine:
         for round_num in range(1, self.total_rounds + 1):
             if self.draft_type == "snake":
                 if round_num == 1:
-                    round_order = list(range(1, self.num_teams + 1))
+                    round_order = list(range(1, self.num_teams + 1))  # 1→10
+                elif round_num == 2:
+                    round_order = list(range(self.num_teams, 0, -1))  # 10→1
                 elif self.reversal_round > 0 and round_num == self.reversal_round:
-                    # 3rd round reversal: use same order as previous round
-                    start_idx = (round_num - 2) * self.num_teams
-                    end_idx = (round_num - 1) * self.num_teams
-                    round_order = order[start_idx:end_idx]
-                elif round_num % 2 == 0:
-                    round_order = list(range(self.num_teams, 0, -1))
+                    # 3rd round reversal: use same order as round 2 (reverse)
+                    round_order = list(range(self.num_teams, 0, -1))  # 10→1
                 else:
-                    round_order = list(range(1, self.num_teams + 1))
+                    # After round 3, normal snake draft resumes
+                    # Round 4 should go forward (1→10) since round 3 went reverse
+                    if (round_num - 3) % 2 == 1:  # 4-3=1 (odd), so forward
+                        round_order = list(range(1, self.num_teams + 1))
+                    else:  # 5-3=2 (even), so reverse
+                        round_order = list(range(self.num_teams, 0, -1))
             else:  # linear draft
                 round_order = list(range(1, self.num_teams + 1))
             

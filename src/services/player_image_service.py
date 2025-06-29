@@ -46,12 +46,17 @@ class PlayerImageService:
         
         self._loading_images.add(cache_key)
         
-        # Schedule async loading
-        if widget:
-            widget.after(1, lambda: self._load_image(player_id, size, callback, widget))
+        # Use threading for truly async loading
+        import threading
+        thread = threading.Thread(
+            target=self._load_image_threaded,
+            args=(player_id, size, callback, widget)
+        )
+        thread.daemon = True
+        thread.start()
     
-    def _load_image(self, player_id: str, size: tuple, callback, widget: Optional[tk.Widget]):
-        """Internal method to actually load the image"""
+    def _load_image_threaded(self, player_id: str, size: tuple, callback, widget: Optional[tk.Widget]):
+        """Load image in a separate thread"""
         cache_key = f"{player_id}_{size[0]}x{size[1]}"
         
         try:
@@ -70,18 +75,31 @@ class PlayerImageService:
                 img = Image.open(BytesIO(response.content))
                 # Resize image to requested size
                 img = img.resize(size, Image.Resampling.LANCZOS)
-                photo = ImageTk.PhotoImage(img)
                 
-                # Cache it
-                self.image_cache[cache_key] = photo
-                
-                # Call callback if provided
-                if callback and widget and widget.winfo_exists():
-                    callback(photo)
+                # Schedule GUI update in main thread
+                if widget and widget.winfo_exists():
+                    widget.after(0, lambda: self._update_image_cache(player_id, size, img, callback, widget))
         except Exception as e:
             print(f"Error loading image for {player_id}: {e}")
         finally:
             self._loading_images.discard(cache_key)
+    
+    def _update_image_cache(self, player_id: str, size: tuple, img: Image.Image, callback, widget: Optional[tk.Widget]):
+        """Update cache and call callback in main thread"""
+        cache_key = f"{player_id}_{size[0]}x{size[1]}"
+        
+        try:
+            # Create PhotoImage in main thread
+            photo = ImageTk.PhotoImage(img)
+            
+            # Cache it
+            self.image_cache[cache_key] = photo
+            
+            # Call callback if provided
+            if callback and widget and widget.winfo_exists():
+                callback(photo)
+        except Exception as e:
+            print(f"Error updating image cache for {player_id}: {e}")
     
     def clear_cache(self):
         """Clear the image cache"""

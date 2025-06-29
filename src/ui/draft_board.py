@@ -67,6 +67,13 @@ class DraftBoard(StyledFrame):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         
+        # Mouse wheel scrolling
+        def on_mousewheel(event):
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
+        
+        self.canvas.bind('<MouseWheel>', on_mousewheel)
+        self.scrollable_frame.bind('<MouseWheel>', on_mousewheel)
+        
         # Create the draft grid
         self.create_draft_grid()
     
@@ -137,16 +144,17 @@ class DraftBoard(StyledFrame):
         for round_num in range(1, self.total_rounds + 1):
             # Determine order for this round (with 3rd round reversal)
             if round_num == 1:
-                order = list(range(1, self.num_teams + 1))
+                order = list(range(1, self.num_teams + 1))  # 1→10
             elif round_num == 2 or round_num == 3:
                 # Rounds 2 and 3 go the same direction (reverse)
-                order = list(range(self.num_teams, 0, -1))
+                order = list(range(self.num_teams, 0, -1))  # 10→1
             else:
-                # After round 3, normal snake draft
-                # Round 4 goes forward, round 5 reverse, etc.
-                if round_num % 2 == 0:
+                # After round 3, normal snake draft resumes
+                # Since round 3 went reverse, round 4 should go forward
+                # Round 4: forward (1→10), Round 5: reverse (10→1), etc.
+                if (round_num - 3) % 2 == 1:  # 4-3=1 (odd), so forward
                     order = list(range(1, self.num_teams + 1))
-                else:
+                else:  # 5-3=2 (even), so reverse
                     order = list(range(self.num_teams, 0, -1))
             
             # Create pick slots
@@ -196,6 +204,10 @@ class DraftBoard(StyledFrame):
                 
                 pick_frame.bind("<Button-1>", on_pick_click)
                 
+                # Bind mousewheel to pick frame
+                if hasattr(self, 'canvas'):
+                    pick_frame.bind("<MouseWheel>", lambda e: self.canvas.yview_scroll(int(-1*(e.delta/120)), 'units'))
+                
                 pick_number += 1
         
         # Configure grid weights - make columns expand
@@ -243,6 +255,15 @@ class DraftBoard(StyledFrame):
         if not hasattr(self, '_last_pick_count'):
             self._last_pick_count = 0
         
+        # Defer the actual update to prevent jarring visual changes
+        if not hasattr(self, '_update_pending') or not self._update_pending:
+            self._update_pending = True
+            self.after(10, lambda: self._do_update_picks(picks, current_pick_num))
+    
+    def _do_update_picks(self, picks: List[DraftPick], current_pick_num: int):
+        """Actually perform the pick updates"""
+        self._update_pending = False
+        
         # Update only new picks
         new_picks = picks[self._last_pick_count:]
         for pick in new_picks:
@@ -264,6 +285,9 @@ class DraftBoard(StyledFrame):
             self._last_highlighted_pick = current_pick_num
     
     def update_pick_slot(self, pick: DraftPick):
+        import time
+        slot_start = time.time()
+        
         pick_frame = self.pick_widgets[pick.pick_number]
         
         # Clear existing player info (if any)
@@ -293,31 +317,25 @@ class DraftBoard(StyledFrame):
         image_container.pack_propagate(False)
         image_container.bind("<Button-1>", handle_pick_click)
         
-        # Player image (if available)
+        # Always create placeholder first for consistent layout
+        img_label = tk.Label(
+            image_container,
+            bg=DARK_THEME['bg_tertiary'],
+            width=5,
+            height=2
+        )
+        img_label.place(x=0, y=0, width=40, height=32)
+        img_label.bind("<Button-1>", handle_pick_click)
+        
+        # Load player image if available
         if self.image_service and pick.player.player_id:
-            # Player image
+            # Check cache first
             player_image = self.image_service.get_image(pick.player.player_id, size=(40, 32))
             if player_image:
-                img_label = tk.Label(
-                    image_container,
-                    image=player_image,
-                    bg=DARK_THEME['bg_tertiary']
-                )
-                img_label.image = player_image  # Keep reference
-                img_label.place(x=0, y=0)
-                img_label.bind("<Button-1>", handle_pick_click)
+                img_label.configure(image=player_image)
+                img_label.image = player_image
             else:
-                # Create placeholder
-                img_label = tk.Label(
-                    image_container,
-                    bg=DARK_THEME['bg_tertiary'],
-                    width=5,
-                    height=2
-                )
-                img_label.place(x=0, y=0, width=40, height=32)
-                img_label.bind("<Button-1>", handle_pick_click)
-                
-                # Schedule image loading
+                # Load async if not cached
                 def update_player_image(photo):
                     if img_label.winfo_exists():
                         img_label.configure(image=photo)
@@ -332,30 +350,28 @@ class DraftBoard(StyledFrame):
             
             # Team logo overlay
             if pick.player.team:
+                # Create placeholder for team logo
+                logo_placeholder = tk.Label(
+                    image_container,
+                    bg=DARK_THEME['bg_tertiary'],
+                    width=2,
+                    height=2
+                )
+                logo_placeholder.place(x=26, y=14, width=16, height=16)
+                logo_placeholder.bind("<Button-1>", handle_pick_click)
+                
+                # Check cache for team logo
                 team_logo = self.image_service.get_image(f"team_{pick.player.team}", size=(16, 16))
                 if team_logo:
-                    logo_label = tk.Label(
-                        image_container,
-                        image=team_logo,
-                        bg=DARK_THEME['bg_tertiary']
-                    )
-                    logo_label.image = team_logo
-                    logo_label.place(x=26, y=14)  # Position like Sleeper
-                    logo_label.bind("<Button-1>", handle_pick_click)
+                    logo_placeholder.configure(image=team_logo)
+                    logo_placeholder.image = team_logo
                 else:
-                    # Schedule team logo loading
+                    # Load async
                     def update_team_logo(photo):
-                        if image_container.winfo_exists():
-                            logo_label = tk.Label(
-                                image_container,
-                                image=photo,
-                                bg=DARK_THEME['bg_tertiary']
-                            )
-                            logo_label.image = photo
-                            logo_label.place(x=26, y=14)
-                            logo_label.bind("<Button-1>", handle_pick_click)
+                        if logo_placeholder.winfo_exists():
+                            logo_placeholder.configure(image=photo)
+                            logo_placeholder.image = photo
                     
-                    # Load team logo using special ID
                     self.image_service.load_image_async(
                         f"team_{pick.player.team}",
                         size=(16, 16),
