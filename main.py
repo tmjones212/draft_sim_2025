@@ -161,11 +161,11 @@ class MockDraftApp:
         # Use grid for draft board and roster side by side
         top_frame.grid_rowconfigure(0, weight=1)
         top_frame.grid_columnconfigure(0, weight=1)  # Draft board column - expand to fill
-        top_frame.grid_columnconfigure(1, weight=0, minsize=250)  # Roster column - fixed width
+        top_frame.grid_columnconfigure(1, weight=0, minsize=100)  # Roster column - fixed width
         
         # Draft board
         draft_panel = StyledFrame(top_frame, bg_type='secondary')
-        draft_panel.grid(row=0, column=0, sticky='nsew', padx=(0, 10))
+        draft_panel.grid(row=0, column=0, sticky='nsew', padx=(0, 5))
         
         total_rounds = sum(config.roster_spots.values())
         self.draft_board = DraftBoard(
@@ -285,6 +285,11 @@ class MockDraftApp:
                 pick_info[0]
             )
             print(f"[{time.time()-start_time:.3f}s] Draft board updated")
+            
+            # Update roster view to show the new pick
+            print(f"[{time.time()-start_time:.3f}s] Updating roster view...")
+            self.roster_view.update_roster_display()
+            print(f"[{time.time()-start_time:.3f}s] Roster view updated")
             
             # Check if we need to auto-draft next
             print(f"[{time.time()-start_time:.3f}s] Checking auto-draft...")
@@ -444,6 +449,10 @@ class MockDraftApp:
                 self.draft_button.config(state="normal", bg=DARK_THEME['button_active'])
             else:
                 self.draft_button.config(state="disabled", bg=DARK_THEME['button_bg'])
+            
+            # Update roster view to reflect all the auto-picks
+            print(f"[{time.time()-start_time:.3f}s] Updating roster view...")
+            self.roster_view.update_roster_display()
             
             print(f"[{time.time()-start_time:.3f}s] UI updates complete (took {time.time()-ui_start:.3f}s)")
             

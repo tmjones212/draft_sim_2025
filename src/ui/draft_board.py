@@ -80,10 +80,10 @@ class DraftBoard(StyledFrame):
     def create_draft_grid(self):
         # Get actual available width
         self.update_idletasks()  # Force geometry update
-        available_width = self.winfo_width() - 40  # Subtract padding and scrollbar
+        available_width = self.winfo_width()  # Use full width
         
         # Calculate column width to fill available space
-        col_width = max(120, available_width // self.num_teams)
+        col_width = max(100, available_width // self.num_teams)
         
         row_height = 60  # Height for each pick
         header_height = 40
@@ -395,7 +395,7 @@ class DraftBoard(StyledFrame):
             text=self.format_player_name(pick.player.name),
             bg=DARK_THEME['bg_tertiary'],
             fg=DARK_THEME['text_primary'],
-            font=(DARK_THEME['font_family'], 10, 'bold'),
+            font=(DARK_THEME['font_family'], 9, 'bold'),
             anchor='w'
         )
         name_label.pack(side='left', fill='x', expand=True)

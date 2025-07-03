@@ -12,6 +12,8 @@ class PlayerImageService:
     def __init__(self):
         self.image_cache: Dict[str, ImageTk.PhotoImage] = {}
         self._loading_images: set = set()  # Track images currently being loaded
+        self._failed_images: set = set()  # Track images that failed to load
+        self._retry_count: Dict[str, int] = {}  # Track retry attempts
     
     def get_image(self, player_id: str, size: tuple = (40, 40)) -> Optional[ImageTk.PhotoImage]:
         """
@@ -44,6 +46,10 @@ class PlayerImageService:
         if cache_key in self._loading_images:
             return
         
+        # Check if this image has failed too many times
+        if self._retry_count.get(cache_key, 0) >= 3:
+            return
+        
         self._loading_images.add(cache_key)
         
         # Use threading for truly async loading
@@ -64,13 +70,15 @@ class PlayerImageService:
             if player_id.startswith("team_"):
                 team_abbr = player_id[5:]  # Remove "team_" prefix
                 image_url = get_team_logo_url(team_abbr)
+                # Debug log for team logos
+                print(f"Loading team logo: {team_abbr} -> {image_url}")
             else:
                 image_url = get_player_image_url(player_id)
             
             if not image_url:
                 return
             
-            response = requests.get(image_url, timeout=2)
+            response = requests.get(image_url, timeout=5)  # Increased timeout
             if response.status_code == 200:
                 img = Image.open(BytesIO(response.content))
                 # Resize image to requested size
@@ -79,8 +87,15 @@ class PlayerImageService:
                 # Schedule GUI update in main thread
                 if widget and widget.winfo_exists():
                     widget.after(0, lambda: self._update_image_cache(player_id, size, img, callback, widget))
+            else:
+                print(f"Failed to load image for {player_id}: HTTP {response.status_code} from {image_url}")
+                self._retry_count[cache_key] = self._retry_count.get(cache_key, 0) + 1
+        except requests.exceptions.RequestException as e:
+            print(f"Network error loading image for {player_id} ({image_url}): {e}")
+            self._retry_count[cache_key] = self._retry_count.get(cache_key, 0) + 1
         except Exception as e:
             print(f"Error loading image for {player_id}: {e}")
+            self._retry_count[cache_key] = self._retry_count.get(cache_key, 0) + 1
         finally:
             self._loading_images.discard(cache_key)
     
