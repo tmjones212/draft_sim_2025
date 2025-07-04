@@ -58,6 +58,9 @@ class MockDraftApp:
         self.draft_state_before_reversion = None
         self.players_before_reversion = None
         
+        # Performance optimization
+        self._position_counts_cache = {}  # Cache position counts per team
+        
         # Setup UI
         self.setup_ui()
         self.setup_keyboard_shortcuts()
@@ -469,11 +472,6 @@ class MockDraftApp:
     
     def auto_draft_until_user_turn(self):
         """Automatically draft for all teams until it's the user's turn"""
-        import time
-        start_time = time.time()
-        total_elapsed = time.time() - getattr(self, '_draft_start_time', time.time())
-        print(f"\n[AUTO-DRAFT] Starting auto-draft sequence at {total_elapsed:.3f}s from initial click...")
-        
         picks_made = []
         
         while not self.draft_engine.is_draft_complete():
@@ -491,7 +489,6 @@ class MockDraftApp:
             pick_num = self.draft_engine.get_current_pick_info()[0]
             
             # Smart pick selection
-            pick_start = time.time()
             selected_player = self._select_computer_pick(current_team, pick_num)
             
             if selected_player:
@@ -500,25 +497,19 @@ class MockDraftApp:
                     self.available_players.remove(selected_player)
                     picks_made.append((pick_num, current_team, selected_player))
                     
-                    # Debug print
-                    adp_diff = pick_num - selected_player.adp
-                    print(f"[{time.time()-pick_start:.3f}s] Pick #{pick_num}: {current_team.name} selects {selected_player.name} ({selected_player.position}) "
-                          f"- ADP: {selected_player.adp:.1f} (diff: {adp_diff:+.1f})")
+                    # Update position count cache
+                    if current_team.id in self._position_counts_cache:
+                        if selected_player.position in self._position_counts_cache[current_team.id]:
+                            self._position_counts_cache[current_team.id][selected_player.position] += 1
                 except ValueError:
                     # Pick failed, try next player
                     continue
         
-        print(f"[{time.time()-start_time:.3f}s] Made {len(picks_made)} auto-picks")
-        
         # Update everything at once after all auto-picks
         if picks_made:
-            ui_start = time.time()
-            
             # Remove auto-drafted players from the UI
             players_to_remove = [player for _, _, player in picks_made]
-            print(f"[{time.time()-start_time:.3f}s] Removing {len(players_to_remove)} players from UI...")
             self.player_list.remove_players(players_to_remove)
-            print(f"[{time.time()-start_time:.3f}s] Players removed")
             
             # Also remove from watch list
             watch_list = self.roster_view.get_watch_list()
@@ -532,15 +523,12 @@ class MockDraftApp:
             is_user_turn = self.user_team_id and team_on_clock == self.user_team_id
             
             # Always update draft board after auto-drafting (especially for reversion)
-            print(f"[{time.time()-start_time:.3f}s] Updating draft board...")
             self.draft_board.update_picks(
                 self.draft_engine.get_draft_results(),
                 pick_num
             )
-            print(f"[{time.time()-start_time:.3f}s] Draft board updated")
             
             # Update status labels
-            print(f"[{time.time()-start_time:.3f}s] Updating status...")
             self.status_label.config(text=f"Round {round_num} • Pick {pick_in_round}")
             self.on_clock_label.config(text=f"On the Clock: {self.teams[team_on_clock].name}")
             
@@ -551,26 +539,28 @@ class MockDraftApp:
                 self.draft_button.config(state="disabled", bg=DARK_THEME['button_bg'])
             
             # Update roster view to reflect all the auto-picks
-            print(f"[{time.time()-start_time:.3f}s] Updating roster view...")
             self.roster_view.update_roster_display()
             
-            print(f"[{time.time()-start_time:.3f}s] UI updates complete (took {time.time()-ui_start:.3f}s)")
-            
             # Just update idle tasks, not full update
-            print(f"[{time.time()-start_time:.3f}s] Processing idle tasks...")
             self.root.update_idletasks()
-            
-            total_time = time.time() - getattr(self, '_draft_start_time', start_time)
-            print(f"[AUTO-DRAFT] Complete in {time.time()-start_time:.3f}s")
-            print(f"=== TOTAL TIME FROM CLICK: {total_time:.3f}s ===\n")
     
     def _select_computer_pick(self, team, pick_num):
         """Select a player for computer team based on smart drafting logic"""
-        # Get team's current roster
-        roster_needs = self._get_team_needs(team)
+        # Quick path for very early picks
+        if pick_num <= 3:
+            # Just take best available for first 3 picks
+            return self.available_players[0] if self.available_players else None
         
-        # Count current players by position
-        position_counts = self._get_position_counts(team)
+        # Get cached position counts or calculate
+        if team.id in self._position_counts_cache:
+            position_counts = self._position_counts_cache[team.id]
+        else:
+            position_counts = {'QB': 0, 'RB': 0, 'WR': 0, 'TE': 0, 'DEF': 0, 'K': 0}
+            for players in team.roster.values():
+                for player in players:
+                    if player.position in position_counts:
+                        position_counts[player.position] += 1
+            self._position_counts_cache[team.id] = position_counts
         
         # Early rounds (1-3) should be much tighter to ADP
         is_early_round = pick_num <= (3 * config.num_teams)
@@ -630,66 +620,39 @@ class MockDraftApp:
                     return player
             return self.available_players[0] if self.available_players else None
         
-        # Calculate pick value for each player based on ADP
-        player_values = []
-        for player in eligible_players:
-            # Calculate how good the value is (negative = reach, positive = value)
-            adp_diff = pick_num - player.adp
+        # Simplified pick selection - use ADP-based probability
+        if is_early_round:
+            # Early rounds: pick mostly by ADP with small variance
+            if len(eligible_players) == 1:
+                return eligible_players[0]
             
-            # Adjust value based on roster need
-            need_multiplier = 1.0
-            if player.position in roster_needs[:2]:  # Top 2 needs
-                need_multiplier = 1.2 if is_early_round else 1.3
-            elif player.position in roster_needs[:3]:  # Top 3 needs
-                need_multiplier = 1.1 if is_early_round else 1.15
-            
-            # Calculate probability - much tighter in early rounds
-            if is_early_round:
-                # Early rounds: heavily favor players near their ADP
-                if adp_diff > 5:  # Great value
-                    base_prob = 0.5
-                elif adp_diff > 2:  # Good value
-                    base_prob = 0.4
-                elif adp_diff > -2:  # Fair value (within 2 picks)
-                    base_prob = 0.35
-                elif adp_diff > -5:  # Slight reach
-                    base_prob = 0.15
-                else:  # Big reach
-                    base_prob = 0.02
+            # 70% chance to take best ADP, 20% second best, 10% third
+            rand = random.random()
+            if rand < 0.7:
+                return eligible_players[0]
+            elif rand < 0.9 and len(eligible_players) > 1:
+                return eligible_players[1]
+            elif len(eligible_players) > 2:
+                return eligible_players[2]
             else:
-                # Later rounds: more flexibility
-                if adp_diff > 10:  # Great value
-                    base_prob = 0.4
-                elif adp_diff > 5:  # Good value
-                    base_prob = 0.3
-                elif adp_diff > -3:  # Fair value
-                    base_prob = 0.25
-                elif adp_diff > -10:  # Slight reach
-                    base_prob = 0.1
-                else:  # Big reach
-                    base_prob = 0.02
-            
-            final_prob = base_prob * need_multiplier
-            player_values.append((player, final_prob))
-        
-        # Normalize probabilities
-        total_prob = sum(prob for _, prob in player_values)
-        if total_prob > 0:
-            player_values = [(p, prob/total_prob) for p, prob in player_values]
+                return eligible_players[0]
         else:
-            # Fallback to equal probability
-            player_values = [(p, 1.0/len(player_values)) for p, _ in player_values]
-        
-        # Select player based on weighted random choice
-        rand = random.random()
-        cumulative = 0
-        for player, prob in player_values:
-            cumulative += prob
-            if rand <= cumulative:
-                return player
-        
-        # Fallback
-        return player_values[0][0] if player_values else None
+            # Later rounds: more randomness but still favor better ADP
+            if len(eligible_players) == 1:
+                return eligible_players[0]
+            
+            # 50% best, 30% second, 15% third, 5% fourth+
+            rand = random.random()
+            if rand < 0.5:
+                return eligible_players[0]
+            elif rand < 0.8 and len(eligible_players) > 1:
+                return eligible_players[1]
+            elif rand < 0.95 and len(eligible_players) > 2:
+                return eligible_players[2]
+            elif len(eligible_players) > 3:
+                return eligible_players[3]
+            else:
+                return eligible_players[0]
     
     def _get_position_counts(self, team):
         """Get count of players by position for a team"""
@@ -780,6 +743,9 @@ class MockDraftApp:
         
         # Restore user team selection
         self.user_team_id = saved_user_team
+        
+        # Clear position count cache
+        self._position_counts_cache.clear()
         
         # Reset draft board UI completely
         self.draft_board.draft_results = []
@@ -933,12 +899,6 @@ class MockDraftApp:
     
     def _revert_to_pick(self, target_pick_number):
         """Revert draft to specified pick number and auto-draft to user's turn"""
-        import time
-        start_time = time.time()
-        
-        # Quick status update
-        self.status_label.config(text=f"Reverting...")
-        
         # Get picks to keep/remove
         picks_to_keep = [p for p in self.draft_engine.draft_results if p.pick_number < target_pick_number]
         picks_to_remove = [p for p in self.draft_engine.draft_results if p.pick_number >= target_pick_number]
@@ -946,57 +906,35 @@ class MockDraftApp:
         # Reset draft results
         self.draft_engine.draft_results = picks_to_keep
         
-        # Add removed players back to available list
-        for pick in picks_to_remove:
-            if pick.player not in self.available_players:
-                self.available_players.append(pick.player)
+        # Batch add removed players back
+        players_to_add = [pick.player for pick in picks_to_remove if pick.player not in self.available_players]
+        self.available_players.extend(players_to_add)
         self.available_players.sort(key=lambda p: p.rank)
         
-        # Reset team rosters efficiently
+        # Reset team rosters in one pass
         for team in self.teams.values():
             team.roster = {pos: [] for pos in team.roster}
         for pick in picks_to_keep:
             self.teams[pick.team_id].add_player(pick.player)
         
-        # Restore watch list from saved state
-        watch_list = self.roster_view.get_watch_list()
-        if watch_list and self.draft_state_before_reversion:
-            original_watch_state = self.draft_state_before_reversion.get('watched_players', {})
-            original_watched_ids = original_watch_state.get('player_ids', set())
-            drafted_ids = {pick.player.player_id for pick in picks_to_keep if pick.player.player_id}
-            
-            watch_list.watched_player_ids = original_watched_ids - drafted_ids
-            watch_list.watched_players = [p for p in self.available_players 
-                                        if p.player_id in watch_list.watched_player_ids]
-            watch_list.update_display()
-            
-            if self.player_list.watch_list_ref:
-                self.player_list.watched_player_ids = watch_list.watched_player_ids.copy()
+        # Clear position count cache since rosters changed
+        self._position_counts_cache.clear()
         
-        # Clear draft board picks using the proper method
+        # Skip watch list update during reversion - do it at the end
+        
+        # Clear draft board picks
         self.draft_board.clear_picks_after(target_pick_number)
-        
-        # Reset draft board state
         self.draft_board._last_pick_count = len(picks_to_keep)
         self.draft_board.draft_results = picks_to_keep
-        
-        # Force a full update of the draft board
-        self.draft_board.update_picks(picks_to_keep, target_pick_number)
-        
-        print(f"Reversion took {time.time() - start_time:.3f}s")
         
         # Now immediately auto-draft until user's turn
         self._fast_auto_draft_to_user()
     
     def _fast_auto_draft_to_user(self):
         """Fast auto-draft until it's the user's turn"""
-        import time
-        start_time = time.time()
-        
         picks_made = []
-        players_to_remove = []
         
-        # Make all picks at once
+        # Make all picks without UI updates
         while not self.draft_engine.is_draft_complete():
             _, _, _, team_on_clock = self.draft_engine.get_current_pick_info()
             
@@ -1015,35 +953,45 @@ class MockDraftApp:
                     self.draft_engine.make_pick(current_team, selected_player)
                     self.available_players.remove(selected_player)
                     picks_made.append(selected_player)
-                    players_to_remove.append(selected_player)
+                    
+                    # Update position count cache
+                    if current_team.id in self._position_counts_cache:
+                        if selected_player.position in self._position_counts_cache[current_team.id]:
+                            self._position_counts_cache[current_team.id][selected_player.position] += 1
                 except ValueError:
                     continue
         
-        print(f"Auto-drafted {len(picks_made)} picks in {time.time() - start_time:.3f}s")
-        
-        # Update everything at once
+        # Now do all UI updates at once
         if picks_made:
-            # Remove from watch list
-            watch_list = self.roster_view.get_watch_list()
-            if watch_list:
-                for player in picks_made:
-                    if player.player_id:
-                        watch_list.remove_drafted_player(player.player_id)
-            
             # Update draft board once
             pick_num = self.draft_engine.get_current_pick_info()[0]
             self.draft_board.update_picks(self.draft_engine.get_draft_results(), pick_num)
         
-        # Update player list with a full refresh to fix row colors
-        self.player_list.update_players(self.available_players)
+        # Restore watch list from saved state
+        watch_list = self.roster_view.get_watch_list()
+        if watch_list and self.draft_state_before_reversion:
+            original_watch_state = self.draft_state_before_reversion.get('watched_players', {})
+            original_watched_ids = original_watch_state.get('player_ids', set())
+            
+            # Get all currently drafted player IDs
+            all_drafted_ids = {pick.player.player_id for pick in self.draft_engine.draft_results if pick.player.player_id}
+            
+            # Restore watch list to original minus currently drafted
+            watch_list.watched_player_ids = original_watched_ids - all_drafted_ids
+            watch_list.watched_players = [p for p in self.available_players 
+                                        if p.player_id in watch_list.watched_player_ids]
+            watch_list.update_display()
+            
+            if self.player_list.watch_list_ref:
+                self.player_list.watched_player_ids = watch_list.watched_player_ids.copy()
         
-        # Don't use remove_players as it messes up row colors
-        # The update_players already handled removing drafted players
+        # Update player list once
+        self.player_list.update_players(self.available_players)
         
         # Update star icons
         self.player_list._update_star_icons()
         
-        # Final UI update
+        # Final status update
         self.update_display(full_update=False)
     
     

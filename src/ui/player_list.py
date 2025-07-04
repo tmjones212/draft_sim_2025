@@ -227,42 +227,23 @@ class PlayerList(StyledFrame):
         else:
             filtered_players = [p for p in players if p.position == self.selected_position]
         
-        # Apply sorting
-        if self.sort_by == "adp":
-            # Sort by ADP, putting players without ADP at the end
-            filtered_players = sorted(filtered_players, 
-                                    key=lambda p: p.adp if p.adp else float('inf'),
-                                    reverse=not self.sort_ascending)
+        # Apply sorting - optimized with single sort key function
+        if self.sort_by == "rank":
+            sort_key = lambda p: p.rank
+        elif self.sort_by == "adp":
+            sort_key = lambda p: p.adp if p.adp else float('inf')
         elif self.sort_by == "games_2024":
-            # Sort by games played in 2024
-            # Handle None values by treating them as 0
-            def get_games(p):
-                games = getattr(p, 'games_2024', None)
-                return games if games is not None else 0
-            filtered_players = sorted(filtered_players, key=get_games, reverse=not self.sort_ascending)
+            sort_key = lambda p: getattr(p, 'games_2024', 0) or 0
         elif self.sort_by == "points_2024":
-            # Sort by fantasy points in 2024
-            # Handle None values by treating them as 0
-            def get_points(p):
-                points = getattr(p, 'points_2024', None)
-                return points if points is not None else 0
-            filtered_players = sorted(filtered_players, key=get_points, reverse=not self.sort_ascending)
+            sort_key = lambda p: getattr(p, 'points_2024', 0) or 0
         elif self.sort_by == "points_2025_proj":
-            # Sort by projected fantasy points for 2025
-            # Handle None values by treating them as 0
-            def get_proj_points(p):
-                points = getattr(p, 'points_2025_proj', None)
-                return points if points is not None else 0
-            filtered_players = sorted(filtered_players, key=get_proj_points, reverse=not self.sort_ascending)
+            sort_key = lambda p: getattr(p, 'points_2025_proj', 0) or 0
         elif self.sort_by == "var":
-            # Sort by VAR (Value Above Replacement)
-            # Handle None values by treating them as -100
-            def get_var(p):
-                var = getattr(p, 'var', None)
-                return var if var is not None else -100
-            filtered_players = sorted(filtered_players, key=get_var, reverse=not self.sort_ascending)
-        else:  # Default sort by rank
-            filtered_players = sorted(filtered_players, key=lambda p: p.rank, reverse=not self.sort_ascending)
+            sort_key = lambda p: getattr(p, 'var', -100) if getattr(p, 'var', None) is not None else -100
+        else:
+            sort_key = lambda p: p.rank
+        
+        filtered_players = sorted(filtered_players, key=sort_key, reverse=not self.sort_ascending)
         
         self.players = filtered_players
         self.selected_index = None

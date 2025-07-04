@@ -1,2 +1,2 @@
-- Get rid of the "Sort: Rank ADP" buttons, we can just click to sort already so we dont need it
-- the columns are headers aren't perfectly aligned right now, VAR is to the left of all the VAR values. add a tiny bit more space between teh columns after Name, it's just kind of bad looking
+ - can you add some tests like make some picks, revert some a bunch of times, make sure it doesn't always repick the same players, make sure it isn't taking too long, make sure it's putting the players, back into the available player pool, etc.? you'd have to run those on the windows version    
+ - the bookmark stars and draft buttons get the wrong background color after picks are made
