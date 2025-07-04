@@ -28,6 +28,9 @@ class MockDraftApp:
         # Set minimum window size
         self.root.minsize(1800, 800)
         
+        # Center the window on screen
+        self.center_window()
+        
         # Initialize draft components
         self.teams = self._create_teams()
         self.draft_engine = DraftEngine(
@@ -854,6 +857,26 @@ class MockDraftApp:
         # Reset and redraw
         self.draft_board._last_pick_count = 0
         self.draft_board.update_picks(self.draft_engine.draft_results, state['current_pick'])
+    
+    def center_window(self):
+        """Center the window on the screen"""
+        # Update the window to get actual dimensions
+        self.root.update_idletasks()
+        
+        # Get window dimensions
+        window_width = self.root.winfo_width()
+        window_height = self.root.winfo_height()
+        
+        # Get screen dimensions
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        
+        # Calculate center position
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+        
+        # Set window position
+        self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
 
 def main():

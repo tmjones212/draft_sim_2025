@@ -15,7 +15,8 @@
       "Bash(grep:*)",
       "Bash(jq:*)",
       "Bash(bash:*)",
-      "Bash(/home/alaba/mock_sim_2025/sync_to_windows.sh:*)"
+      "Bash(/home/alaba/mock_sim_2025/sync_to_windows.sh:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }

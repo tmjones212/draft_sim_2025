@@ -162,15 +162,17 @@ class PlayerList(StyledFrame):
         
         # Column headers with exact pixel widths matching the cells
         headers = [
-            ('Rank', 70, 'rank'),
-            ('Pos', 60, None),
-            ('Name', 200, None),
-            ('Team', 50, None),
-            ('ADP', 50, 'adp'),
-            ('GP', 40, 'games_2024'),
-            ('2024', 70, 'points_2024'),
-            ('Proj', 70, 'points_2025_proj'),
-            ('', 90, None)       # Draft button
+            ('Rank', 60, 'rank'),
+            ('Pos', 50, None),
+            ('Name', 180, None),
+            ('Team', 45, None),
+            ('ADP', 45, 'adp'),
+            ('PosRk24', 55, 'position_rank_2024'),
+            ('GP', 35, 'games_2024'),
+            ('2024', 60, 'points_2024'),
+            ('PosRkPr', 55, 'position_rank_proj'),
+            ('Proj', 60, 'points_2025_proj'),
+            ('', 80, None)       # Draft button
         ]
         
         for text, width, sort_key in headers:
@@ -745,10 +747,10 @@ class PlayerList(StyledFrame):
             row.bind('<MouseWheel>', self._mousewheel_handler)
         
         # Rank
-        self.create_cell(row, f"#{player.rank}", 70, bg, select_row)
+        self.create_cell(row, f"#{player.rank}", 60, bg, select_row)
         
         # Position
-        pos_frame = tk.Frame(row, bg=bg, width=60)
+        pos_frame = tk.Frame(row, bg=bg, width=50)
         pos_frame.pack(side='left', fill='y')
         pos_frame.pack_propagate(False)
         
@@ -771,29 +773,37 @@ class PlayerList(StyledFrame):
             pos_label.bind('<MouseWheel>', self._mousewheel_handler)
         
         # Name
-        self.create_cell(row, player.name, 200, bg, select_row, anchor='w')
+        self.create_cell(row, player.name, 180, bg, select_row, anchor='w')
         
         # Team
-        self.create_cell(row, player.team or '-', 50, bg, select_row)
+        self.create_cell(row, player.team or '-', 45, bg, select_row)
         
         # ADP
-        self.create_cell(row, f"{player.adp:.1f}" if player.adp else '-', 50, bg, select_row)
+        self.create_cell(row, f"{player.adp:.1f}" if player.adp else '-', 45, bg, select_row)
+        
+        # Position Rank 2024
+        pos_rank_2024_text = f"{player.position}{player.position_rank_2024}" if hasattr(player, 'position_rank_2024') and player.position_rank_2024 else '-'
+        self.create_cell(row, pos_rank_2024_text, 55, bg, select_row)
         
         # 2024 Games
         games_text = str(player.games_2024) if hasattr(player, 'games_2024') and player.games_2024 else '-'
-        self.create_cell(row, games_text, 40, bg, select_row)
+        self.create_cell(row, games_text, 35, bg, select_row)
         
         # 2024 Points
         points_text = f"{player.points_2024:.0f}" if hasattr(player, 'points_2024') and player.points_2024 else '-'
-        self.create_cell(row, points_text, 70, bg, select_row)
+        self.create_cell(row, points_text, 60, bg, select_row)
+        
+        # Position Rank Projected
+        pos_rank_proj_text = f"{player.position}{player.position_rank_proj}" if hasattr(player, 'position_rank_proj') and player.position_rank_proj else '-'
+        self.create_cell(row, pos_rank_proj_text, 55, bg, select_row)
         
         # 2025 Projection
         proj_text = f"{player.points_2025_proj:.0f}" if hasattr(player, 'points_2025_proj') and player.points_2025_proj else '-'
-        self.create_cell(row, proj_text, 70, bg, select_row)
+        self.create_cell(row, proj_text, 60, bg, select_row)
         
         # Draft button
         if self.draft_enabled:
-            btn_frame = tk.Frame(row, bg=bg, width=90)
+            btn_frame = tk.Frame(row, bg=bg, width=80)
             btn_frame.pack(side='left', fill='y')
             btn_frame.pack_propagate(False)
             
