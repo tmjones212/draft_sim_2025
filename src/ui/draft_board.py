@@ -31,6 +31,8 @@ class DraftBoard(StyledFrame):
             self.start_glow_animation()
         # Bind resize event
         self.bind('<Configure>', self.on_resize)
+        # Track if we're currently resizing
+        self._is_resizing = False
         
     def setup_ui(self):
         # Main container with padding
@@ -250,6 +252,10 @@ class DraftBoard(StyledFrame):
     def update_picks(self, picks: List[DraftPick], current_pick_num: int):
         self.current_pick_num = current_pick_num
         self.draft_results = picks  # Store all picks
+        
+        # Skip updates during resize
+        if getattr(self, '_is_resizing', False):
+            return
         
         # Only update new picks since last update
         if not hasattr(self, '_last_pick_count'):
@@ -531,9 +537,22 @@ class DraftBoard(StyledFrame):
             return
             
         self._last_width = event.width
+        self._is_resizing = True
+        
+        # Cancel any pending resize
+        if hasattr(self, '_resize_after_id'):
+            self.after_cancel(self._resize_after_id)
+        
+        # Debounce resize updates - wait 50ms after dragging stops
+        self._resize_after_id = self.after(50, lambda: self._do_resize(event.width))
+    
+    def _do_resize(self, width):
+        """Actually perform the resize calculations"""
+        if not self.canvas or not self.scrollable_frame:
+            return
         
         # Calculate new column width
-        available_width = event.width - 40  # Subtract padding and scrollbar
+        available_width = width - 40  # Subtract padding and scrollbar
         new_col_width = max(120, available_width // self.num_teams)
         
         # Update all column widths
@@ -542,3 +561,6 @@ class DraftBoard(StyledFrame):
         
         # Update canvas scroll region
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        
+        # Clear resizing flag
+        self._is_resizing = False

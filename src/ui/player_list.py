@@ -20,6 +20,7 @@ class PlayerList(StyledFrame):
         self.all_players: List[Player] = []  # Store all players
         self.selected_position = "ALL"  # Current filter
         self.sort_by = "rank"  # Default sort by rank
+        self.sort_ascending = True  # Track sort direction
         self.setup_ui()
         
     def setup_ui(self):
@@ -88,15 +89,16 @@ class PlayerList(StyledFrame):
                 text=label,
                 bg=DARK_THEME['button_active'] if value == "rank" else DARK_THEME['button_bg'],
                 fg='white',
-                font=(DARK_THEME['font_family'], 9),
-                bd=1,
-                relief='solid',
-                padx=8,
-                pady=2,
+                font=(DARK_THEME['font_family'], 9, 'bold'),
+                bd=0,
+                relief='flat',
+                padx=10,
+                pady=3,
                 command=lambda v=value: self.sort_players(v),
-                cursor='hand2'
+                cursor='hand2',
+                activebackground=DARK_THEME['button_active'] if value == "rank" else DARK_THEME['button_bg']
             )
-            btn.pack(side='left', padx=2)
+            btn.pack(side='left', padx=1)
             self.sort_buttons[value] = btn
         
         # Position filter buttons
@@ -108,20 +110,35 @@ class PlayerList(StyledFrame):
         self.position_buttons = {}
         
         for pos in positions:
+            # Use position colors for filter buttons
+            if pos == "ALL":
+                btn_bg = DARK_THEME['button_active']
+            elif pos == "QB":
+                btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
+            elif pos == "RB":
+                btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
+            elif pos == "WR":
+                btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
+            elif pos == "TE":
+                btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
+            else:
+                btn_bg = DARK_THEME['button_bg']
+            
             btn = tk.Button(
                 filter_frame,
                 text=pos,
-                bg=DARK_THEME['button_bg'] if pos != "ALL" else DARK_THEME['button_active'],
+                bg=btn_bg,
                 fg='white',
-                font=(DARK_THEME['font_family'], 9),
-                bd=1,
-                relief='solid',
-                padx=10,
-                pady=3,
+                font=(DARK_THEME['font_family'], 9, 'bold'),
+                bd=0,
+                relief='flat',
+                padx=12,
+                pady=4,
                 command=lambda p=pos: self.filter_by_position(p),
-                cursor='hand2'
+                cursor='hand2',
+                activebackground=btn_bg
             )
-            btn.pack(side='left', padx=2)
+            btn.pack(side='left', padx=1)
             self.position_buttons[pos] = btn
         
         # Table container
@@ -140,30 +157,48 @@ class PlayerList(StyledFrame):
         header_container.pack(fill='both', expand=True, padx=1, pady=1)
         header_container.pack_propagate(False)
         
+        # Store header labels for updating sort indicators
+        self.header_labels = {}
+        
         # Column headers with exact pixel widths matching the cells
         headers = [
-            ('Rank', 70),
-            ('Pos', 60),
-            ('Name', 300),
-            ('Team', 80),
-            ('ADP', 80),
-            ('', 100)       # Draft button
+            ('Rank', 70, 'rank'),
+            ('Pos', 60, None),
+            ('Name', 200, None),
+            ('Team', 50, None),
+            ('ADP', 50, 'adp'),
+            ('GP', 40, 'games_2024'),
+            ('2024', 70, 'points_2024'),
+            ('Proj', 70, 'points_2025_proj'),
+            ('', 90, None)       # Draft button
         ]
         
-        for text, width in headers:
+        for text, width, sort_key in headers:
             header_frame = tk.Frame(header_container, bg=DARK_THEME['bg_tertiary'], width=width)
             header_frame.pack(side='left', fill='y')
             header_frame.pack_propagate(False)
             
+            # Add sort indicator to default sort column
+            display_text = text
+            if sort_key == 'rank' and not hasattr(self, '_sort_initialized'):
+                display_text = text + ' ▲'  # Default sort by rank ascending
+                self._sort_initialized = True
+                
             header = tk.Label(
                 header_frame,
-                text=text,
+                text=display_text,
                 bg=DARK_THEME['bg_tertiary'],
                 fg='white',
                 font=(DARK_THEME['font_family'], 12, 'bold'),
-                anchor='center' if text != 'Name' else 'w'
+                anchor='center' if text != 'Name' else 'w',
+                cursor='hand2' if sort_key else 'arrow'
             )
             header.pack(expand=True)
+            
+            # Store header labels for sortable columns
+            if sort_key:
+                self.header_labels[sort_key] = (header, text)
+                header.bind('<Button-1>', lambda e, key=sort_key: self.sort_players(key))
         
         # Scrollable content
         content_container = StyledFrame(self.table_container, bg_type='secondary')
@@ -223,9 +258,31 @@ class PlayerList(StyledFrame):
         if self.sort_by == "adp":
             # Sort by ADP, putting players without ADP at the end
             filtered_players = sorted(filtered_players, 
-                                    key=lambda p: p.adp if p.adp else float('inf'))
+                                    key=lambda p: p.adp if p.adp else float('inf'),
+                                    reverse=not self.sort_ascending)
+        elif self.sort_by == "games_2024":
+            # Sort by games played in 2024
+            # Handle None values by treating them as 0
+            def get_games(p):
+                games = getattr(p, 'games_2024', None)
+                return games if games is not None else 0
+            filtered_players = sorted(filtered_players, key=get_games, reverse=not self.sort_ascending)
+        elif self.sort_by == "points_2024":
+            # Sort by fantasy points in 2024
+            # Handle None values by treating them as 0
+            def get_points(p):
+                points = getattr(p, 'points_2024', None)
+                return points if points is not None else 0
+            filtered_players = sorted(filtered_players, key=get_points, reverse=not self.sort_ascending)
+        elif self.sort_by == "points_2025_proj":
+            # Sort by projected fantasy points for 2025
+            # Handle None values by treating them as 0
+            def get_proj_points(p):
+                points = getattr(p, 'points_2025_proj', None)
+                return points if points is not None else 0
+            filtered_players = sorted(filtered_players, key=get_proj_points, reverse=not self.sort_ascending)
         else:  # Default sort by rank
-            filtered_players = sorted(filtered_players, key=lambda p: p.rank)
+            filtered_players = sorted(filtered_players, key=lambda p: p.rank, reverse=not self.sort_ascending)
         
         self.players = filtered_players
         self.selected_index = None
@@ -372,29 +429,58 @@ class PlayerList(StyledFrame):
         """Filter players by position"""
         self.selected_position = position
         
-        # Update button appearances
+        # Update button appearances with position colors
         for pos, btn in self.position_buttons.items():
             if pos == position:
-                btn.config(bg=DARK_THEME['button_active'])
+                if pos == "ALL":
+                    btn.config(bg=DARK_THEME['button_active'], activebackground=DARK_THEME['button_active'])
+                else:
+                    pos_color = get_position_color(pos)
+                    btn.config(bg=pos_color, activebackground=pos_color)
             else:
-                btn.config(bg=DARK_THEME['button_bg'])
+                btn.config(bg=DARK_THEME['button_bg'], activebackground=DARK_THEME['button_bg'])
         
         # Refresh the player list with the filter applied
         self.update_players(self.all_players)
     
     def sort_players(self, sort_by: str):
         """Sort players by specified criteria"""
-        self.sort_by = sort_by
-        
-        # Update button appearances
-        for key, btn in self.sort_buttons.items():
-            if key == sort_by:
-                btn.config(bg=DARK_THEME['button_active'])
+        # Toggle sort direction if clicking the same column
+        if self.sort_by == sort_by:
+            self.sort_ascending = not self.sort_ascending
+        else:
+            # New column - default to descending for stats, ascending for rank/adp
+            self.sort_by = sort_by
+            if sort_by in ['games_2024', 'points_2024', 'points_2025_proj']:
+                self.sort_ascending = False  # Descending by default for stats
             else:
-                btn.config(bg=DARK_THEME['button_bg'])
+                self.sort_ascending = True  # Ascending by default for rank/adp
+        
+        # Update header indicators
+        self.update_sort_indicators()
+        
+        # Update button appearances if they exist
+        if hasattr(self, 'sort_buttons'):
+            for key, btn in self.sort_buttons.items():
+                if key == sort_by:
+                    btn.config(bg=DARK_THEME['button_active'], activebackground=DARK_THEME['button_active'])
+                else:
+                    btn.config(bg=DARK_THEME['button_bg'], activebackground=DARK_THEME['button_bg'])
         
         # Refresh the player list with the new sort
         self.update_players(self.all_players)
+    
+    def update_sort_indicators(self):
+        """Update sort arrows on column headers"""
+        if hasattr(self, 'header_labels'):
+            for sort_key, (label, base_text) in self.header_labels.items():
+                if sort_key == self.sort_by:
+                    # Add appropriate arrow
+                    arrow = ' ▲' if self.sort_ascending else ' ▼'
+                    label.config(text=base_text + arrow)
+                else:
+                    # Remove arrow
+                    label.config(text=base_text)
     
     def set_draft_enabled(self, enabled: bool):
         """Enable or disable all draft buttons"""
@@ -434,17 +520,11 @@ class PlayerList(StyledFrame):
     
     def _smart_update_table(self):
         """Smart update that reuses existing rows when possible"""
-        # Clear any "more players" label
-        for child in self.table_frame.winfo_children():
-            if isinstance(child, tk.Label) and hasattr(child, 'cget'):
-                try:
-                    if "more players" in str(child.cget("text")):
-                        child.destroy()
-                except:
-                    pass
-        
         max_display = min(100, len(self.players))
         current_row_count = len(self.row_frames)
+        
+        # Don't do batch updates - update rows immediately for smoother experience
+        # Just update the data in existing rows without clearing
         
         # Update existing rows
         for i in range(min(current_row_count, max_display)):
@@ -468,6 +548,11 @@ class PlayerList(StyledFrame):
                     self.row_frames.append(row)
                 else:
                     self.create_player_row(i, self.players[i])
+        
+        # Clear any existing "more players" label
+        for child in self.table_frame.winfo_children():
+            if isinstance(child, tk.Label) and not isinstance(child, tk.Frame):
+                child.destroy()
         
         # If there are more players, show a message
         if len(self.players) > max_display:
@@ -532,12 +617,65 @@ class PlayerList(StyledFrame):
         row.player = player
         row.index = index
         
-        # Clear all existing widgets
-        for widget in row.winfo_children():
-            widget.destroy()
-        
-        # Recreate row content
-        self._create_row_content(row, player, bg)
+        # Try to update existing widgets instead of recreating
+        widgets = row.winfo_children()
+        if len(widgets) >= 8:  # We have all widgets (including 2025P), just update their content
+            # Update rank (widget 0)
+            if widgets[0].winfo_children():
+                label = widgets[0].winfo_children()[0]
+                label.config(text=f"#{player.rank}", bg=bg)
+                widgets[0].config(bg=bg)
+            
+            # Position is widget 1 - skip as it has custom color
+            
+            # Update name (widget 2)
+            if widgets[2].winfo_children():
+                label = widgets[2].winfo_children()[0]
+                label.config(text=player.name, bg=bg)
+                widgets[2].config(bg=bg)
+            
+            # Update team (widget 3)
+            if widgets[3].winfo_children():
+                label = widgets[3].winfo_children()[0]
+                label.config(text=player.team or '-', bg=bg)
+                widgets[3].config(bg=bg)
+            
+            # Update ADP (widget 4)
+            if widgets[4].winfo_children():
+                label = widgets[4].winfo_children()[0]
+                label.config(text=f"{player.adp:.1f}" if player.adp else '-', bg=bg)
+                widgets[4].config(bg=bg)
+            
+            # Update games (widget 5)
+            if widgets[5].winfo_children():
+                label = widgets[5].winfo_children()[0]
+                games_text = str(player.games_2024) if hasattr(player, 'games_2024') and player.games_2024 else '-'
+                label.config(text=games_text, bg=bg)
+                widgets[5].config(bg=bg)
+            
+            # Update points (widget 6)
+            if widgets[6].winfo_children():
+                label = widgets[6].winfo_children()[0]
+                points_text = f"{player.points_2024:.0f}" if hasattr(player, 'points_2024') and player.points_2024 else '-'
+                label.config(text=points_text, bg=bg)
+                widgets[6].config(bg=bg)
+            
+            # Update 2025 projection (widget 7)
+            if len(widgets) > 7 and widgets[7].winfo_children():
+                label = widgets[7].winfo_children()[0]
+                proj_text = f"{player.points_2025_proj:.0f}" if hasattr(player, 'points_2025_proj') and player.points_2025_proj else '-'
+                label.config(text=proj_text, bg=bg)
+                widgets[7].config(bg=bg)
+            
+            # Update all frame backgrounds
+            for widget in widgets:
+                if isinstance(widget, tk.Frame) and not any(isinstance(child, tk.Button) for child in widget.winfo_children()):
+                    widget.config(bg=bg)
+        else:
+            # Widgets don't match, recreate them
+            for widget in row.winfo_children():
+                widget.destroy()
+            self._create_row_content(row, player, bg)
     
     def create_player_row(self, index, player):
         """Create a row with player data"""
@@ -564,6 +702,10 @@ class PlayerList(StyledFrame):
     
     def _create_row_content(self, row, player, bg):
         """Create the content for a player row"""
+        self._do_create_row_content(row, player, bg)
+    
+    def _do_create_row_content(self, row, player, bg):
+        """Actually create the row content"""
         # Make row selectable
         def select_row(e=None):
             # Find current index of this player
@@ -579,6 +721,24 @@ class PlayerList(StyledFrame):
                     self.on_select(row.player)
         
         row.bind('<Button-1>', select_row)
+        
+        # Add double-click to draft
+        def draft_on_double_click(e=None):
+            if self.draft_enabled and self.on_draft:
+                # Find current index of this player
+                current_index = None
+                for i, p in enumerate(self.players):
+                    if p == row.player:
+                        current_index = i
+                        break
+                
+                if current_index is not None:
+                    self.selected_index = current_index
+                    self.on_draft()
+        
+        row.bind('<Double-Button-1>', draft_on_double_click)
+        # Store the double-click handler on the row so cells can use it
+        row._double_click_handler = draft_on_double_click
         
         # Bind mousewheel to this row
         if hasattr(self, '_mousewheel_handler'):
@@ -599,6 +759,11 @@ class PlayerList(StyledFrame):
         pos_label.pack()
         pos_frame.bind('<Button-1>', select_row)
         
+        # Bind double-click to position elements
+        pos_frame.bind('<Double-Button-1>', row._double_click_handler)
+        pos_inner.bind('<Double-Button-1>', row._double_click_handler)
+        pos_label.bind('<Double-Button-1>', row._double_click_handler)
+        
         # Bind mousewheel
         if hasattr(self, '_mousewheel_handler'):
             pos_frame.bind('<MouseWheel>', self._mousewheel_handler)
@@ -606,17 +771,29 @@ class PlayerList(StyledFrame):
             pos_label.bind('<MouseWheel>', self._mousewheel_handler)
         
         # Name
-        self.create_cell(row, player.name, 300, bg, select_row, anchor='w')
+        self.create_cell(row, player.name, 200, bg, select_row, anchor='w')
         
         # Team
-        self.create_cell(row, player.team or '-', 80, bg, select_row)
+        self.create_cell(row, player.team or '-', 50, bg, select_row)
         
         # ADP
-        self.create_cell(row, f"{player.adp:.1f}" if player.adp else '-', 80, bg, select_row)
+        self.create_cell(row, f"{player.adp:.1f}" if player.adp else '-', 50, bg, select_row)
+        
+        # 2024 Games
+        games_text = str(player.games_2024) if hasattr(player, 'games_2024') and player.games_2024 else '-'
+        self.create_cell(row, games_text, 40, bg, select_row)
+        
+        # 2024 Points
+        points_text = f"{player.points_2024:.0f}" if hasattr(player, 'points_2024') and player.points_2024 else '-'
+        self.create_cell(row, points_text, 70, bg, select_row)
+        
+        # 2025 Projection
+        proj_text = f"{player.points_2025_proj:.0f}" if hasattr(player, 'points_2025_proj') and player.points_2025_proj else '-'
+        self.create_cell(row, proj_text, 70, bg, select_row)
         
         # Draft button
         if self.draft_enabled:
-            btn_frame = tk.Frame(row, bg=bg, width=100)
+            btn_frame = tk.Frame(row, bg=bg, width=90)
             btn_frame.pack(side='left', fill='y')
             btn_frame.pack_propagate(False)
             
@@ -653,6 +830,11 @@ class PlayerList(StyledFrame):
         )
         cell.pack(expand=True, fill='both')
         cell.bind('<Button-1>', click_handler)
+        
+        # Also bind double-click if the parent row has it
+        if hasattr(parent, '_double_click_handler'):
+            cell.bind('<Double-Button-1>', parent._double_click_handler)
+            cell_frame.bind('<Double-Button-1>', parent._double_click_handler)
         
         # Bind mousewheel
         if hasattr(self, '_mousewheel_handler'):

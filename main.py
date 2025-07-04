@@ -147,13 +147,17 @@ class MockDraftApp:
         content_frame.pack(fill='both', expand=True)
         
         # Create vertical PanedWindow for draggable divider
-        paned_window = ttk.PanedWindow(content_frame, orient='vertical')
+        # Using tk.PanedWindow instead of ttk for better performance control
+        paned_window = tk.PanedWindow(
+            content_frame, 
+            orient='vertical',
+            bg=DARK_THEME['bg_primary'],
+            sashwidth=8,
+            sashrelief='flat',
+            borderwidth=0,
+            opaqueresize=False  # Show outline while dragging for smoother performance
+        )
         paned_window.pack(fill='both', expand=True)
-        
-        # Configure PanedWindow style
-        style = ttk.Style()
-        style.configure('Sash', sashthickness=8)
-        style.configure('TPanedwindow', background=DARK_THEME['bg_primary'])
         
         # Top section - Draft board and Roster
         top_frame = StyledFrame(paned_window, bg_type='primary')
@@ -193,8 +197,12 @@ class MockDraftApp:
         self.player_list.pack(fill='both', expand=True, padx=10, pady=10)
         
         # Add frames to PanedWindow
-        paned_window.add(top_frame, weight=3)
-        paned_window.add(player_panel, weight=1)
+        paned_window.add(top_frame, stretch='always')
+        paned_window.add(player_panel, stretch='always')
+        
+        # Set initial sash position (75% for top, 25% for bottom)
+        paned_window.update_idletasks()  # Ensure geometry is calculated
+        paned_window.sash_place(0, 0, int(paned_window.winfo_height() * 0.75))
     
     def update_display(self, full_update=True):
         # Update status

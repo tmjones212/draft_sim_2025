@@ -1,1 +1,4 @@
 venv/*
+scripts/*.json
+scripts/projections_data/*
+scripts/stats_data/*

@@ -11,6 +11,9 @@ class Player:
     team: Optional[str] = None
     bye_week: Optional[int] = None
     player_id: Optional[str] = None
+    games_2024: Optional[int] = None
+    points_2024: Optional[float] = None
+    points_2025_proj: Optional[float] = None
     
     def __str__(self):
         return f"{self.rank}. {self.name} ({self.position})"

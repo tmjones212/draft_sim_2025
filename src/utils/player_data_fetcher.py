@@ -118,7 +118,8 @@ def parse_player_data(raw_data: str) -> List[Dict]:
     parser.feed(raw_data)
     
     # Extract ADP values from the HTML using regex
-    adp_pattern = r'<td class="numeric">(\d+\.\d+)</td>'
+    # Look for sort-value attribute which contains the actual ADP
+    adp_pattern = r'<td sort-value="(\d+\.\d+)">[\d.]+</td>'
     adp_values = re.findall(adp_pattern, raw_data)
     
     # Match ADP values to players
@@ -126,7 +127,7 @@ def parse_player_data(raw_data: str) -> List[Dict]:
         if i < len(adp_values):
             player['adp'] = float(adp_values[i])
         else:
-            player['adp'] = player['rank']
+            player['adp'] = float(player['rank'])
     
     return parser.players[:150]  # Return top 150
 
@@ -215,9 +216,95 @@ def load_sleeper_players() -> Dict[str, Dict]:
     return {}
 
 
+def load_2024_stats() -> Dict[str, Dict]:
+    """Load 2024 season stats from custom scoring file"""
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        stats_file = os.path.join(project_root, 'scripts', 'custom_scoring_player_stats_2024.json')
+        
+        if os.path.exists(stats_file):
+            with open(stats_file, 'r') as f:
+                stats_data = json.load(f)
+                # Create multiple mappings for name matching
+                name_to_stats = {}
+                for player_id, player_data in stats_data.items():
+                    if player_data.get('player_name'):
+                        name = player_data['player_name']
+                        stats = {
+                            'games_2024': player_data.get('games_played', 0),
+                            'points_2024': player_data.get('custom_season_total', 0.0)
+                        }
+                        
+                        # Store with original name
+                        name_to_stats[name] = stats
+                        
+                        # Also store with formatted name for matching
+                        formatted = format_name(name)
+                        name_to_stats[formatted] = stats
+                        
+                print(f"Loaded 2024 stats for {len(stats_data)} players")
+                return name_to_stats
+    except Exception as e:
+        print(f"Error loading 2024 stats: {e}")
+    return {}
+
+
+def load_projections() -> Dict[str, float]:
+    """Load 2025 projection data from custom scoring file"""
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        
+        # Try to find the most recent projection file
+        from datetime import datetime
+        current_year = datetime.now().year
+        current_month = datetime.now().month
+        
+        # Determine projection year
+        if current_month < 9:
+            projection_year = current_year
+        else:
+            projection_year = current_year + 1
+            
+        proj_file = os.path.join(project_root, 'scripts', f'custom_scoring_player_projections_{projection_year}.json')
+        
+        if os.path.exists(proj_file):
+            with open(proj_file, 'r') as f:
+                proj_data = json.load(f)
+                # Create mapping for name matching
+                name_to_proj = {}
+                for player_id, player_data in proj_data.items():
+                    if player_data.get('player_name'):
+                        name = player_data['player_name']
+                        proj_points = player_data.get('custom_projection_total', 0.0)
+                        
+                        # Store with original name
+                        name_to_proj[name] = proj_points
+                        
+                        # Also store with formatted name for matching
+                        formatted = format_name(name)
+                        name_to_proj[formatted] = proj_points
+                        
+                print(f"Loaded {projection_year} projections for {len(proj_data)} players")
+                # Debug: show sample mappings
+                sample_names = list(name_to_proj.keys())[:5]
+                print(f"Sample projection mappings: {sample_names}")
+                return name_to_proj
+        else:
+            print(f"Projection file not found: {proj_file}")
+    except Exception as e:
+        print(f"Error loading projections: {e}")
+        import traceback
+        traceback.print_exc()
+    return {}
+
+
 def match_with_sleeper_data(players: List[Dict]) -> List[Dict]:
-    """Match ADP players with Sleeper player IDs"""
+    """Match ADP players with Sleeper player IDs, 2024 stats, and projections"""
     sleeper_players = load_sleeper_players()
+    stats_2024 = load_2024_stats()
+    projections = load_projections()
     
     for player in players:
         # Format the name to match Sleeper format
@@ -237,6 +324,30 @@ def match_with_sleeper_data(players: List[Dict]) -> List[Dict]:
                 player['player_id'] = sleeper_data['player_id']
                 if not player.get('team') and sleeper_data.get('team'):
                     player['team'] = sleeper_data['team']
+        
+        # Match with 2024 stats
+        # The player name is already formatted (uppercase) in the ADP data
+        # The stats dict has both original and formatted names as keys
+        if player['name'] in stats_2024:
+            stats = stats_2024[player['name']]
+            player['games_2024'] = stats['games_2024']
+            player['points_2024'] = stats['points_2024']
+        elif formatted_name in stats_2024:
+            # This should normally not be needed as player['name'] is already formatted
+            stats = stats_2024[formatted_name]
+            player['games_2024'] = stats['games_2024']
+            player['points_2024'] = stats['points_2024']
+            
+        # Match with projections
+        if player['name'] in projections:
+            player['points_2025_proj'] = projections[player['name']]
+        elif formatted_name in projections:
+            player['points_2025_proj'] = projections[formatted_name]
+        
+        # Debug first few players
+        if len(players) < 10 or player.get('rank', 999) <= 5:
+            proj_value = player.get('points_2025_proj', 'Not found')
+            print(f"Player: {player['name']} (formatted: {formatted_name}) -> Projection: {proj_value}")
     
     return players
 

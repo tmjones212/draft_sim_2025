@@ -10,6 +10,9 @@ After making ANY changes, ALWAYS sync to Windows version:
 
 Windows local path: `C:\Users\alaba\source\repos\Python\draft_sim_2025`
 
+### Misc
+Also use the formatted player name (the format_name function in player_extensions.py)
+
 ### Draft Logic
 - Snake draft with 3rd round reversal (rounds 2 and 3 go the same direction)
 - Configuration in `config.py`
@@ -21,3 +24,4 @@ Windows local path: `C:\Users\alaba\source\repos\Python\draft_sim_2025`
 ### Running the App
 - Linux: `python3 main.py`
 - Windows: Double-click `run_windows.bat`
+
