@@ -1,15 +1,2 @@
-- the UI needs to open in the middle of the screen
-- add a position rank column to the player table for 2024 and for the proj
-- dont load any players like QB Player 25 etc. fake players like this
-
-- when the app loads its blocked or a few seconds
-- can we make it to where the main thread isn't blocking while its loading everything?
-- let's add a VAR column as well ("Value above Replacement")
-  - basically how many more points each player is projected over the replacement level player at that position.
-  - Example: In a 10 team league where you can start 2 QB's, we compare to the 20th projected QB
-  - For RB and WR, it's more complicated as there are flexes. in a 10 team league, just compare to RB 22 and WR 38
-  - For TE, just compare to TE10
-- Add a "Flex" filter next to the other positions for RB, WR and TE
-- The position filters are WAY too far to the right
-- The app should open taller, we can only see like 3 rows in the available players table when it opens
-- When a pick is made, show somewhere how good that pick was. something about how it was made early or late based on ADP and their VAR relative to other players at their position
+- Get rid of the "Sort: Rank ADP" buttons, we can just click to sort already so we dont need it
+- the columns are headers aren't perfectly aligned right now, VAR is to the left of all the VAR values. add a tiny bit more space between teh columns after Name, it's just kind of bad looking

@@ -34,6 +34,44 @@ def calculate_position_ranks(players: List[Player]):
                 player.position_rank_proj = rank
 
 
+def calculate_var(players: List[Player], num_teams: int = 10):
+    """Calculate Value Above Replacement for each player"""
+    # Define replacement level for each position in a 10-team league
+    replacement_levels = {
+        'QB': 20,    # 2 QBs per team = 20th QB
+        'RB': 22,    # 2.2 RBs per team (with flex) = 22nd RB
+        'WR': 38,    # 3.8 WRs per team (with flex) = 38th WR
+        'TE': 10     # 1 TE per team = 10th TE
+    }
+    
+    # Group players by position
+    position_groups = {'QB': [], 'RB': [], 'WR': [], 'TE': []}
+    
+    for player in players:
+        if player.position in position_groups and player.points_2025_proj is not None:
+            position_groups[player.position].append(player)
+    
+    # Calculate VAR for each position
+    for position, group in position_groups.items():
+        # Sort by projected points (descending)
+        sorted_players = sorted(group, key=lambda p: p.points_2025_proj or 0, reverse=True)
+        
+        # Find replacement level points
+        replacement_rank = replacement_levels.get(position, 10)
+        replacement_points = 0
+        
+        if len(sorted_players) >= replacement_rank:
+            replacement_points = sorted_players[replacement_rank - 1].points_2025_proj or 0
+        elif sorted_players:
+            # If we don't have enough players, use the last one
+            replacement_points = sorted_players[-1].points_2025_proj or 0
+        
+        # Calculate VAR for each player
+        for player in group:
+            if player.points_2025_proj is not None:
+                player.var = player.points_2025_proj - replacement_points
+
+
 def generate_mock_players() -> List[Player]:
     """Generate players using real ADP data"""
     # Get real player data
@@ -56,6 +94,9 @@ def generate_mock_players() -> List[Player]:
     
     # Calculate position ranks
     calculate_position_ranks(players)
+    
+    # Calculate VAR (Value Above Replacement)
+    calculate_var(players)
     
     # Only add fake players if we have very few real players (fallback scenario)
     if len(players) < 50:

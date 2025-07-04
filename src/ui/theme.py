@@ -11,6 +11,7 @@ DARK_THEME = {
     'text_primary': '#ffffff',     # Primary text
     'text_secondary': '#8b92a8',   # Secondary text
     'text_muted': '#5a6171',       # Muted text
+    'text_accent': '#bd66ff',      # Accent color (purple for stars)
     
     # Position colors (matching Sleeper)
     'pos_qb': '#f8296d',          # QB - Pink/Red

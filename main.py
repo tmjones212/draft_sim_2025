@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 import sys
 import os
 import random
+import threading
 
 # Add the current directory to Python path for cross-platform compatibility
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -21,12 +22,12 @@ class MockDraftApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Mock Draft Simulator 2025")
-        # Optimized window size - wider for draft board
-        self.root.geometry("1920x900")
+        # Optimized window size - wider for draft board and taller for better visibility
+        self.root.geometry("1920x1080")
         self.root.configure(bg=DARK_THEME['bg_primary'])
         
         # Set minimum window size
-        self.root.minsize(1800, 800)
+        self.root.minsize(1800, 900)
         
         # Center the window on screen
         self.center_window()
@@ -40,9 +41,10 @@ class MockDraftApp:
             reversal_round=config.reversal_round
         )
         
-        # Initialize players
-        self.all_players = generate_mock_players()
-        self.available_players = list(self.all_players)
+        # Initialize players as empty lists - will be loaded in background
+        self.all_players = []
+        self.available_players = []
+        self.players_loaded = False
         
         # Initialize services
         from src.services import PlayerImageService
@@ -50,6 +52,7 @@ class MockDraftApp:
         
         # User control state
         self.user_team_id = None  # Which team the user controls
+        self.manual_mode = False  # Whether user controls all picks
         
         # Draft reversion state
         self.draft_state_before_reversion = None
@@ -59,8 +62,11 @@ class MockDraftApp:
         self.setup_ui()
         self.setup_keyboard_shortcuts()
         
-        # Defer initial display update to speed up load
-        self.root.after(10, lambda: self.update_display())
+        # Show loading message
+        self.show_loading_message()
+        
+        # Start loading players in background thread
+        self.load_players_async()
     
     def _create_teams(self):
         teams = {}
@@ -106,6 +112,24 @@ class MockDraftApp:
         # Button container
         button_container = StyledFrame(header_frame, bg_type='primary')
         button_container.pack(side='right')
+        
+        # Manual mode toggle
+        self.manual_mode_var = tk.BooleanVar(value=self.manual_mode)
+        self.manual_mode_check = tk.Checkbutton(
+            button_container,
+            text="Manual Mode",
+            variable=self.manual_mode_var,
+            command=self.toggle_manual_mode,
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            selectcolor=DARK_THEME['bg_tertiary'],
+            activebackground=DARK_THEME['bg_primary'],
+            activeforeground=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10, 'bold'),
+            bd=0,
+            highlightthickness=0
+        )
+        self.manual_mode_check.pack(side='left', padx=(0, 20))
         
         # Undo button
         self.undo_button = StyledButton(
@@ -199,13 +223,19 @@ class MockDraftApp:
         self.player_list = PlayerList(player_panel, on_draft=self.draft_player, image_service=self.image_service)
         self.player_list.pack(fill='both', expand=True, padx=10, pady=10)
         
+        # Connect watch list to player list (bidirectional)
+        if hasattr(self.roster_view, 'get_watch_list'):
+            watch_list = self.roster_view.get_watch_list()
+            self.player_list.set_watch_list_ref(watch_list)
+            watch_list.set_player_list_ref(self.player_list)
+        
         # Add frames to PanedWindow
         paned_window.add(top_frame, stretch='always')
         paned_window.add(player_panel, stretch='always')
         
-        # Set initial sash position (75% for top, 25% for bottom)
+        # Set initial sash position (65% for top, 35% for bottom - more room for player list)
         paned_window.update_idletasks()  # Ensure geometry is calculated
-        paned_window.sash_place(0, 0, int(paned_window.winfo_height() * 0.75))
+        paned_window.sash_place(0, 0, int(paned_window.winfo_height() * 0.65))
     
     def update_display(self, full_update=True):
         # Update status
@@ -216,11 +246,23 @@ class MockDraftApp:
             self.on_clock_label.config(text="All picks have been made")
             self.draft_button.config(state="disabled", bg=DARK_THEME['button_bg'])
         else:
-            self.status_label.config(text=f"Round {round_num} • Pick {pick_in_round}")
-            self.on_clock_label.config(text=f"On the Clock: {self.teams[team_on_clock].name}")
+            # Show appropriate status based on mode and team selection
+            if self.manual_mode:
+                self.status_label.config(text=f"Round {round_num} • Pick {pick_in_round}")
+                self.on_clock_label.config(text=f"On the Clock: {self.teams[team_on_clock].name}")
+            elif not self.user_team_id:
+                self.status_label.config(text="Select a team to control")
+                self.on_clock_label.config(text="Click on a team name in the draft board")
+            else:
+                self.status_label.config(text=f"Round {round_num} • Pick {pick_in_round}")
+                self.on_clock_label.config(text=f"On the Clock: {self.teams[team_on_clock].name}")
             
-            # Only enable draft button if it's user's turn and they've selected a team
-            if self.user_team_id and team_on_clock == self.user_team_id:
+            # Enable draft button based on mode
+            if self.manual_mode:
+                # In manual mode, always enable
+                self.draft_button.config(state="normal", bg=DARK_THEME['button_active'])
+            elif self.user_team_id and team_on_clock == self.user_team_id:
+                # Normal mode - only when it's user's turn
                 self.draft_button.config(state="normal", bg=DARK_THEME['button_active'])
             else:
                 self.draft_button.config(state="disabled", bg=DARK_THEME['button_bg'])
@@ -228,8 +270,8 @@ class MockDraftApp:
         # Update components
         if full_update:
             self.player_list.update_players(self.available_players)
-            # Update draft button states based on team selection
-            self.player_list.set_draft_enabled(self.user_team_id is not None)
+            # Update draft button states based on mode
+            self.player_list.set_draft_enabled(self.manual_mode or self.user_team_id is not None)
         
         # Always update draft board with just the last pick
         self.draft_board.update_picks(
@@ -249,8 +291,17 @@ class MockDraftApp:
         self._draft_start_time = time.time()
         start_time = self._draft_start_time
         
-        # Check if user has selected a team first
-        if not self.user_team_id:
+        # Check if players are loaded
+        if not self.players_loaded:
+            messagebox.showinfo(
+                "Loading",
+                "Please wait for player data to finish loading.",
+                parent=self.root
+            )
+            return
+        
+        # Check if user has selected a team first (only in normal mode)
+        if not self.manual_mode and not self.user_team_id:
             messagebox.showwarning(
                 "No Team Selected", 
                 "Please select a team before drafting.",
@@ -301,6 +352,10 @@ class MockDraftApp:
             print(f"[{time.time()-start_time:.3f}s] Updating roster view...")
             self.roster_view.update_roster_display()
             print(f"[{time.time()-start_time:.3f}s] Roster view updated")
+            
+            # Show pick quality indicator
+            current_pick_num = self.draft_engine.get_current_pick_info()[0] - 1  # -1 because pick was just made
+            self.show_pick_quality(player, current_pick_num)
             
             # Check if we need to auto-draft next
             print(f"[{time.time()-start_time:.3f}s] Checking auto-draft...")
@@ -356,6 +411,26 @@ class MockDraftApp:
         # Check if we need to auto-draft for current pick after UI updates
         self.root.after(1, self.check_auto_draft)
     
+    def toggle_manual_mode(self):
+        """Toggle manual mode on/off"""
+        self.manual_mode = self.manual_mode_var.get()
+        
+        if self.manual_mode:
+            # In manual mode, user controls all picks
+            self.status_label.config(text="Manual Mode - You control all picks")
+            # Always enable draft controls
+            self.draft_button.config(state='normal', bg=DARK_THEME['button_active'])
+            self.player_list.set_draft_enabled(True)
+        else:
+            # Normal mode - need to select a team
+            if not self.user_team_id:
+                self.status_label.config(text="Select a team to control")
+                self.draft_button.config(state='disabled', bg=DARK_THEME['button_bg'])
+                self.player_list.set_draft_enabled(False)
+            else:
+                # Update display to show correct status
+                self.update_display(full_update=False)
+    
     def _remove_drafted_player(self, player):
         """Remove a drafted player from the UI"""
         if self.player_list.selected_index is not None:
@@ -369,6 +444,11 @@ class MockDraftApp:
             if actual_index is not None:
                 self.player_list.remove_player_card(actual_index)
                 self.player_list.selected_index = None
+        
+        # Also remove from watch list if present
+        watch_list = self.roster_view.get_watch_list()
+        if watch_list and player.player_id:
+            watch_list.remove_drafted_player(player.player_id)
     
     def check_auto_draft(self):
         """Check if current pick should be automated"""
@@ -376,6 +456,11 @@ class MockDraftApp:
             return
             
         _, _, _, team_on_clock = self.draft_engine.get_current_pick_info()
+        
+        # In manual mode, always wait for user input
+        if self.manual_mode:
+            self.update_display(full_update=False)
+            return
         
         # If user hasn't selected a team or it's not their turn, auto-draft
         if self.user_team_id is None or team_on_clock != self.user_team_id:
@@ -394,8 +479,8 @@ class MockDraftApp:
         while not self.draft_engine.is_draft_complete():
             _, _, _, team_on_clock = self.draft_engine.get_current_pick_info()
             
-            # Stop if it's the user's turn
-            if self.user_team_id is not None and team_on_clock == self.user_team_id:
+            # Stop if it's the user's turn (or manual mode)
+            if self.manual_mode or (self.user_team_id is not None and team_on_clock == self.user_team_id):
                 break
             
             # Make auto pick
@@ -435,20 +520,24 @@ class MockDraftApp:
             self.player_list.remove_players(players_to_remove)
             print(f"[{time.time()-start_time:.3f}s] Players removed")
             
+            # Also remove from watch list
+            watch_list = self.roster_view.get_watch_list()
+            if watch_list:
+                for player in players_to_remove:
+                    if player.player_id:
+                        watch_list.remove_drafted_player(player.player_id)
+            
             # Check if it's the user's turn
             pick_num, round_num, pick_in_round, team_on_clock = self.draft_engine.get_current_pick_info()
             is_user_turn = self.user_team_id and team_on_clock == self.user_team_id
             
-            # Only update draft board if it's the user's turn
-            if is_user_turn:
-                print(f"[{time.time()-start_time:.3f}s] User's turn - updating draft board...")
-                self.draft_board.update_picks(
-                    self.draft_engine.get_draft_results(),
-                    pick_num
-                )
-                print(f"[{time.time()-start_time:.3f}s] Draft board updated")
-            else:
-                print(f"[{time.time()-start_time:.3f}s] Not user's turn - skipping draft board update")
+            # Always update draft board after auto-drafting (especially for reversion)
+            print(f"[{time.time()-start_time:.3f}s] Updating draft board...")
+            self.draft_board.update_picks(
+                self.draft_engine.get_draft_results(),
+                pick_num
+            )
+            print(f"[{time.time()-start_time:.3f}s] Draft board updated")
             
             # Update status labels
             print(f"[{time.time()-start_time:.3f}s] Updating status...")
@@ -681,9 +770,13 @@ class MockDraftApp:
             reversal_round=config.reversal_round
         )
         
-        # Reset players
-        self.all_players = generate_mock_players()
-        self.available_players = list(self.all_players)
+        # Reset players - load in background if needed
+        if self.players_loaded:
+            # Already loaded, just reset the lists
+            self.available_players = list(self.all_players)
+        else:
+            # Still loading, wait for it to complete
+            self.available_players = []
         
         # Restore user team selection
         self.user_team_id = saved_user_team
@@ -721,6 +814,11 @@ class MockDraftApp:
         self.roster_view.current_team_id = None
         self.roster_view.update_roster_display()
         
+        # Clear the watch list
+        watch_list = self.roster_view.get_watch_list()
+        if watch_list:
+            watch_list.clear_all()
+        
         # Reset last roster team tracking
         if hasattr(self, '_last_roster_team'):
             delattr(self, '_last_roster_team')
@@ -756,7 +854,8 @@ class MockDraftApp:
         self.draft_state_before_reversion = {
             'picks': list(self.draft_engine.draft_results),
             'teams': self._save_team_state(),
-            'current_pick': self.draft_engine.get_current_pick_info()[0]
+            'current_pick': self.draft_engine.get_current_pick_info()[0],
+            'watched_players': self._save_watch_list_state()
         }
         self.players_before_reversion = list(self.available_players)
         
@@ -774,6 +873,9 @@ class MockDraftApp:
         # Restore the draft state
         self._restore_draft_state(self.draft_state_before_reversion)
         self.available_players = list(self.players_before_reversion)
+        
+        # Restore watch list state
+        self._restore_watch_list_state(self.draft_state_before_reversion.get('watched_players', {}))
         
         # Update display
         self.update_display()
@@ -799,27 +901,79 @@ class MockDraftApp:
             }
         return state
     
+    def _save_watch_list_state(self):
+        """Save current state of watch list"""
+        watch_list = self.roster_view.get_watch_list()
+        if watch_list:
+            return {
+                'players': list(watch_list.watched_players),
+                'player_ids': set(watch_list.watched_player_ids)
+            }
+        return {'players': [], 'player_ids': set()}
+    
+    def _restore_watch_list_state(self, watch_state):
+        """Restore watch list to a saved state"""
+        watch_list = self.roster_view.get_watch_list()
+        if watch_list and watch_state:
+            # Clear current watch list
+            watch_list.watched_players.clear()
+            watch_list.watched_player_ids.clear()
+            
+            # Restore saved state
+            watch_list.watched_players = list(watch_state['players'])
+            watch_list.watched_player_ids = set(watch_state['player_ids'])
+            
+            # Update displays
+            watch_list.update_display()
+            
+            # Update player list stars
+            if self.player_list.watch_list_ref:
+                self.player_list.watched_player_ids = set(watch_state['player_ids'])
+                self.player_list._update_star_icons()
+    
     def _revert_to_pick(self, target_pick_number):
-        """Revert draft to specified pick number"""
-        # Keep only picks before the target
-        picks_to_keep = [p for p in self.draft_engine.draft_results if p.pick_number < target_pick_number]
+        """Revert draft to specified pick number and auto-draft to user's turn"""
+        import time
+        start_time = time.time()
         
-        # Reset teams
+        # Quick status update
+        self.status_label.config(text=f"Reverting...")
+        
+        # Get picks to keep/remove
+        picks_to_keep = [p for p in self.draft_engine.draft_results if p.pick_number < target_pick_number]
+        picks_to_remove = [p for p in self.draft_engine.draft_results if p.pick_number >= target_pick_number]
+        
+        # Reset draft results
+        self.draft_engine.draft_results = picks_to_keep
+        
+        # Add removed players back to available list
+        for pick in picks_to_remove:
+            if pick.player not in self.available_players:
+                self.available_players.append(pick.player)
+        self.available_players.sort(key=lambda p: p.rank)
+        
+        # Reset team rosters efficiently
         for team in self.teams.values():
             team.roster = {pos: [] for pos in team.roster}
-        
-        # Reset available players
-        self.available_players = list(self.all_players)
-        
-        # Replay kept picks
-        self.draft_engine.draft_results = []
         for pick in picks_to_keep:
-            team = self.teams[pick.team_id]
-            team.add_player(pick.player)
-            self.draft_engine.draft_results.append(pick)
-            self.available_players.remove(pick.player)
+            self.teams[pick.team_id].add_player(pick.player)
         
-        # Clear visual picks after the target
+        # Restore watch list from saved state
+        watch_list = self.roster_view.get_watch_list()
+        if watch_list and self.draft_state_before_reversion:
+            original_watch_state = self.draft_state_before_reversion.get('watched_players', {})
+            original_watched_ids = original_watch_state.get('player_ids', set())
+            drafted_ids = {pick.player.player_id for pick in picks_to_keep if pick.player.player_id}
+            
+            watch_list.watched_player_ids = original_watched_ids - drafted_ids
+            watch_list.watched_players = [p for p in self.available_players 
+                                        if p.player_id in watch_list.watched_player_ids]
+            watch_list.update_display()
+            
+            if self.player_list.watch_list_ref:
+                self.player_list.watched_player_ids = watch_list.watched_player_ids.copy()
+        
+        # Clear draft board picks
         for pick_num in range(target_pick_number, len(self.draft_board.pick_widgets) + 1):
             if pick_num in self.draft_board.pick_widgets:
                 pick_frame = self.draft_board.pick_widgets[pick_num]
@@ -827,14 +981,70 @@ class MockDraftApp:
                     if isinstance(widget, tk.Frame) and widget.winfo_y() > 20:
                         widget.destroy()
         
-        # Reset the last pick count
         self.draft_board._last_pick_count = len(picks_to_keep)
         
-        # Update display
-        self.update_display()
+        print(f"Reversion took {time.time() - start_time:.3f}s")
         
-        # Check if we need to auto-draft
-        self.check_auto_draft()
+        # Now immediately auto-draft until user's turn
+        self._fast_auto_draft_to_user()
+    
+    def _fast_auto_draft_to_user(self):
+        """Fast auto-draft until it's the user's turn"""
+        import time
+        start_time = time.time()
+        
+        picks_made = []
+        players_to_remove = []
+        
+        # Make all picks at once
+        while not self.draft_engine.is_draft_complete():
+            _, _, _, team_on_clock = self.draft_engine.get_current_pick_info()
+            
+            # Stop if it's the user's turn (or manual mode)
+            if self.manual_mode or (self.user_team_id is not None and team_on_clock == self.user_team_id):
+                break
+            
+            if not self.available_players:
+                break
+                
+            current_team = self.teams[team_on_clock]
+            selected_player = self._select_computer_pick(current_team, self.draft_engine.get_current_pick_info()[0])
+            
+            if selected_player:
+                try:
+                    self.draft_engine.make_pick(current_team, selected_player)
+                    self.available_players.remove(selected_player)
+                    picks_made.append(selected_player)
+                    players_to_remove.append(selected_player)
+                except ValueError:
+                    continue
+        
+        print(f"Auto-drafted {len(picks_made)} picks in {time.time() - start_time:.3f}s")
+        
+        # Update everything at once
+        if picks_made:
+            # Remove from watch list
+            watch_list = self.roster_view.get_watch_list()
+            if watch_list:
+                for player in picks_made:
+                    if player.player_id:
+                        watch_list.remove_drafted_player(player.player_id)
+            
+            # Update draft board once
+            pick_num = self.draft_engine.get_current_pick_info()[0]
+            self.draft_board.update_picks(self.draft_engine.get_draft_results(), pick_num)
+        
+        # Update player list and remove drafted players
+        self.player_list.update_players(self.available_players)
+        if players_to_remove:
+            self.player_list.remove_players(players_to_remove)
+        
+        # Update star icons
+        self.player_list._update_star_icons()
+        
+        # Final UI update
+        self.update_display(full_update=False)
+    
     
     def _restore_draft_state(self, state):
         """Restore a saved draft state"""
@@ -877,6 +1087,131 @@ class MockDraftApp:
         
         # Set window position
         self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+    
+    def show_loading_message(self):
+        """Show loading message in player list"""
+        # Create a loading label in the player list
+        loading_label = tk.Label(
+            self.player_list,
+            text="Loading player data...",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 14)
+        )
+        loading_label.place(relx=0.5, rely=0.5, anchor='center')
+        self.loading_label = loading_label
+        
+        # Update status labels
+        self.status_label.config(text="Loading player data...")
+        self.on_clock_label.config(text="Please wait...")
+    
+    def load_players_async(self):
+        """Load players in a background thread"""
+        def load_players():
+            # Load players
+            players = generate_mock_players()
+            
+            # Update the app state from the main thread
+            self.root.after(0, lambda: self.on_players_loaded(players))
+        
+        # Start background thread
+        thread = threading.Thread(target=load_players, daemon=True)
+        thread.start()
+    
+    def on_players_loaded(self, players):
+        """Called when players are loaded"""
+        self.all_players = players
+        self.available_players = list(players)
+        self.players_loaded = True
+        
+        # Remove loading label
+        if hasattr(self, 'loading_label'):
+            self.loading_label.destroy()
+        
+        # Update display with loaded players
+        self.update_display(full_update=True)
+        
+        # Don't auto-draft immediately - wait for user to select a team
+        # Only show a message prompting user to select a team
+        if not self.user_team_id:
+            self.status_label.config(text="Select a team to control")
+            self.on_clock_label.config(text="Click on a team name in the draft board")
+    
+    def show_pick_quality(self, player, pick_num):
+        """Show a notification about pick quality"""
+        # Calculate ADP difference
+        adp_diff = pick_num - player.adp
+        
+        # Determine pick quality based on ADP
+        if adp_diff < -10:
+            quality = "MAJOR REACH"
+            color = "#FF4444"
+        elif adp_diff < -5:
+            quality = "REACH"
+            color = "#FF8844"
+        elif adp_diff < 3:
+            quality = "FAIR VALUE"
+            color = "#FFDD44"
+        elif adp_diff < 10:
+            quality = "GOOD VALUE"
+            color = "#44FF44"
+        else:
+            quality = "STEAL"
+            color = "#00FF00"
+        
+        # Get VAR ranking among position
+        var_rank = "N/A"
+        if hasattr(player, 'var') and player.var is not None:
+            # Find player's VAR rank at their position
+            position_players = [p for p in self.all_players if p.position == player.position and hasattr(p, 'var') and p.var is not None]
+            position_players.sort(key=lambda p: p.var, reverse=True)
+            for i, p in enumerate(position_players):
+                if p == player:
+                    var_rank = f"#{i+1} {player.position}"
+                    break
+        
+        # Create notification frame
+        notification = tk.Frame(self.root, bg=DARK_THEME['bg_secondary'], relief='raised', bd=2)
+        notification.place(relx=0.5, rely=0.9, anchor='center')
+        
+        # Title
+        title_label = tk.Label(
+            notification,
+            text=f"PICK ANALYSIS: {player.name}",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 14, 'bold')
+        )
+        title_label.pack(padx=20, pady=(10, 5))
+        
+        # Quality indicator
+        quality_label = tk.Label(
+            notification,
+            text=quality,
+            bg=color,
+            fg='black',
+            font=(DARK_THEME['font_family'], 16, 'bold'),
+            padx=20,
+            pady=5
+        )
+        quality_label.pack(pady=5)
+        
+        # Details
+        details_text = f"Pick #{pick_num} • ADP: {player.adp:.1f} ({adp_diff:+.1f})"
+        if var_rank != "N/A":
+            details_text += f" • VAR Rank: {var_rank}"
+        
+        details_label = tk.Label(
+            notification,
+            text=details_text,
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 11)
+        )
+        details_label.pack(padx=20, pady=(0, 10))
+        
+        # Auto-hide after 3 seconds
+        self.root.after(3000, notification.destroy)
 
 
 def main():

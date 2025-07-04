@@ -21,6 +21,12 @@ class PlayerList(StyledFrame):
         self.selected_position = "ALL"  # Current filter
         self.sort_by = "rank"  # Default sort by rank
         self.sort_ascending = True  # Track sort direction
+        self.dragging_player = None  # Track dragged player
+        self.drag_window = None  # Drag preview window
+        self.watched_player_ids = set()  # Track watched players
+        self.watch_list_ref = None  # Reference to watch list widget
+        self.drag_start_pos = None  # Track drag start position
+        self.is_dragging = False  # Track if actually dragging
         self.setup_ui()
         
     def setup_ui(self):
@@ -66,60 +72,21 @@ class PlayerList(StyledFrame):
         self.search_entry.pack(side='left')
         self.search_var.trace('w', lambda *args: self.on_search_changed())
         
-        # Sort controls
-        sort_frame = StyledFrame(header_frame, bg_type='secondary')
-        sort_frame.pack(side='left', padx=20)
-        
-        sort_label = tk.Label(
-            sort_frame,
-            text="Sort:",
-            bg=DARK_THEME['bg_secondary'],
-            fg=DARK_THEME['text_secondary'],
-            font=(DARK_THEME['font_family'], 9)
-        )
-        sort_label.pack(side='left', padx=(0, 5))
-        
-        # Sort buttons
-        self.sort_buttons = {}
-        sort_options = [("Rank", "rank"), ("ADP", "adp")]
-        
-        for label, value in sort_options:
-            btn = tk.Button(
-                sort_frame,
-                text=label,
-                bg=DARK_THEME['button_active'] if value == "rank" else DARK_THEME['button_bg'],
-                fg='white',
-                font=(DARK_THEME['font_family'], 9, 'bold'),
-                bd=0,
-                relief='flat',
-                padx=10,
-                pady=3,
-                command=lambda v=value: self.sort_players(v),
-                cursor='hand2',
-                activebackground=DARK_THEME['button_active'] if value == "rank" else DARK_THEME['button_bg']
-            )
-            btn.pack(side='left', padx=1)
-            self.sort_buttons[value] = btn
-        
         # Position filter buttons
         filter_frame = StyledFrame(header_frame, bg_type='secondary')
-        filter_frame.pack(side='right')
+        filter_frame.pack(side='left', padx=20)
         
         # Add position filter buttons
-        positions = ["ALL", "QB", "RB", "WR", "TE"]
+        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX"]
         self.position_buttons = {}
         
         for pos in positions:
             # Use position colors for filter buttons
             if pos == "ALL":
                 btn_bg = DARK_THEME['button_active']
-            elif pos == "QB":
-                btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
-            elif pos == "RB":
-                btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
-            elif pos == "WR":
-                btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
-            elif pos == "TE":
+            elif pos == "FLEX":
+                btn_bg = DARK_THEME['button_active'] if pos == self.selected_position else DARK_THEME['button_bg']
+            elif pos in ["QB", "RB", "WR", "TE"]:
                 btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
             else:
                 btn_bg = DARK_THEME['button_bg']
@@ -162,16 +129,17 @@ class PlayerList(StyledFrame):
         
         # Column headers with exact pixel widths matching the cells
         headers = [
-            ('Rank', 60, 'rank'),
-            ('Pos', 50, None),
+            ('Rank', 50, 'rank'),
+            ('', 25, None),      # Star column
+            ('Pos', 45, None),
             ('Name', 180, None),
             ('Team', 45, None),
             ('ADP', 45, 'adp'),
-            ('PosRk24', 55, 'position_rank_2024'),
-            ('GP', 35, 'games_2024'),
-            ('2024', 60, 'points_2024'),
-            ('PosRkPr', 55, 'position_rank_proj'),
-            ('Proj', 60, 'points_2025_proj'),
+            ('GP', 40, 'games_2024'),  # Added 5px
+            ('2024 Pts', 75, 'points_2024'),  # Added 10px
+            ('Proj Rank', 85, 'position_rank_proj'),  # Added 10px
+            ('Proj Pts', 75, 'points_2025_proj'),  # Added 10px
+            ('VAR', 60, 'var'),  # Added 10px
             ('', 80, None)       # Draft button
         ]
         
@@ -253,6 +221,9 @@ class PlayerList(StyledFrame):
         # Apply position filter
         if self.selected_position == "ALL":
             filtered_players = players
+        elif self.selected_position == "FLEX":
+            # FLEX shows RB, WR, and TE
+            filtered_players = [p for p in players if p.position in ["RB", "WR", "TE"]]
         else:
             filtered_players = [p for p in players if p.position == self.selected_position]
         
@@ -283,6 +254,13 @@ class PlayerList(StyledFrame):
                 points = getattr(p, 'points_2025_proj', None)
                 return points if points is not None else 0
             filtered_players = sorted(filtered_players, key=get_proj_points, reverse=not self.sort_ascending)
+        elif self.sort_by == "var":
+            # Sort by VAR (Value Above Replacement)
+            # Handle None values by treating them as -100
+            def get_var(p):
+                var = getattr(p, 'var', None)
+                return var if var is not None else -100
+            filtered_players = sorted(filtered_players, key=get_var, reverse=not self.sort_ascending)
         else:  # Default sort by rank
             filtered_players = sorted(filtered_players, key=lambda p: p.rank, reverse=not self.sort_ascending)
         
@@ -434,7 +412,7 @@ class PlayerList(StyledFrame):
         # Update button appearances with position colors
         for pos, btn in self.position_buttons.items():
             if pos == position:
-                if pos == "ALL":
+                if pos == "ALL" or pos == "FLEX":
                     btn.config(bg=DARK_THEME['button_active'], activebackground=DARK_THEME['button_active'])
                 else:
                     pos_color = get_position_color(pos)
@@ -460,14 +438,6 @@ class PlayerList(StyledFrame):
         
         # Update header indicators
         self.update_sort_indicators()
-        
-        # Update button appearances if they exist
-        if hasattr(self, 'sort_buttons'):
-            for key, btn in self.sort_buttons.items():
-                if key == sort_by:
-                    btn.config(bg=DARK_THEME['button_active'], activebackground=DARK_THEME['button_active'])
-                else:
-                    btn.config(bg=DARK_THEME['button_bg'], activebackground=DARK_THEME['button_bg'])
         
         # Refresh the player list with the new sort
         self.update_players(self.all_players)
@@ -619,65 +589,11 @@ class PlayerList(StyledFrame):
         row.player = player
         row.index = index
         
-        # Try to update existing widgets instead of recreating
-        widgets = row.winfo_children()
-        if len(widgets) >= 8:  # We have all widgets (including 2025P), just update their content
-            # Update rank (widget 0)
-            if widgets[0].winfo_children():
-                label = widgets[0].winfo_children()[0]
-                label.config(text=f"#{player.rank}", bg=bg)
-                widgets[0].config(bg=bg)
-            
-            # Position is widget 1 - skip as it has custom color
-            
-            # Update name (widget 2)
-            if widgets[2].winfo_children():
-                label = widgets[2].winfo_children()[0]
-                label.config(text=player.name, bg=bg)
-                widgets[2].config(bg=bg)
-            
-            # Update team (widget 3)
-            if widgets[3].winfo_children():
-                label = widgets[3].winfo_children()[0]
-                label.config(text=player.team or '-', bg=bg)
-                widgets[3].config(bg=bg)
-            
-            # Update ADP (widget 4)
-            if widgets[4].winfo_children():
-                label = widgets[4].winfo_children()[0]
-                label.config(text=f"{player.adp:.1f}" if player.adp else '-', bg=bg)
-                widgets[4].config(bg=bg)
-            
-            # Update games (widget 5)
-            if widgets[5].winfo_children():
-                label = widgets[5].winfo_children()[0]
-                games_text = str(player.games_2024) if hasattr(player, 'games_2024') and player.games_2024 else '-'
-                label.config(text=games_text, bg=bg)
-                widgets[5].config(bg=bg)
-            
-            # Update points (widget 6)
-            if widgets[6].winfo_children():
-                label = widgets[6].winfo_children()[0]
-                points_text = f"{player.points_2024:.0f}" if hasattr(player, 'points_2024') and player.points_2024 else '-'
-                label.config(text=points_text, bg=bg)
-                widgets[6].config(bg=bg)
-            
-            # Update 2025 projection (widget 7)
-            if len(widgets) > 7 and widgets[7].winfo_children():
-                label = widgets[7].winfo_children()[0]
-                proj_text = f"{player.points_2025_proj:.0f}" if hasattr(player, 'points_2025_proj') and player.points_2025_proj else '-'
-                label.config(text=proj_text, bg=bg)
-                widgets[7].config(bg=bg)
-            
-            # Update all frame backgrounds
-            for widget in widgets:
-                if isinstance(widget, tk.Frame) and not any(isinstance(child, tk.Button) for child in widget.winfo_children()):
-                    widget.config(bg=bg)
-        else:
-            # Widgets don't match, recreate them
-            for widget in row.winfo_children():
-                widget.destroy()
-            self._create_row_content(row, player, bg)
+        # With the star button, we have more widgets now, so just recreate the row content
+        # It's cleaner and avoids widget mismatch issues
+        for widget in row.winfo_children():
+            widget.destroy()
+        self._create_row_content(row, player, bg)
     
     def create_player_row(self, index, player):
         """Create a row with player data"""
@@ -724,6 +640,9 @@ class PlayerList(StyledFrame):
         
         row.bind('<Button-1>', select_row)
         
+        # Add drag support
+        self._setup_drag_support(row)
+        
         # Add double-click to draft
         def draft_on_double_click(e=None):
             if self.draft_enabled and self.on_draft:
@@ -747,10 +666,37 @@ class PlayerList(StyledFrame):
             row.bind('<MouseWheel>', self._mousewheel_handler)
         
         # Rank
-        self.create_cell(row, f"#{player.rank}", 60, bg, select_row)
+        self.create_cell(row, f"#{player.rank}", 50, bg, select_row)
+        
+        # Star button for watch list
+        star_frame = tk.Frame(row, bg=bg, width=25)
+        star_frame.pack(side='left', fill='y')
+        star_frame.pack_propagate(False)
+        
+        is_watched = player.player_id in self.watched_player_ids
+        star_btn = tk.Button(
+            star_frame,
+            text="★" if is_watched else "☆",
+            bg=bg,
+            fg=DARK_THEME['text_accent'] if is_watched else DARK_THEME['text_muted'],
+            font=(DARK_THEME['font_family'], 12),
+            bd=0,
+            relief='flat',
+            cursor='hand2',
+            command=lambda p=player: self._toggle_watch_list(p),
+            activebackground=bg
+        )
+        star_btn.pack(expand=True)
+        star_btn._is_star_button = True  # Mark as star button to skip in drag handling
+        row.star_button = star_btn  # Store reference for updates
+        
+        # Bind mousewheel
+        if hasattr(self, '_mousewheel_handler'):
+            star_frame.bind('<MouseWheel>', self._mousewheel_handler)
+            star_btn.bind('<MouseWheel>', self._mousewheel_handler)
         
         # Position
-        pos_frame = tk.Frame(row, bg=bg, width=50)
+        pos_frame = tk.Frame(row, bg=bg, width=45)
         pos_frame.pack(side='left', fill='y')
         pos_frame.pack_propagate(False)
         
@@ -781,25 +727,25 @@ class PlayerList(StyledFrame):
         # ADP
         self.create_cell(row, f"{player.adp:.1f}" if player.adp else '-', 45, bg, select_row)
         
-        # Position Rank 2024
-        pos_rank_2024_text = f"{player.position}{player.position_rank_2024}" if hasattr(player, 'position_rank_2024') and player.position_rank_2024 else '-'
-        self.create_cell(row, pos_rank_2024_text, 55, bg, select_row)
-        
         # 2024 Games
         games_text = str(player.games_2024) if hasattr(player, 'games_2024') and player.games_2024 else '-'
-        self.create_cell(row, games_text, 35, bg, select_row)
+        self.create_cell(row, games_text, 40, bg, select_row)  # Updated to match header
         
         # 2024 Points
         points_text = f"{player.points_2024:.0f}" if hasattr(player, 'points_2024') and player.points_2024 else '-'
-        self.create_cell(row, points_text, 60, bg, select_row)
+        self.create_cell(row, points_text, 75, bg, select_row)  # Updated to match header
         
         # Position Rank Projected
         pos_rank_proj_text = f"{player.position}{player.position_rank_proj}" if hasattr(player, 'position_rank_proj') and player.position_rank_proj else '-'
-        self.create_cell(row, pos_rank_proj_text, 55, bg, select_row)
+        self.create_cell(row, pos_rank_proj_text, 85, bg, select_row)  # Updated to match header
         
         # 2025 Projection
         proj_text = f"{player.points_2025_proj:.0f}" if hasattr(player, 'points_2025_proj') and player.points_2025_proj else '-'
-        self.create_cell(row, proj_text, 60, bg, select_row)
+        self.create_cell(row, proj_text, 75, bg, select_row)  # Updated to match header
+        
+        # VAR (Value Above Replacement)
+        var_text = f"{player.var:.0f}" if hasattr(player, 'var') and player.var is not None else '-'
+        self.create_cell(row, var_text, 60, bg, select_row)  # Updated to match header
         
         # Draft button
         if self.draft_enabled:
@@ -990,3 +936,181 @@ class PlayerList(StyledFrame):
         
         # Update the table view
         self.update_table_view()
+    
+    def _setup_drag_support(self, row):
+        """Setup drag and right-click support for a player row"""
+        # Setup drag support - store initial position to distinguish drag from click
+        def on_mouse_down(e, r=row):
+            self.drag_start_pos = (e.x_root, e.y_root)
+            self.is_dragging = False
+            self.potential_drag_row = r
+        
+        def on_mouse_move(e):
+            if self.drag_start_pos and not self.is_dragging:
+                # Check if mouse moved enough to start drag (5 pixel threshold)
+                dx = abs(e.x_root - self.drag_start_pos[0])
+                dy = abs(e.y_root - self.drag_start_pos[1])
+                if dx > 5 or dy > 5:
+                    self.is_dragging = True
+                    self._start_drag(e, self.potential_drag_row)
+            elif self.is_dragging:
+                self._on_drag_motion(e)
+        
+        def on_mouse_up(e):
+            if self.is_dragging:
+                self._end_drag(e)
+            self.drag_start_pos = None
+            self.is_dragging = False
+            self.potential_drag_row = None
+        
+        # Bind to row and all children
+        widgets_to_bind = [row]
+        for child in row.winfo_children():
+            widgets_to_bind.append(child)
+            if hasattr(child, 'winfo_children'):
+                for grandchild in child.winfo_children():
+                    # Skip the star button
+                    if not hasattr(grandchild, '_is_star_button'):
+                        widgets_to_bind.append(grandchild)
+        
+        for widget in widgets_to_bind:
+            widget.bind('<Button-1>', on_mouse_down, add='+')
+            widget.bind('<B1-Motion>', on_mouse_move, add='+')
+            widget.bind('<ButtonRelease-1>', on_mouse_up, add='+')
+            
+            # Add right-click menu
+            widget.bind('<Button-3>', lambda e, r=row: self._show_context_menu(e, r))
+    
+    def _start_drag(self, event, row):
+        """Start dragging a player"""
+        if not hasattr(row, 'player'):
+            return
+        self.dragging_player = row.player
+        
+        # Create drag preview window
+        if self.drag_window:
+            self.drag_window.destroy()
+            
+        self.drag_window = tk.Toplevel(self)
+        self.drag_window.overrideredirect(True)
+        self.drag_window.attributes('-alpha', 0.8)
+        
+        # Create preview content
+        preview_frame = StyledFrame(self.drag_window, bg_type='secondary')
+        preview_frame.pack()
+        
+        # Position badge
+        pos_label = tk.Label(
+            preview_frame,
+            text=self.dragging_player.position,
+            bg=get_position_color(self.dragging_player.position),
+            fg='white',
+            font=(DARK_THEME['font_family'], 9, 'bold'),
+            padx=8,
+            pady=4
+        )
+        pos_label.pack(side='left', padx=(5, 10))
+        
+        # Player name
+        name_label = tk.Label(
+            preview_frame,
+            text=self.dragging_player.formatted_name[:25],
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            padx=10,
+            pady=5
+        )
+        name_label.pack(side='left')
+        
+        # Position window at cursor
+        self.drag_window.geometry(f"+{event.x_root + 10}+{event.y_root + 10}")
+        
+        # Change cursor
+        self.config(cursor='hand2')
+    
+    def _on_drag_motion(self, event):
+        """Update drag preview position"""
+        if self.drag_window and self.drag_window.winfo_exists():
+            self.drag_window.geometry(f"+{event.x_root + 10}+{event.y_root + 10}")
+    
+    def _end_drag(self, event):
+        """End drag operation"""
+        if self.drag_window:
+            self.drag_window.destroy()
+            self.drag_window = None
+        
+        self.config(cursor='')
+        
+        # Check if dropped on watch list
+        if self.dragging_player:
+            # Get the widget under the cursor
+            x, y = event.x_root, event.y_root
+            target = self.winfo_containing(x, y)
+            
+            # Walk up the widget hierarchy to find if we're over the watch list
+            while target:
+                if hasattr(target, '__class__') and target.__class__.__name__ == 'WatchList':
+                    # Add player to watch list
+                    target.add_player(self.dragging_player)
+                    self.watched_player_ids.add(self.dragging_player.player_id)
+                    self._update_star_icons()
+                    break
+                target = target.master if hasattr(target, 'master') else None
+        
+        self.dragging_player = None
+    
+    def _show_context_menu(self, event, row):
+        """Show right-click context menu"""
+        if not hasattr(row, 'player'):
+            return
+            
+        menu = tk.Menu(self, tearoff=0, bg=DARK_THEME['bg_secondary'], 
+                      fg=DARK_THEME['text_primary'], 
+                      activebackground=DARK_THEME['button_active'],
+                      activeforeground='white')
+        
+        player = row.player
+        if player.player_id in self.watched_player_ids:
+            menu.add_command(label="Remove from Watch List", 
+                           command=lambda: self._toggle_watch_list(player))
+        else:
+            menu.add_command(label="Add to Watch List", 
+                           command=lambda: self._toggle_watch_list(player))
+        
+        menu.add_separator()
+        menu.add_command(label="Draft Player", 
+                        command=lambda: self.draft_specific_player(player),
+                        state='normal' if self.draft_enabled else 'disabled')
+        
+        menu.post(event.x_root, event.y_root)
+    
+    def _toggle_watch_list(self, player):
+        """Toggle player in watch list"""
+        if self.watch_list_ref:
+            if player.player_id in self.watched_player_ids:
+                self.watch_list_ref.remove_player(player)
+                self.watched_player_ids.discard(player.player_id)
+            else:
+                self.watch_list_ref.add_player(player)
+                self.watched_player_ids.add(player.player_id)
+            
+            # Update star icon for this player
+            self._update_star_icons()
+    
+    def _update_star_icons(self):
+        """Update all star icons based on watched status"""
+        for row in self.row_frames:
+            if hasattr(row, 'star_button') and hasattr(row, 'player'):
+                is_watched = row.player.player_id in self.watched_player_ids
+                row.star_button.config(
+                    text="★" if is_watched else "☆",
+                    fg=DARK_THEME['text_accent'] if is_watched else DARK_THEME['text_muted']
+                )
+    
+    def set_watch_list_ref(self, watch_list):
+        """Set reference to watch list widget"""
+        self.watch_list_ref = watch_list
+        if watch_list:
+            # Sync watched player IDs
+            self.watched_player_ids = watch_list.watched_player_ids
