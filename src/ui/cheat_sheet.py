@@ -255,11 +255,55 @@ class CheatSheet(StyledFrame):
         separator = tk.Frame(
             self.scrollable_frame,
             bg=DARK_THEME['accent_warning'],
-            height=3
+            height=3,
+            cursor='hand2'
         )
         separator.pack(fill='x', pady=5)
         separator.tier_index = idx  # Store which tier break this is
         separator.is_tier_line = True  # Mark as actual tier line
+        
+        # Make it clickable to remove
+        def on_click(e):
+            # Remove this tier break
+            if idx in self.tier_breaks:
+                self.tier_breaks.remove(idx)
+                self._last_clicked_index = idx
+                self.refresh_tier_displays()
+                
+                # Set flag to sync when user switches tabs
+                if hasattr(self.master.master.master, '_cheat_sheet_needs_sync'):
+                    self.master.master.master._cheat_sheet_needs_sync = True
+        
+        def on_enter(e):
+            separator.configure(bg='#ff6b35')  # Lighter orange on hover
+        
+        def on_leave(e):
+            separator.configure(bg=DARK_THEME['accent_warning'])
+        
+        separator.bind('<Button-1>', on_click)
+        separator.bind('<Enter>', on_enter)
+        separator.bind('<Leave>', on_leave)
+        
+        # Add tooltip
+        tooltip = tk.Label(
+            separator,
+            text="Click to remove tier",
+            bg=DARK_THEME['accent_warning'],
+            fg='black',
+            font=(DARK_THEME['font_family'], 8)
+        )
+        
+        def show_tooltip(e):
+            tooltip.place(relx=0.5, rely=0.5, anchor='center')
+            separator.configure(height=20)
+        
+        def hide_tooltip(e):
+            tooltip.place_forget()
+            separator.configure(height=3)
+        
+        separator.bind('<Enter>', lambda e: (on_enter(e), show_tooltip(e)))
+        separator.bind('<Leave>', lambda e: (on_leave(e), hide_tooltip(e)))
+        
         self.tier_separators.append(separator)
     
     def update_tier_separator_lines(self):
@@ -318,13 +362,38 @@ class CheatSheet(StyledFrame):
             for i, child in enumerate(children):
                 if hasattr(child, 'tier_index') and child.tier_index == idx:
                     # Create separator immediately after this click area
+                    # Create separator with click handler
                     separator = tk.Frame(
                         self.scrollable_frame,
                         bg=DARK_THEME['accent_warning'],
-                        height=3
+                        height=3,
+                        cursor='hand2'
                     )
                     separator.tier_index = idx
                     separator.is_tier_line = True
+                    
+                    # Make it clickable
+                    def make_click_handler(sep_idx):
+                        def on_click(e):
+                            if sep_idx in self.tier_breaks:
+                                self.tier_breaks.remove(sep_idx)
+                                self._last_clicked_index = sep_idx
+                                self.refresh_tier_displays()
+                                if hasattr(self.master.master.master, '_cheat_sheet_needs_sync'):
+                                    self.master.master.master._cheat_sheet_needs_sync = True
+                        return on_click
+                    
+                    separator.bind('<Button-1>', make_click_handler(idx))
+                    
+                    # Simple hover effects
+                    def on_enter(e):
+                        separator.configure(bg='#ff6b35')
+                    
+                    def on_leave(e):
+                        separator.configure(bg=DARK_THEME['accent_warning'])
+                    
+                    separator.bind('<Enter>', on_enter)
+                    separator.bind('<Leave>', on_leave)
                     
                     if i + 1 < len(children):
                         separator.pack(fill='x', pady=5, before=children[i + 1])
@@ -335,27 +404,29 @@ class CheatSheet(StyledFrame):
                     return
     
     def _update_tier_numbers(self):
-        """Update tier numbers based on current tier breaks"""
-        # Get current sorted players
-        filtered_players = self.get_filtered_players()
-        sorted_players = self.sort_players_by_custom_rank(filtered_players)[:100]
+        """Update tier numbers efficiently"""
+        # Simple tier assignment based on tier breaks
+        current_tier = 1
         
-        # Update player tiers
-        self.update_player_tiers_from_breaks(sorted_players)
-        
-        # Update labels
-        for idx, player in enumerate(sorted_players):
+        # Update labels directly from player frames (already sorted)
+        for i, frame in enumerate(self.player_frames):
+            if i > 0 and i in self.tier_breaks:
+                current_tier += 1
+                if current_tier > 8:
+                    current_tier = 8
+            
+            # Update tier for this player
+            player = frame.player
+            self.player_tiers[player.player_id] = current_tier
+            
+            # Update label if exists
             if player.player_id in self.tier_entries:
                 label = self.tier_entries[player.player_id]
-                tier = self.player_tiers.get(player.player_id, 0)
-                if tier > 0:
-                    label.config(
-                        text=str(tier),
-                        bg=self.tier_colors.get(tier, DARK_THEME['bg_tertiary']),
-                        fg='black' if tier in [1, 2, 3, 5] else 'white'
-                    )
-                else:
-                    label.config(text="-", bg=DARK_THEME['bg_tertiary'], fg=DARK_THEME['text_primary'])
+                label.config(
+                    text=str(current_tier),
+                    bg=self.tier_colors.get(current_tier, DARK_THEME['bg_tertiary']),
+                    fg='black' if current_tier in [1, 2, 3, 5] else 'white'
+                )
     
     def refresh_tier_displays(self):
         """Instantly update tier displays"""
@@ -409,7 +480,7 @@ class CheatSheet(StyledFrame):
         click_area = tk.Frame(
             self.scrollable_frame,
             bg=DARK_THEME['bg_primary'],
-            height=8,
+            height=6,
             cursor='hand2'
         )
         click_area.pack(fill='x')
@@ -417,26 +488,43 @@ class CheatSheet(StyledFrame):
         # Store the index for this click area
         click_area.tier_index = idx
         
+        # Create visual indicator container
+        indicator = tk.Frame(click_area, bg=DARK_THEME['bg_primary'])
+        
+        # Create dashed line effect with multiple small frames
+        for i in range(0, 100, 10):
+            dash = tk.Frame(
+                indicator,
+                bg=DARK_THEME['accent_warning'],
+                width=5,
+                height=2
+            )
+            dash.place(relx=i/100, rely=0.5, anchor='w')
+        
+        # Add text hint
+        hint_text = tk.Label(
+            indicator,
+            text="Click to add tier",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['accent_warning'],
+            font=(DARK_THEME['font_family'], 8)
+        )
+        hint_text.place(relx=0.5, rely=0.5, anchor='center')
+        
         # Hover effect
         def on_enter(e):
             if idx not in self.tier_breaks:
-                click_area.configure(bg=DARK_THEME['bg_hover'], height=12)
-                # Show hint
-                hint = tk.Label(
-                    click_area,
-                    text="Click to add tier break",
-                    bg=DARK_THEME['bg_hover'],
-                    fg=DARK_THEME['text_muted'],
-                    font=(DARK_THEME['font_family'], 9)
-                )
-                hint.place(relx=0.5, rely=0.5, anchor='center')
-                click_area.hint = hint
+                # Show indicator
+                click_area.configure(bg='#2a2a2a', height=20)
+                indicator.configure(bg='#2a2a2a')
+                hint_text.configure(bg='#2a2a2a')
+                indicator.place(relx=0.5, rely=0.5, relwidth=0.95, relheight=0.8, anchor='center')
         
         def on_leave(e):
             if idx not in self.tier_breaks:
-                click_area.configure(bg=DARK_THEME['bg_primary'], height=8)
-                if hasattr(click_area, 'hint'):
-                    click_area.hint.destroy()
+                # Hide indicator
+                click_area.configure(bg=DARK_THEME['bg_primary'], height=6)
+                indicator.place_forget()
         
         def on_click(e):
             self._last_clicked_index = idx
@@ -451,9 +539,9 @@ class CheatSheet(StyledFrame):
             # Instant visual update
             self.refresh_tier_displays()
             
-            # Update main page later
-            if self.on_rankings_update:
-                self.after(100, lambda: self.on_rankings_update(self.custom_rankings, self.player_tiers))
+            # Set flag to sync when user switches tabs (instant UI)
+            if hasattr(self.master.master.master, '_cheat_sheet_needs_sync'):
+                self.master.master.master._cheat_sheet_needs_sync = True
         
         click_area.bind('<Enter>', on_enter)
         click_area.bind('<Leave>', on_leave)
@@ -920,9 +1008,9 @@ class CheatSheet(StyledFrame):
                         else:
                             label.config(text="-", bg=DARK_THEME['bg_tertiary'], fg=DARK_THEME['text_primary'])
                 
-                # Defer the main page update
-                if self.on_rankings_update:
-                    self.after(1000, lambda: self.on_rankings_update(self.custom_rankings, self.player_tiers))
+                # Set flag to sync when user switches tabs
+                if hasattr(self.master.master.master, '_cheat_sheet_needs_sync'):
+                    self.master.master.master._cheat_sheet_needs_sync = True
         
         # Clean up
         if hasattr(self, 'dragged_row'):

@@ -119,7 +119,7 @@ class MockDraftApp:
         
         # Button container
         button_container = StyledFrame(header_frame, bg_type='primary')
-        button_container.pack(side='right') 
+        button_container.pack(side='right')
         
         # Manual mode toggle
         self.manual_mode_var = tk.BooleanVar(value=self.manual_mode)
@@ -261,6 +261,7 @@ class MockDraftApp:
         
         # Initialize cheat sheet (will be populated when players are loaded)
         self.cheat_sheet_container = cheat_sheet_tab
+        self._cheat_sheet_needs_sync = False
     
     def update_display(self, full_update=True):
         # Update status
@@ -1153,6 +1154,10 @@ class MockDraftApp:
         if tab_text == "Cheat Sheet" and hasattr(self, 'cheat_sheet'):
             # Force focus to cheat sheet for mouse wheel scrolling
             self.root.after(10, lambda: self.cheat_sheet.focus_set())
+        elif tab_text == "Draft" and self._cheat_sheet_needs_sync and hasattr(self, 'cheat_sheet'):
+            # Sync rankings when switching back to draft tab
+            self._cheat_sheet_needs_sync = False
+            self.on_cheat_sheet_update(self.cheat_sheet.custom_rankings, self.cheat_sheet.player_tiers)
     
     def show_pick_quality(self, player, pick_num):
         """Show a notification about pick quality"""
