@@ -27,6 +27,11 @@ class PlayerList(StyledFrame):
         self.watch_list_ref = None  # Reference to watch list widget
         self.drag_start_pos = None  # Track drag start position
         self.is_dragging = False  # Track if actually dragging
+        
+        # Custom rankings from cheat sheet
+        self.custom_rankings = {}
+        self.player_tiers = {}
+        
         self.setup_ui()
         
     def setup_ui(self):
@@ -130,6 +135,7 @@ class PlayerList(StyledFrame):
         # Column headers with exact pixel widths matching the cells
         headers = [
             ('Rank', 50, 'rank'),
+            ('CR', 35, 'custom_rank'),  # Custom Rank
             ('', 25, None),      # Star column
             ('Pos', 45, None),
             ('Name', 180, None),
@@ -230,6 +236,8 @@ class PlayerList(StyledFrame):
         # Apply sorting - use attrgetter for better performance
         if self.sort_by == "rank":
             filtered_players.sort(key=lambda p: p.rank, reverse=not self.sort_ascending)
+        elif self.sort_by == "custom_rank":
+            filtered_players.sort(key=lambda p: self.custom_rankings.get(p.player_id, p.rank + 1000), reverse=not self.sort_ascending)
         elif self.sort_by == "adp":
             filtered_players.sort(key=lambda p: p.adp if p.adp else float('inf'), reverse=not self.sort_ascending)
         elif self.sort_by == "games_2024":
@@ -459,6 +467,11 @@ class PlayerList(StyledFrame):
         """Enable or disable all draft buttons"""
         self.draft_enabled = enabled
     
+    def set_custom_rankings(self, custom_rankings, player_tiers):
+        """Set custom rankings from cheat sheet"""
+        self.custom_rankings = custom_rankings
+        self.player_tiers = player_tiers
+    
     def update_table_view(self):
         """Update the table view with current players"""
         # If we're just filtering/sorting, try to do a smart update
@@ -624,6 +637,19 @@ class PlayerList(StyledFrame):
                                     # Update specific field based on type
                                     if child._field_type == 'rank':
                                         child.configure(text=f"#{player.rank}", bg=bg)
+                                    elif child._field_type == 'custom_rank':
+                                        custom_rank = self.custom_rankings.get(player.player_id, '')
+                                        tier = self.player_tiers.get(player.player_id, 0)
+                                        tier_colors = {
+                                            1: '#FFD700', 2: '#C0C0C0', 3: '#CD7F32', 4: '#4169E1',
+                                            5: '#32CD32', 6: '#FF6347', 7: '#9370DB', 8: '#20B2AA'
+                                        }
+                                        if custom_rank:
+                                            cr_bg = tier_colors.get(tier, bg)
+                                            cr_fg = 'black' if tier in [1, 2, 3, 5] else 'white' if tier > 0 else DARK_THEME['text_primary']
+                                            child.configure(text=str(custom_rank), bg=cr_bg, fg=cr_fg)
+                                        else:
+                                            child.configure(text='-', bg=bg, fg=DARK_THEME['text_muted'])
                                     elif child._field_type == 'position':
                                         child.configure(text=player.position, bg=get_position_color(player.position))
                                         child.master.configure(bg=get_position_color(player.position))
@@ -723,6 +749,45 @@ class PlayerList(StyledFrame):
         
         # Rank
         self.create_cell(row, f"#{player.rank}", 50, bg, select_row, field_type='rank')
+        
+        # Custom Rank with tier color
+        custom_rank = self.custom_rankings.get(player.player_id, '')
+        tier = self.player_tiers.get(player.player_id, 0)
+        
+        cr_frame = tk.Frame(row, bg=bg, width=35)
+        cr_frame.pack(side='left', fill='y')
+        cr_frame.pack_propagate(False)
+        
+        tier_colors = {
+            1: '#FFD700',  # Gold
+            2: '#C0C0C0',  # Silver
+            3: '#CD7F32',  # Bronze
+            4: '#4169E1',  # Royal Blue
+            5: '#32CD32',  # Lime Green
+            6: '#FF6347',  # Tomato
+            7: '#9370DB',  # Medium Purple
+            8: '#20B2AA',  # Light Sea Green
+        }
+        
+        if custom_rank:
+            cr_bg = tier_colors.get(tier, bg)
+            cr_fg = 'black' if tier in [1, 2, 3, 5] else 'white' if tier > 0 else DARK_THEME['text_primary']
+            cr_label = tk.Label(
+                cr_frame,
+                text=str(custom_rank),
+                bg=cr_bg,
+                fg=cr_fg,
+                font=(DARK_THEME['font_family'], 9, 'bold'),
+                anchor='center'
+            )
+            cr_label.pack(expand=True, fill='both' if tier > 0 else None, padx=2 if tier > 0 else 0, pady=2 if tier > 0 else 0)
+            cr_label.bind('<Button-1>', select_row)
+            cr_label._field_type = 'custom_rank'
+        else:
+            # Empty cell
+            cr_label = tk.Label(cr_frame, text='-', bg=bg, fg=DARK_THEME['text_muted'], font=(DARK_THEME['font_family'], 9))
+            cr_label.pack(expand=True)
+            cr_label.bind('<Button-1>', select_row)
         
         # Star button for watch list
         star_frame = tk.Frame(row, bg=bg, width=25)

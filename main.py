@@ -13,6 +13,7 @@ import config
 from src.models import Team
 from src.core import DraftEngine
 from src.ui import DraftBoard, PlayerList, RosterView
+from src.ui.cheat_sheet import CheatSheet
 from src.ui.theme import DARK_THEME
 from src.ui.styled_widgets import StyledFrame, StyledButton
 from src.utils import generate_mock_players
@@ -60,6 +61,10 @@ class MockDraftApp:
         
         # Performance optimization
         self._position_counts_cache = {}  # Cache position counts per team
+        
+        # Cheat sheet data
+        self.custom_rankings = {}
+        self.player_tiers = {}
         
         # Setup UI
         self.setup_ui()
@@ -172,14 +177,21 @@ class MockDraftApp:
         )
         self.draft_button.pack(side='left')
         
-        # Main content area with draggable divider
+        # Main content area - Notebook for tabs
         content_frame = StyledFrame(main_frame, bg_type='primary')
         content_frame.pack(fill='both', expand=True)
         
-        # Create vertical PanedWindow for draggable divider
-        # Using tk.PanedWindow instead of ttk for better performance control
+        # Create notebook for tabs
+        self.notebook = ttk.Notebook(content_frame)
+        self.notebook.pack(fill='both', expand=True)
+        
+        # Tab 1: Draft
+        draft_tab = StyledFrame(self.notebook, bg_type='primary')
+        self.notebook.add(draft_tab, text="Draft")
+        
+        # Create vertical PanedWindow for draggable divider in draft tab
         paned_window = tk.PanedWindow(
-            content_frame, 
+            draft_tab, 
             orient='vertical',
             bg=DARK_THEME['bg_primary'],
             sashwidth=8,
@@ -239,6 +251,13 @@ class MockDraftApp:
         # Set initial sash position (65% for top, 35% for bottom - more room for player list)
         paned_window.update_idletasks()  # Ensure geometry is calculated
         paned_window.sash_place(0, 0, int(paned_window.winfo_height() * 0.65))
+        
+        # Tab 2: Cheat Sheet
+        cheat_sheet_tab = StyledFrame(self.notebook, bg_type='primary')
+        self.notebook.add(cheat_sheet_tab, text="Cheat Sheet")
+        
+        # Initialize cheat sheet (will be populated when players are loaded)
+        self.cheat_sheet_container = cheat_sheet_tab
     
     def update_display(self, full_update=True):
         # Update status
@@ -718,6 +737,21 @@ class MockDraftApp:
         
         return needs
     
+    def on_cheat_sheet_update(self, custom_rankings, player_tiers):
+        """Called when cheat sheet rankings are updated"""
+        self.custom_rankings = custom_rankings
+        self.player_tiers = player_tiers
+        
+        # Update player list to show custom rankings
+        if hasattr(self, 'player_list'):
+            self.player_list.set_custom_rankings(custom_rankings, player_tiers)
+            # Only update if we're currently sorting by custom rank
+            if self.player_list.sort_by == 'custom_rank':
+                self.player_list.update_players(self.available_players)
+            else:
+                # Just update the custom rank display without full refresh
+                self.player_list.update_table_view()
+    
     def restart_draft(self):
         """Reset the draft but keep user team selection"""
         # Save current user team selection
@@ -1087,6 +1121,14 @@ class MockDraftApp:
         # Remove loading label
         if hasattr(self, 'loading_label'):
             self.loading_label.destroy()
+        
+        # Create cheat sheet now that players are loaded
+        self.cheat_sheet = CheatSheet(
+            self.cheat_sheet_container,
+            self.all_players,
+            on_rankings_update=self.on_cheat_sheet_update
+        )
+        self.cheat_sheet.pack(fill='both', expand=True)
         
         # Update display with loaded players
         self.update_display(full_update=True)
