@@ -92,7 +92,7 @@ class MockDraftApp:
         
         # Title and status container
         status_container = StyledFrame(header_frame, bg_type='primary')
-        status_container.pack(side='left')
+        status_container.pack(side='left', fill='x', expand=True)
         
         self.status_label = tk.Label(
             status_container,
@@ -111,54 +111,6 @@ class MockDraftApp:
             font=(DARK_THEME['font_family'], 13)
         )
         self.on_clock_label.pack(anchor='w', pady=(3, 0))
-        
-        # Value indicators container (center)
-        value_container = StyledFrame(header_frame, bg_type='primary')
-        value_container.pack(side='left', expand=True, padx=20)
-        
-        # Good value indicator
-        self.good_value_frame = tk.Frame(value_container, bg=DARK_THEME['bg_primary'])
-        self.good_value_frame.pack(side='top', anchor='e', pady=(0, 5))
-        
-        good_value_label = tk.Label(
-            self.good_value_frame,
-            text="Good Value: ",
-            bg=DARK_THEME['bg_primary'],
-            fg=DARK_THEME['text_secondary'],
-            font=(DARK_THEME['font_family'], 12)
-        )
-        good_value_label.pack(side='left')
-        
-        self.good_value_text = tk.Label(
-            self.good_value_frame,
-            text="--",
-            bg=DARK_THEME['bg_primary'],
-            fg=DARK_THEME['accent_success'],
-            font=(DARK_THEME['font_family'], 12, 'bold')
-        )
-        self.good_value_text.pack(side='left')
-        
-        # Fair value indicator
-        self.fair_value_frame = tk.Frame(value_container, bg=DARK_THEME['bg_primary'])
-        self.fair_value_frame.pack(side='top', anchor='e')
-        
-        fair_value_label = tk.Label(
-            self.fair_value_frame,
-            text="Fair Value: ",
-            bg=DARK_THEME['bg_primary'],
-            fg=DARK_THEME['text_secondary'],
-            font=(DARK_THEME['font_family'], 12)
-        )
-        fair_value_label.pack(side='left')
-        
-        self.fair_value_text = tk.Label(
-            self.fair_value_frame,
-            text="--",
-            bg=DARK_THEME['bg_primary'],
-            fg=DARK_THEME['accent_warning'],
-            font=(DARK_THEME['font_family'], 12, 'bold')
-        )
-        self.fair_value_text.pack(side='left')
         
         # Button container
         button_container = StyledFrame(header_frame, bg_type='primary')
@@ -318,8 +270,6 @@ class MockDraftApp:
             else:
                 self.draft_button.config(state="disabled", bg=DARK_THEME['button_bg'])
         
-        # Update value indicators
-        self.update_value_indicators()
         
         # Update components
         if full_update:
@@ -339,43 +289,6 @@ class MockDraftApp:
             self.roster_view.team_var.set(f"Team {team_on_clock}")
             self.roster_view.update_roster_display()
             self._last_roster_team = team_on_clock
-    
-    def update_value_indicators(self):
-        """Update the good value and fair value indicators based on current pick"""
-        pick_num, _, _, _ = self.draft_engine.get_current_pick_info()
-        
-        if not self.players_loaded or not self.available_players:
-            self.good_value_text.config(text="--")
-            self.fair_value_text.config(text="--")
-            return
-        
-        # Find players who are good/fair value at this pick
-        good_values = []
-        fair_values = []
-        
-        for player in self.available_players[:20]:  # Check top 20 available
-            if player.adp:
-                adp_diff = pick_num - player.adp
-                if adp_diff >= 3:  # Good value threshold
-                    good_values.append(player)
-                elif adp_diff >= -3:  # Fair value threshold
-                    fair_values.append(player)
-        
-        # Update good value text
-        if good_values:
-            # Show the best value player
-            best_value = max(good_values, key=lambda p: pick_num - p.adp)
-            self.good_value_text.config(text=f"{best_value.position}{best_value.position_rank_proj} {best_value.format_name()}")
-        else:
-            self.good_value_text.config(text="None")
-        
-        # Update fair value text
-        if fair_values:
-            # Show the highest ranked fair value player
-            best_fair = min(fair_values, key=lambda p: p.rank)
-            self.fair_value_text.config(text=f"{best_fair.position}{best_fair.position_rank_proj} {best_fair.format_name()}")
-        else:
-            self.fair_value_text.config(text="None")
     
     def draft_player(self):
         import time
