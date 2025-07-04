@@ -44,3 +44,9 @@ class Player:
         # Import here to avoid circular import
         from ..utils.player_extensions import format_name
         return format_name(self.name)
+    
+    def format_name(self):
+        """Get the formatted version of the player's name (method version)"""
+        # Import here to avoid circular import
+        from ..utils.player_extensions import format_name
+        return format_name(self.name)

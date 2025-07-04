@@ -35,6 +35,11 @@ DARK_THEME = {
     'pick_border': '#2d3139',     # Draft pick border
     'current_pick': '#2d7a4e',    # Current pick highlight (toned down green)
     
+    # Status colors
+    'accent_success': '#2d7a4e',  # Success/good (green)
+    'accent_warning': '#faae58',  # Warning/fair (orange)
+    'accent_error': '#f8296d',    # Error/bad (red)
+    
     # Fonts
     'font_family': 'Segoe UI',
     'font_size_sm': 11,

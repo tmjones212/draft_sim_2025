@@ -1,2 +1,4 @@
- - can you add some tests like make some picks, revert some a bunch of times, make sure it doesn't always repick the same players, make sure it isn't taking too long, make sure it's putting the players, back into the available player pool, etc.? you'd have to run those on the windows version    
- - the bookmark stars and draft buttons get the wrong background color after picks are made
+- the sorts are extremely slow. they weren't like that earlier
+- the background colors in the table for hte star and the draft button can still be wrong, like after i make 1 pick it's off by one row
+- put the whole good value fair value thing at the top right above the draft board (in the empty space to the right of the round and pick number and the on the clock team x thing).
+-  restart draft button is a disaster. many of the picks aren't gone from the draft board. its extremely slow
