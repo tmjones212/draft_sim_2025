@@ -17,6 +17,7 @@ class CheatSheet(StyledFrame):
         # Custom rankings and tiers
         self.custom_rankings = {}  # player_id -> custom_rank
         self.player_tiers = {}  # player_id -> tier
+        self.tier_breaks = set()  # Set of indices after which tier breaks appear
         self.tier_colors = {
             1: '#FFD700',  # Gold
             2: '#C0C0C0',  # Silver
@@ -30,8 +31,10 @@ class CheatSheet(StyledFrame):
         
         # UI elements
         self.player_frames = []
+        self.tier_separators = []  # Clickable tier separators
         self.selected_player = None
         self.tier_entries = {}
+        self._last_clicked_index = None
         
         self.setup_ui()
         self.load_rankings()
@@ -54,7 +57,7 @@ class CheatSheet(StyledFrame):
         # Instructions
         instructions = tk.Label(
             header_frame,
-            text="(Drag rows to reorder • Click tier to cycle colors)",
+            text="(Top 100 Players • Drag to reorder • Click between rows to create tiers)",
             bg=DARK_THEME['bg_secondary'],
             fg=DARK_THEME['text_muted'],
             font=(DARK_THEME['font_family'], 10, 'italic')
@@ -150,10 +153,18 @@ class CheatSheet(StyledFrame):
         
         # Mouse wheel scrolling
         def on_mousewheel(event):
+            # Only scroll if canvas has focus or mouse is over it
             self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
+            return "break"  # Prevent event propagation
         
+        # Bind to multiple events for better compatibility
         self.canvas.bind('<MouseWheel>', on_mousewheel)
-        self.scrollable_frame.bind('<MouseWheel>', on_mousewheel)
+        self.canvas.bind('<Button-4>', lambda e: self.canvas.yview_scroll(-1, 'units'))
+        self.canvas.bind('<Button-5>', lambda e: self.canvas.yview_scroll(1, 'units'))
+        
+        # Set focus when mouse enters
+        self.canvas.bind('<Enter>', lambda e: self.canvas.focus_set())
+        self.scrollable_frame.bind('<Enter>', lambda e: self.canvas.focus_set())
         
         # Create headers
         self.create_headers()
@@ -186,19 +197,39 @@ class CheatSheet(StyledFrame):
             label.pack(side='left', padx=5)
     
     def update_display(self):
-        # Clear existing player frames
+        # Clear existing player frames and tier separators
         for frame in self.player_frames:
             frame.destroy()
+        for sep in self.tier_separators:
+            sep.destroy()
         self.player_frames = []
+        self.tier_separators = []
         self.tier_entries = {}
         
         # Get filtered and sorted players
         filtered_players = self.get_filtered_players()
         sorted_players = self.sort_players_by_custom_rank(filtered_players)
         
-        # Create player rows
+        # Limit to top 100 players
+        sorted_players = sorted_players[:100]
+        
+        # Update player tiers based on tier breaks
+        self.update_player_tiers_from_breaks(sorted_players)
+        
+        # Create player rows with tier separators
         for idx, player in enumerate(sorted_players):
+            # Add clickable area between players (except before first player)
+            if idx > 0:
+                self.create_tier_click_area(idx)
+            
+            # Add tier separator after the click area if needed
+            if idx in self.tier_breaks:
+                self.create_tier_separator(idx)
+            
             self.create_player_row(idx, player)
+        
+        # Fix mouse wheel scrolling by binding to all new widgets
+        self.bind_mousewheel_to_children()
     
     def get_filtered_players(self):
         position = self.position_var.get()
@@ -218,6 +249,218 @@ class CheatSheet(StyledFrame):
             return player.rank + 1000  # Put unranked players at the end
         
         return sorted(players, key=get_sort_key)
+    
+    def create_tier_separator(self, idx):
+        """Create a visible tier break line"""
+        separator = tk.Frame(
+            self.scrollable_frame,
+            bg=DARK_THEME['accent_warning'],
+            height=3
+        )
+        separator.pack(fill='x', pady=5)
+        separator.tier_index = idx  # Store which tier break this is
+        separator.is_tier_line = True  # Mark as actual tier line
+        self.tier_separators.append(separator)
+    
+    def update_tier_separator_lines(self):
+        """Update only the orange tier separator lines"""
+        # Remove existing tier lines
+        for sep in self.tier_separators[:]:
+            if hasattr(sep, 'is_tier_line') and sep.is_tier_line:
+                sep.destroy()
+                self.tier_separators.remove(sep)
+        
+        # Get all children for positioning
+        children = list(self.scrollable_frame.winfo_children())
+        
+        # Add new tier lines at the correct positions
+        for tier_idx in sorted(self.tier_breaks):
+            # Find the click area for this index
+            insert_after = None
+            for i, child in enumerate(children):
+                if hasattr(child, 'tier_index') and child.tier_index == tier_idx:
+                    insert_after = i
+                    break
+            
+            if insert_after is not None:
+                # Create new separator
+                separator = tk.Frame(
+                    self.scrollable_frame,
+                    bg=DARK_THEME['accent_warning'],
+                    height=3
+                )
+                separator.tier_index = tier_idx
+                separator.is_tier_line = True
+                
+                # Pack it after the click area
+                if insert_after + 1 < len(children):
+                    separator.pack(fill='x', pady=5, before=children[insert_after + 1])
+                else:
+                    separator.pack(fill='x', pady=5)
+                
+                self.tier_separators.append(separator)
+    
+    def quick_update_separator_at_index(self, idx):
+        """Quickly add or remove a separator at a specific index"""
+        if idx is None:
+            return
+            
+        # Find and remove existing separator if we're removing
+        if idx not in self.tier_breaks:
+            for sep in self.tier_separators[:]:
+                if hasattr(sep, 'is_tier_line') and sep.is_tier_line and sep.tier_index == idx:
+                    sep.destroy()
+                    self.tier_separators.remove(sep)
+                    return
+        else:
+            # Adding a new separator - find the click area
+            children = list(self.scrollable_frame.winfo_children())
+            for i, child in enumerate(children):
+                if hasattr(child, 'tier_index') and child.tier_index == idx:
+                    # Create separator immediately after this click area
+                    separator = tk.Frame(
+                        self.scrollable_frame,
+                        bg=DARK_THEME['accent_warning'],
+                        height=3
+                    )
+                    separator.tier_index = idx
+                    separator.is_tier_line = True
+                    
+                    if i + 1 < len(children):
+                        separator.pack(fill='x', pady=5, before=children[i + 1])
+                    else:
+                        separator.pack(fill='x', pady=5)
+                    
+                    self.tier_separators.append(separator)
+                    return
+    
+    def _update_tier_numbers(self):
+        """Update tier numbers based on current tier breaks"""
+        # Get current sorted players
+        filtered_players = self.get_filtered_players()
+        sorted_players = self.sort_players_by_custom_rank(filtered_players)[:100]
+        
+        # Update player tiers
+        self.update_player_tiers_from_breaks(sorted_players)
+        
+        # Update labels
+        for idx, player in enumerate(sorted_players):
+            if player.player_id in self.tier_entries:
+                label = self.tier_entries[player.player_id]
+                tier = self.player_tiers.get(player.player_id, 0)
+                if tier > 0:
+                    label.config(
+                        text=str(tier),
+                        bg=self.tier_colors.get(tier, DARK_THEME['bg_tertiary']),
+                        fg='black' if tier in [1, 2, 3, 5] else 'white'
+                    )
+                else:
+                    label.config(text="-", bg=DARK_THEME['bg_tertiary'], fg=DARK_THEME['text_primary'])
+    
+    def refresh_tier_displays(self):
+        """Instantly update tier displays"""
+        # First, quickly add/remove the visual separator line
+        self.quick_update_separator_at_index(self._last_clicked_index)
+        
+        # Then update tier numbers in the background
+        self.after_idle(self._update_tier_numbers)
+    
+    def update_player_tiers_from_breaks(self, sorted_players):
+        """Update player tiers based on tier break positions"""
+        # Clear existing tiers
+        self.player_tiers = {}
+        
+        # Assign tiers based on tier breaks
+        current_tier = 1
+        for idx, player in enumerate(sorted_players):
+            self.player_tiers[player.player_id] = current_tier
+            # If there's a tier break after this player, increment tier
+            if idx + 1 in self.tier_breaks:
+                current_tier += 1
+                if current_tier > 8:  # Max 8 tiers
+                    current_tier = 8
+    
+    def bind_mousewheel_to_children(self):
+        """Bind mouse wheel scrolling to all child widgets"""
+        def on_mousewheel(event):
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
+            return "break"
+        
+        # Set focus handler
+        def on_enter(event):
+            self.canvas.focus_set()
+        
+        # Bind to all widgets in the scrollable frame
+        for widget in self.scrollable_frame.winfo_children():
+            widget.bind('<MouseWheel>', on_mousewheel)
+            widget.bind('<Enter>', on_enter)
+            # Recursively bind to all children
+            self._bind_mousewheel_recursive(widget, on_mousewheel, on_enter)
+    
+    def _bind_mousewheel_recursive(self, widget, scroll_callback, enter_callback):
+        """Recursively bind mouse wheel to all children"""
+        for child in widget.winfo_children():
+            child.bind('<MouseWheel>', scroll_callback)
+            child.bind('<Enter>', enter_callback)
+            self._bind_mousewheel_recursive(child, scroll_callback, enter_callback)
+    
+    def create_tier_click_area(self, idx):
+        """Create a clickable area between players to add tier breaks"""
+        click_area = tk.Frame(
+            self.scrollable_frame,
+            bg=DARK_THEME['bg_primary'],
+            height=8,
+            cursor='hand2'
+        )
+        click_area.pack(fill='x')
+        
+        # Store the index for this click area
+        click_area.tier_index = idx
+        
+        # Hover effect
+        def on_enter(e):
+            if idx not in self.tier_breaks:
+                click_area.configure(bg=DARK_THEME['bg_hover'], height=12)
+                # Show hint
+                hint = tk.Label(
+                    click_area,
+                    text="Click to add tier break",
+                    bg=DARK_THEME['bg_hover'],
+                    fg=DARK_THEME['text_muted'],
+                    font=(DARK_THEME['font_family'], 9)
+                )
+                hint.place(relx=0.5, rely=0.5, anchor='center')
+                click_area.hint = hint
+        
+        def on_leave(e):
+            if idx not in self.tier_breaks:
+                click_area.configure(bg=DARK_THEME['bg_primary'], height=8)
+                if hasattr(click_area, 'hint'):
+                    click_area.hint.destroy()
+        
+        def on_click(e):
+            self._last_clicked_index = idx
+            
+            if idx in self.tier_breaks:
+                # Remove tier break
+                self.tier_breaks.remove(idx)
+            else:
+                # Add tier break
+                self.tier_breaks.add(idx)
+            
+            # Instant visual update
+            self.refresh_tier_displays()
+            
+            # Update main page later
+            if self.on_rankings_update:
+                self.after(100, lambda: self.on_rankings_update(self.custom_rankings, self.player_tiers))
+        
+        click_area.bind('<Enter>', on_enter)
+        click_area.bind('<Leave>', on_leave)
+        click_area.bind('<Button-1>', on_click)
+        
+        # Add to tier separators list so we can track it
+        self.tier_separators.append(click_area)
     
     def create_player_row(self, idx, player):
         bg = DARK_THEME['bg_tertiary'] if idx % 2 == 0 else DARK_THEME['bg_secondary']
@@ -289,26 +532,24 @@ class CheatSheet(StyledFrame):
         rank_entry.bind('<Return>', lambda e: self.update_rank(player, rank_var.get()))
         rank_entry.bind('<FocusOut>', lambda e: self.update_rank(player, rank_var.get()))
         
-        # Tier selector
+        # Tier display
         tier_frame = tk.Frame(row_frame, bg=bg, width=50)
         tier_frame.pack(side='left', fill='y')
         tier_frame.pack_propagate(False)
+        bind_drag_events(tier_frame)
         
         current_tier = self.player_tiers.get(player.player_id, 0)
-        tier_btn = tk.Button(
+        tier_label = tk.Label(
             tier_frame,
             text=str(current_tier) if current_tier > 0 else "-",
             bg=self.tier_colors.get(current_tier, bg),
             fg='black' if current_tier in [1, 2, 3, 5] else 'white',
-            font=(DARK_THEME['font_family'], 10, 'bold'),
-            bd=0,
-            relief='flat',
-            cursor='hand2',
-            command=lambda p=player: self.cycle_tier(p)
+            font=(DARK_THEME['font_family'], 10, 'bold')
         )
-        tier_btn._tier_button = True  # Mark as tier button
-        tier_btn.pack(expand=True, fill='both', padx=2, pady=2)
-        self.tier_entries[player.player_id] = tier_btn
+        tier_label.pack(expand=True, fill='both', padx=2, pady=2)
+        tier_label._tier_label = True  # Mark as tier label
+        self.tier_entries[player.player_id] = tier_label
+        bind_drag_events(tier_label)
         
         # Position
         pos_frame = tk.Frame(row_frame, bg=bg, width=45)
@@ -396,33 +637,8 @@ class CheatSheet(StyledFrame):
             pass
     
     def cycle_tier(self, player):
-        current_tier = self.player_tiers.get(player.player_id, 0)
-        new_tier = (current_tier % 8) + 1 if current_tier < 8 else 0
-        
-        if new_tier == 0:
-            if player.player_id in self.player_tiers:
-                del self.player_tiers[player.player_id]
-        else:
-            self.player_tiers[player.player_id] = new_tier
-        
-        # Update button appearance
-        if player.player_id in self.tier_entries:
-            btn = self.tier_entries[player.player_id]
-            if new_tier == 0:
-                btn.config(
-                    text="-",
-                    bg=DARK_THEME['bg_tertiary'],
-                    fg=DARK_THEME['text_primary']
-                )
-            else:
-                btn.config(
-                    text=str(new_tier),
-                    bg=self.tier_colors.get(new_tier, DARK_THEME['bg_tertiary']),
-                    fg='black' if new_tier in [1, 2, 3, 5] else 'white'
-                )
-        
-        if self.on_rankings_update:
-            self.on_rankings_update(self.custom_rankings, self.player_tiers)
+        # Tiers are now managed by tier breaks
+        pass
     
     def filter_position(self, position):
         self.position_var.set(position)
@@ -476,9 +692,7 @@ class CheatSheet(StyledFrame):
                 if isinstance(widget, tk.Entry):
                     continue
                 elif isinstance(widget, tk.Button):
-                    # Only update if it's not a tier button
-                    if not hasattr(widget, '_tier_button'):
-                        widget.configure(bg=bg, activebackground=bg)
+                    widget.configure(bg=bg, activebackground=bg)
                 elif isinstance(widget, tk.Frame):
                     # Check if it's a position frame (has colored background)
                     has_position = False
@@ -525,9 +739,9 @@ class CheatSheet(StyledFrame):
                             break
                             
                 elif widget_index == 1 and isinstance(widget, tk.Frame):
-                    # Tier button
+                    # Tier label
                     for child in widget.winfo_children():
-                        if isinstance(child, tk.Button) and hasattr(child, '_tier_button'):
+                        if isinstance(child, tk.Label) and hasattr(child, '_tier_label'):
                             tier = self.player_tiers.get(player.player_id, 0)
                             if tier > 0:
                                 child.config(
@@ -537,7 +751,6 @@ class CheatSheet(StyledFrame):
                                 )
                             else:
                                 child.config(text="-", bg=frame.cget('bg'), fg=DARK_THEME['text_primary'])
-                            child.config(command=lambda p=player: self.cycle_tier(p))
                             break
                             
                 elif widget_index == 2 and isinstance(widget, tk.Frame):
@@ -688,6 +901,25 @@ class CheatSheet(StyledFrame):
                 for i, player in enumerate(players_in_view):
                     self.custom_rankings[player.player_id] = i + 1
                 
+                # Update player tiers after reordering
+                filtered_players = self.get_filtered_players()
+                sorted_players = self.sort_players_by_custom_rank(filtered_players)[:100]
+                self.update_player_tiers_from_breaks(sorted_players)
+                
+                # Update tier labels
+                for i, player in enumerate(players_in_view):
+                    if player.player_id in self.tier_entries:
+                        label = self.tier_entries[player.player_id]
+                        tier = self.player_tiers.get(player.player_id, 0)
+                        if tier > 0:
+                            label.config(
+                                text=str(tier),
+                                bg=self.tier_colors.get(tier, DARK_THEME['bg_tertiary']),
+                                fg='black' if tier in [1, 2, 3, 5] else 'white'
+                            )
+                        else:
+                            label.config(text="-", bg=DARK_THEME['bg_tertiary'], fg=DARK_THEME['text_primary'])
+                
                 # Defer the main page update
                 if self.on_rankings_update:
                     self.after(1000, lambda: self.on_rankings_update(self.custom_rankings, self.player_tiers))
@@ -703,7 +935,8 @@ class CheatSheet(StyledFrame):
     def save_rankings(self):
         data = {
             'custom_rankings': self.custom_rankings,
-            'player_tiers': self.player_tiers
+            'player_tiers': self.player_tiers,
+            'tier_breaks': list(self.tier_breaks)
         }
         
         # Save to file
@@ -724,6 +957,7 @@ class CheatSheet(StyledFrame):
                     data = json.load(f)
                     self.custom_rankings = data.get('custom_rankings', {})
                     self.player_tiers = data.get('player_tiers', {})
+                    self.tier_breaks = set(data.get('tier_breaks', []))
                     
                     # Convert string keys back to proper format if needed
                     self.custom_rankings = {k: int(v) for k, v in self.custom_rankings.items()}
@@ -735,6 +969,7 @@ class CheatSheet(StyledFrame):
         if messagebox.askyesno("Reset Rankings", "Are you sure you want to reset all custom rankings and tiers?"):
             self.custom_rankings = {}
             self.player_tiers = {}
+            self.tier_breaks = set()
             self.update_display()
             
             if self.on_rankings_update:

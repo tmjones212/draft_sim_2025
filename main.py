@@ -119,7 +119,7 @@ class MockDraftApp:
         
         # Button container
         button_container = StyledFrame(header_frame, bg_type='primary')
-        button_container.pack(side='right')
+        button_container.pack(side='right') 
         
         # Manual mode toggle
         self.manual_mode_var = tk.BooleanVar(value=self.manual_mode)
@@ -184,6 +184,9 @@ class MockDraftApp:
         # Create notebook for tabs
         self.notebook = ttk.Notebook(content_frame)
         self.notebook.pack(fill='both', expand=True)
+        
+        # Bind tab change event
+        self.notebook.bind('<<NotebookTabChanged>>', self.on_tab_changed)
         
         # Tab 1: Draft
         draft_tab = StyledFrame(self.notebook, bg_type='primary')
@@ -1130,6 +1133,9 @@ class MockDraftApp:
         )
         self.cheat_sheet.pack(fill='both', expand=True)
         
+        # Force focus to enable mouse wheel scrolling
+        self.cheat_sheet.focus_set()
+        
         # Update display with loaded players
         self.update_display(full_update=True)
         
@@ -1138,6 +1144,15 @@ class MockDraftApp:
         if not self.user_team_id:
             self.status_label.config(text="Select a team to control")
             self.on_clock_label.config(text="Click on a team name in the draft board")
+    
+    def on_tab_changed(self, event):
+        """Handle tab change events"""
+        selected_tab = self.notebook.select()
+        tab_text = self.notebook.tab(selected_tab, "text")
+        
+        if tab_text == "Cheat Sheet" and hasattr(self, 'cheat_sheet'):
+            # Force focus to cheat sheet for mouse wheel scrolling
+            self.root.after(10, lambda: self.cheat_sheet.focus_set())
     
     def show_pick_quality(self, player, pick_num):
         """Show a notification about pick quality"""
