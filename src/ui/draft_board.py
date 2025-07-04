@@ -290,6 +290,20 @@ class DraftBoard(StyledFrame):
             self.highlight_current_pick()
             self._last_highlighted_pick = current_pick_num
     
+    def clear_picks_after(self, pick_number):
+        """Clear all picks after a given pick number"""
+        for pick_num in range(pick_number, len(self.pick_widgets) + 1):
+            if pick_num in self.pick_widgets:
+                pick_frame = self.pick_widgets[pick_num]
+                # Clear all child widgets that are player content
+                for widget in pick_frame.winfo_children():
+                    if hasattr(widget, 'place_info'):
+                        info = widget.place_info()
+                        if info and 'y' in info and int(info['y']) > 15:
+                            widget.destroy()
+                # Reset the frame
+                pick_frame.config(cursor="arrow", bg=DARK_THEME['bg_tertiary'], relief='flat')
+    
     def update_pick_slot(self, pick: DraftPick):
         import time
         slot_start = time.time()

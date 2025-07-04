@@ -973,15 +973,15 @@ class MockDraftApp:
             if self.player_list.watch_list_ref:
                 self.player_list.watched_player_ids = watch_list.watched_player_ids.copy()
         
-        # Clear draft board picks
-        for pick_num in range(target_pick_number, len(self.draft_board.pick_widgets) + 1):
-            if pick_num in self.draft_board.pick_widgets:
-                pick_frame = self.draft_board.pick_widgets[pick_num]
-                for widget in pick_frame.winfo_children():
-                    if isinstance(widget, tk.Frame) and widget.winfo_y() > 20:
-                        widget.destroy()
+        # Clear draft board picks using the proper method
+        self.draft_board.clear_picks_after(target_pick_number)
         
+        # Reset draft board state
         self.draft_board._last_pick_count = len(picks_to_keep)
+        self.draft_board.draft_results = picks_to_keep
+        
+        # Force a full update of the draft board
+        self.draft_board.update_picks(picks_to_keep, target_pick_number)
         
         print(f"Reversion took {time.time() - start_time:.3f}s")
         
@@ -1034,10 +1034,11 @@ class MockDraftApp:
             pick_num = self.draft_engine.get_current_pick_info()[0]
             self.draft_board.update_picks(self.draft_engine.get_draft_results(), pick_num)
         
-        # Update player list and remove drafted players
+        # Update player list with a full refresh to fix row colors
         self.player_list.update_players(self.available_players)
-        if players_to_remove:
-            self.player_list.remove_players(players_to_remove)
+        
+        # Don't use remove_players as it messes up row colors
+        # The update_players already handled removing drafted players
         
         # Update star icons
         self.player_list._update_star_icons()
