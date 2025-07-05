@@ -29,8 +29,8 @@ class GameHistory(StyledFrame):
         # UI state
         self.selected_position = "ALL"
         self.selected_week = "ALL"
-        self.sort_column = None
-        self.sort_ascending = True
+        self.sort_column = 'pts'  # Default sort by points
+        self.sort_ascending = False  # Default descending
         self.search_var = tk.StringVar()
         self.view_mode = "detailed"  # "detailed" or "summarized"
         self.min_games_var = tk.IntVar(value=1)  # Minimum games filter
@@ -43,6 +43,9 @@ class GameHistory(StyledFrame):
         self.graph_players = {}  # player_id -> {name, weeks, points, color}
         self.graph_canvas = None
         self.figure = None
+        self.week_range_start = 1
+        self.week_range_end = 18
+        self.last_clicked_item = None  # Track last clicked item for shift+click
         
         self.setup_ui()
         self.update_column_visibility()  # Set initial column visibility
@@ -324,7 +327,7 @@ class GameHistory(StyledFrame):
         paned_window.add(graph_container, minsize=400)
         
         # Create treeview for table
-        columns = ('player', 'pos', 'team', 'week', 'opp', 'pts', 'median', 'avg', 'snaps', 'comp', 'pass_yd', 'pass_td', 
+        columns = ('player', 'pos', 'team', 'week', 'opp', 'pts', 'median', 'avg', 'snaps', 'pts_per_snap', 'comp', 'pass_yd', 'pass_td', 
                   'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td')
         
         self.tree = ttk.Treeview(
@@ -345,6 +348,7 @@ class GameHistory(StyledFrame):
         self.tree.column('median', width=55, anchor='center', stretch=False)
         self.tree.column('avg', width=55, anchor='center', stretch=False)
         self.tree.column('snaps', width=55, anchor='center', stretch=False)
+        self.tree.column('pts_per_snap', width=65, anchor='center', stretch=False)
         self.tree.column('comp', width=55, anchor='center', stretch=False)
         self.tree.column('pass_yd', width=70, anchor='center', stretch=False)
         self.tree.column('pass_td', width=65, anchor='center', stretch=False)
@@ -364,6 +368,7 @@ class GameHistory(StyledFrame):
         self.tree.heading('median', text='Med', command=lambda: self.sort_by('median'))
         self.tree.heading('avg', text='Avg', command=lambda: self.sort_by('avg'))
         self.tree.heading('snaps', text='Snaps', command=lambda: self.sort_by('snaps'))
+        self.tree.heading('pts_per_snap', text='Pts/Snap', command=lambda: self.sort_by('pts_per_snap'))
         self.tree.heading('comp', text='Comp', command=lambda: self.sort_by('comp'))
         self.tree.heading('pass_yd', text='Pass Yds', command=lambda: self.sort_by('pass_yd'))
         self.tree.heading('pass_td', text='Pass TD', command=lambda: self.sort_by('pass_td'))
@@ -552,7 +557,7 @@ class GameHistory(StyledFrame):
         # Add to tree
         for row in rows:
             values = (row['player'], row['pos'], row['team'], row['week'], row['opp'],
-                     row['pts'], row.get('median', '-'), row.get('avg', '-'), row['snaps'], row['comp'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
+                     row['pts'], row.get('median', '-'), row.get('avg', '-'), row['snaps'], row.get('pts_per_snap', '-'), row['comp'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
                      row['rush_td'], row['rec'], row['rec_yd'], row['rec_td'])
             
             # Add row with alternating colors
@@ -667,6 +672,10 @@ class GameHistory(StyledFrame):
                         is_home = (week + hash(player_team)) % 2 == 0
                         opponent_display = f"vs {opponent}" if is_home else f"@ {opponent}"
                         
+                        # Calculate pts per snap
+                        snaps = int(stats.get('off_snp', 0))
+                        pts_per_snap = custom_pts / snaps if snaps > 0 else 0
+                        
                         row = {
                             'player': format_name(player.name),
                             'pos': player.position,
@@ -674,7 +683,8 @@ class GameHistory(StyledFrame):
                             'week': week,
                             'opp': opponent_display,
                             'pts': f"{custom_pts:.1f}",
-                            'snaps': int(stats.get('off_snp', 0)),
+                            'snaps': snaps,
+                            'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
                             'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
                             'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
                             'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
@@ -684,7 +694,8 @@ class GameHistory(StyledFrame):
                             'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
                             'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
                             '_pts_float': custom_pts,  # For sorting
-                            '_week_int': week  # For sorting
+                            '_week_int': week,  # For sorting
+                            '_pts_per_snap_float': pts_per_snap  # For sorting
                         }
                         rows.append(row)
         else:
@@ -761,6 +772,10 @@ class GameHistory(StyledFrame):
                         is_home = (week + hash(player_team)) % 2 == 0
                         opponent_display = f"vs {opponent}" if is_home else f"@ {opponent}"
                         
+                        # Calculate pts per snap
+                        snaps = int(stats.get('off_snp', 0))
+                        pts_per_snap = custom_pts / snaps if snaps > 0 else 0
+                        
                         row = {
                             'player': format_name(player.name),
                             'pos': player.position,
@@ -768,7 +783,8 @@ class GameHistory(StyledFrame):
                             'week': week,
                             'opp': opponent_display,
                             'pts': f"{custom_pts:.1f}",
-                            'snaps': int(stats.get('off_snp', 0)),
+                            'snaps': snaps,
+                            'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
                             'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
                             'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
                             'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
@@ -778,7 +794,8 @@ class GameHistory(StyledFrame):
                             'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
                             'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
                             '_pts_float': custom_pts,  # For sorting
-                            '_week_int': week  # For sorting
+                            '_week_int': week,  # For sorting
+                            '_pts_per_snap_float': pts_per_snap  # For sorting
                         }
                         rows.append(row)
         
@@ -881,6 +898,9 @@ class GameHistory(StyledFrame):
                 median_pts = 0
                 avg_pts = 0
             
+            # Calculate average pts per snap
+            avg_pts_per_snap = totals['pts'] / totals['snaps'] if totals['snaps'] > 0 else 0
+            
             row = {
                 'player': totals['player'],
                 'pos': totals['pos'],
@@ -891,6 +911,7 @@ class GameHistory(StyledFrame):
                 'median': f"{median_pts:.1f}" if median_pts > 0 else '-',
                 'avg': f"{avg_pts:.1f}" if avg_pts > 0 else '-',
                 'snaps': totals['snaps'] if totals['snaps'] > 0 else '-',
+                'pts_per_snap': f"{avg_pts_per_snap:.3f}" if totals['snaps'] > 0 else '-',
                 'comp': totals['comp'] if totals['comp'] > 0 else '-',
                 'pass_yd': totals['pass_yd'] if totals['pass_yd'] > 0 else '-',
                 'pass_td': totals['pass_td'] if totals['pass_td'] > 0 else '-',
@@ -902,7 +923,8 @@ class GameHistory(StyledFrame):
                 '_pts_float': totals['pts'],  # For sorting
                 '_week_int': totals['games'],  # For sorting
                 '_median_float': median_pts,  # For sorting
-                '_avg_float': avg_pts  # For sorting
+                '_avg_float': avg_pts,  # For sorting
+                '_pts_per_snap_float': avg_pts_per_snap  # For sorting
             }
             rows.append(row)
         
@@ -923,6 +945,8 @@ class GameHistory(StyledFrame):
                 return row.get('_median_float', 0)
             elif self.sort_column == 'avg':
                 return row.get('_avg_float', 0)
+            elif self.sort_column == 'pts_per_snap':
+                return row.get('_pts_per_snap_float', 0)
             elif self.sort_column in ['snaps', 'comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']:
                 val = row[self.sort_column]
                 return 0 if val == '-' else int(val)
@@ -991,6 +1015,7 @@ class GameHistory(StyledFrame):
         self.tree.column('opp', width=65, stretch=False)
         self.tree.column('pts', width=55, stretch=False)
         self.tree.column('snaps', width=55, stretch=False)
+        self.tree.column('pts_per_snap', width=65, stretch=False)
         
         # Show/hide median and avg columns based on view mode
         if self.view_mode == "summarized":
@@ -1207,6 +1232,7 @@ class GameHistory(StyledFrame):
         # Calculate averages
         avg_pts = totals['pts'] / totals['games'] if totals['games'] > 0 else 0
         avg_snaps = totals['snaps'] / totals['games'] if totals['games'] > 0 else 0
+        avg_pts_per_snap = totals['pts'] / totals['snaps'] if totals['snaps'] > 0 else 0
         
         # Create totals row
         player_name = rows[0]['player']
@@ -1228,6 +1254,7 @@ class GameHistory(StyledFrame):
             '-',  # Median
             f"{avg_pts:.1f}",  # Avg
             format_stat(totals['snaps']),  # Snaps
+            f"{avg_pts_per_snap:.3f}" if totals['snaps'] > 0 else '-',  # Pts/Snap
             format_stat(totals['comp']) if position == 'QB' else '-',  # Comp
             format_stat(totals['pass_yd']) if position == 'QB' else '-',  # Pass Yd
             format_stat(totals['pass_td']) if position == 'QB' else '-',  # Pass TD
@@ -1239,7 +1266,7 @@ class GameHistory(StyledFrame):
         )
         
         # Add separator row
-        self.tree.insert('', 'end', values=('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''), tags=('separator',))
+        self.tree.insert('', 'end', values=('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''), tags=('separator',))
         
         # Add totals row
         self.tree.insert('', 'end', values=values, tags=('totals',))
@@ -1262,7 +1289,7 @@ class GameHistory(StyledFrame):
         # Instructions
         info_label = tk.Label(
             container,
-            text="Click player to graph • Ctrl+Click to add/remove multiple",
+            text="Click player to graph • Ctrl+Click to add/remove • Shift+Click to select range",
             bg=DARK_THEME['bg_secondary'],
             fg=DARK_THEME['text_secondary'],
             font=(DARK_THEME['font_family'], 9)
@@ -1287,6 +1314,97 @@ class GameHistory(StyledFrame):
         self.graph_canvas = FigureCanvasTkAgg(self.figure, master=container)
         self.graph_canvas.draw()
         self.graph_canvas.get_tk_widget().pack(fill='both', expand=True, padx=10, pady=(0, 10))
+        
+        # Week range controls
+        range_frame = StyledFrame(container, bg_type='secondary')
+        range_frame.pack(fill='x', padx=10, pady=(0, 10))
+        
+        # Range label
+        range_label = tk.Label(
+            range_frame,
+            text="WEEK RANGE:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10, 'bold')
+        )
+        range_label.pack(side='left', padx=(0, 10))
+        
+        # Preset buttons
+        presets = [
+            ("All", 1, 18),
+            ("First Half", 1, 9),
+            ("Last Half", 10, 18),
+            ("Q1", 1, 4),
+            ("Q2", 5, 9),
+            ("Q3", 10, 13),
+            ("Q4", 14, 18),
+            ("Playoffs", 15, 18)
+        ]
+        
+        for text, start, end in presets:
+            btn = tk.Button(
+                range_frame,
+                text=text,
+                bg=DARK_THEME['button_bg'] if not (self.week_range_start == start and self.week_range_end == end) else DARK_THEME['button_active'],
+                fg='white',
+                font=(DARK_THEME['font_family'], 8, 'bold'),
+                bd=0,
+                relief='flat',
+                padx=8,
+                pady=2,
+                command=lambda s=start, e=end, t=text: self.set_week_range(s, e, t),
+                cursor='hand2'
+            )
+            btn.pack(side='left', padx=2)
+            setattr(self, f'range_btn_{text.replace(" ", "_").lower()}', btn)
+        
+        # Custom range controls
+        custom_frame = StyledFrame(container, bg_type='secondary')
+        custom_frame.pack(fill='x', padx=10, pady=(0, 10))
+        
+        tk.Label(
+            custom_frame,
+            text="Custom:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 9)
+        ).pack(side='left', padx=(0, 5))
+        
+        self.start_var = tk.StringVar(value="1")
+        self.start_spinbox = tk.Spinbox(
+            custom_frame,
+            from_=1,
+            to=18,
+            textvariable=self.start_var,
+            width=3,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 9),
+            command=self.on_custom_range_changed
+        )
+        self.start_spinbox.pack(side='left')
+        
+        tk.Label(
+            custom_frame,
+            text="to",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 9)
+        ).pack(side='left', padx=5)
+        
+        self.end_var = tk.StringVar(value="18")
+        self.end_spinbox = tk.Spinbox(
+            custom_frame,
+            from_=1,
+            to=18,
+            textvariable=self.end_var,
+            width=3,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 9),
+            command=self.on_custom_range_changed
+        )
+        self.end_spinbox.pack(side='left')
         
         # Clear button
         clear_btn = tk.Button(
@@ -1321,13 +1439,24 @@ class GameHistory(StyledFrame):
             
         player_name = values[0]
         
+        # Check if Shift is pressed
+        if event.state & 0x1:  # Shift key
+            # Select range of players
+            if self.last_clicked_item:
+                self.select_player_range(self.last_clicked_item, item)
+            else:
+                # No previous selection, just add this one
+                self.add_player_to_graph(player_name, add_to_selection=False)
         # Check if Ctrl is pressed
-        if event.state & 0x4:  # Ctrl key
+        elif event.state & 0x4:  # Ctrl key
             # Add to existing selection
             self.add_player_to_graph(player_name, add_to_selection=True)
         else:
             # Replace selection
             self.add_player_to_graph(player_name, add_to_selection=False)
+        
+        # Remember this item for next shift+click
+        self.last_clicked_item = item
     
     def add_player_to_graph(self, player_name, add_to_selection=False):
         """Add a player to the graph"""
@@ -1387,9 +1516,14 @@ class GameHistory(StyledFrame):
         
         # Always add all 18 weeks
         if weeks and points:
-            # Assign color based on team
+            # Check how many players from this team are already in the graph
             player = self.player_lookup[player_id]
-            color = get_team_color(player.team)
+            team_count = sum(1 for pid, pdata in self.graph_players.items() if pdata['team'] == player.team)
+            
+            # Alternate between primary and secondary colors
+            # 0 players -> primary, 1 player -> secondary, 2 players -> primary, etc.
+            use_secondary = (team_count % 2) == 1
+            color = get_team_color(player.team, secondary=use_secondary)
             
             # Store data
             self.graph_players[player_id] = {
@@ -1418,31 +1552,48 @@ class GameHistory(StyledFrame):
                         transform=self.ax.transAxes,
                         color=DARK_THEME['text_secondary'],
                         fontsize=12)
-            self.ax.set_xlim(0, 18)
+            self.ax.set_xlim(self.week_range_start - 0.5, self.week_range_end + 0.5)
             self.ax.set_ylim(0, 50)
         else:
+            # Track teams and assign different markers to players from same team
+            team_player_count = {}
+            markers = ['o', 's', '^', 'D', 'v', '*', 'p', 'X', 'h', '+']
+            player_markers = {}
+            
+            # First pass: count players per team and assign markers
+            for player_id, data in self.graph_players.items():
+                team = data['team']
+                if team not in team_player_count:
+                    team_player_count[team] = 0
+                marker_index = team_player_count[team] % len(markers)
+                player_markers[player_id] = markers[marker_index]
+                team_player_count[team] += 1
+            
             # Plot each player
             for player_id, data in self.graph_players.items():
                 # Create label with team and standard deviation
                 label = f"{data['name']} ({data['team']}) σ={data['std_dev']:.1f}"
+                marker = player_markers[player_id]
+                
                 self.ax.plot(data['weeks'], data['points'], 
-                           marker='o', linewidth=2, markersize=6,
+                           marker=marker, linewidth=2, markersize=8,
                            color=data['color'], 
                            label=label)
             
-            # Add legend
+            # Add legend with proper marker sizes
             legend = self.ax.legend(loc='upper left', frameon=True, 
                                   facecolor=DARK_THEME['bg_secondary'],
-                                  edgecolor=DARK_THEME['text_secondary'])
+                                  edgecolor=DARK_THEME['text_secondary'],
+                                  markerscale=1.2)  # Make markers in legend slightly larger
             for text in legend.get_texts():
                 text.set_color(DARK_THEME['text_primary'])
             
             # Grid
             self.ax.grid(True, alpha=0.3, color=DARK_THEME['text_secondary'])
             
-            # Set x-axis to show all weeks
-            self.ax.set_xlim(0.5, 18.5)
-            self.ax.set_xticks(range(1, 19))
+            # Set x-axis to show selected week range
+            self.ax.set_xlim(self.week_range_start - 0.5, self.week_range_end + 0.5)
+            self.ax.set_xticks(range(self.week_range_start, self.week_range_end + 1))
             
             # Set y-axis to start at 0
             self.ax.set_ylim(bottom=0)
@@ -1459,4 +1610,87 @@ class GameHistory(StyledFrame):
         """Clear all players from the graph"""
         self.graph_players.clear()
         self.update_graph()
+    
+    def select_player_range(self, start_item, end_item):
+        """Select all players between start and end items"""
+        # Get all items in the tree
+        all_items = self.tree.get_children()
+        
+        # Find indices of start and end
+        try:
+            start_idx = all_items.index(start_item)
+            end_idx = all_items.index(end_item)
+        except ValueError:
+            return
+            
+        # Make sure start is before end
+        if start_idx > end_idx:
+            start_idx, end_idx = end_idx, start_idx
+            
+        # Clear existing selection and add all players in range
+        self.graph_players.clear()
+        
+        # Add each player in the range
+        for idx in range(start_idx, end_idx + 1):
+            item = all_items[idx]
+            values = self.tree.item(item, 'values')
+            
+            # Skip empty rows and totals
+            if values and values[0] and values[0] != '' and 'TOTALS' not in str(values[0]):
+                player_name = values[0]
+                self.add_player_to_graph(player_name, add_to_selection=True)
+    
+    def set_week_range(self, start, end, button_text):
+        """Set the week range for the graph"""
+        self.week_range_start = start
+        self.week_range_end = end
+        
+        # Update all range buttons
+        for preset_text in ["all", "first_half", "last_half", "q1", "q2", "q3", "q4", "playoffs"]:
+            btn = getattr(self, f'range_btn_{preset_text.replace(" ", "_").lower()}', None)
+            if btn:
+                btn.config(bg=DARK_THEME['button_bg'])
+        
+        # Highlight active button
+        active_btn = getattr(self, f'range_btn_{button_text.replace(" ", "_").lower()}', None)
+        if active_btn:
+            active_btn.config(bg=DARK_THEME['button_active'])
+        
+        # Update spinboxes
+        self.start_var.set(str(start))
+        self.end_var.set(str(end))
+        
+        # Redraw graph
+        self.update_graph()
+    
+    def on_custom_range_changed(self):
+        """Handle custom range spinbox changes"""
+        try:
+            start = int(self.start_var.get())
+            end = int(self.end_var.get())
+            
+            # Validate range
+            if start < 1:
+                start = 1
+                self.start_var.set("1")
+            if end > 18:
+                end = 18
+                self.end_var.set("18")
+            if start > end:
+                start = end
+                self.start_var.set(str(end))
+                
+            self.week_range_start = start
+            self.week_range_end = end
+            
+            # Update all preset buttons to inactive
+            for preset_text in ["all", "first_half", "last_half", "q1", "q2", "q3", "q4", "playoffs"]:
+                btn = getattr(self, f'range_btn_{preset_text}', None)
+                if btn:
+                    btn.config(bg=DARK_THEME['button_bg'])
+            
+            # Redraw graph
+            self.update_graph()
+        except ValueError:
+            pass  # Ignore invalid input
     

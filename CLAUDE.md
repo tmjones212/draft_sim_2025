@@ -76,7 +76,9 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Opponent column shows @ for away games, vs for home games
 - Uses ttk.Treeview for performance (no logos in table, but fast loading)
 - Added snaps column showing offensive snap counts (after points column)
+- Added Pts/Snap column showing efficiency metric (3 decimal places)
 - First click on columns sorts descending for better stats viewing
+- Default sort is Points (descending) to show highest scoring games first
 
 ### Player Stats Popup Improvements
 - Added completions column for QBs
@@ -99,8 +101,12 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Added points-by-week graph panel on the right side of game history table
 - Click on any player to graph their weekly points
 - Ctrl+Click to add/remove multiple players (toggle functionality)
+- Shift+Click to select all players between last clicked and current
 - Shows 0 points for bye/injury weeks instead of skipping them
 - Graph legend shows standard deviation (σ) for each player (excluding weeks with <5 snaps)
 - Graph uses team colors for better distinction between players
+- Different marker shapes (circle, square, triangle, etc.) for multiple players from same team
 - Clear Graph button to reset the visualization
 - Y-axis always starts at 0 for consistent scale
+- Week range selector with presets: All, First Half, Last Half, Q1-Q4, Playoffs
+- Custom week range using spinboxes for any weeks 1-18

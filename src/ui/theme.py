@@ -53,42 +53,43 @@ def get_position_color(position: str) -> str:
     pos_key = f'pos_{position.lower()}'
     return DARK_THEME.get(pos_key, DARK_THEME['text_secondary'])
 
-# NFL Team Colors - Primary color for each team (adjusted for visibility on dark background)
+# NFL Team Colors - Primary and secondary colors (adjusted for visibility)
 TEAM_COLORS = {
-    'BAL': '#6B4C9A',  # Ravens Purple (brightened)
-    'CIN': '#FB4F14',  # Bengals Orange
-    'CLE': '#FF3C00',  # Browns Orange (using secondary color)
-    'PIT': '#FFB612',  # Steelers Gold
-    'BUF': '#00338D',  # Bills Blue
-    'MIA': '#008E97',  # Dolphins Aqua
-    'NE': '#C60C30',  # Patriots Red (using secondary)
-    'NYJ': '#125740',  # Jets Green
-    'HOU': '#A71930',  # Texans Red (using secondary)
-    'IND': '#0080C6',  # Colts Blue (brightened)
-    'JAX': '#006778',  # Jaguars Teal (using secondary)
-    'TEN': '#4B92DB',  # Titans Light Blue (using secondary)
-    'DEN': '#FB4F14',  # Broncos Orange
-    'KC': '#E31837',   # Chiefs Red
-    'LV': '#A5ACAF',  # Raiders Silver (using secondary)
-    'LAC': '#0080C6',  # Chargers Blue
-    'CHI': '#C83803',  # Bears Orange (using secondary)
-    'DET': '#0076B6',  # Lions Blue
-    'GB': '#FFB612',   # Packers Gold (using secondary)
-    'MIN': '#4F2683',  # Vikings Purple
-    'DAL': '#869397',  # Cowboys Silver (using secondary)
-    'NYG': '#A71930',  # Giants Red (using secondary)
-    'PHI': '#004C54',  # Eagles Green
-    'WAS': '#FFB612',  # Commanders Gold (using secondary)
-    'ATL': '#A71930',  # Falcons Red
-    'CAR': '#0085CA',  # Panthers Blue
-    'NO': '#D3BC8D',   # Saints Gold
-    'TB': '#FF7900',   # Buccaneers Orange (using secondary)
-    'ARI': '#97233F',  # Cardinals Red
-    'LAR': '#FFD100',  # Rams Gold (using secondary)
-    'SF': '#B3995D',   # 49ers Gold (using secondary)
-    'SEA': '#69BE28',  # Seahawks Green (using secondary)
+    'BAL': ['#6B4C9A', '#FFB612'],  # Ravens: Purple, Gold
+    'CIN': ['#FB4F14', '#FFFFFF'],  # Bengals: Orange, White
+    'CLE': ['#FF3C00', '#964B00'],  # Browns: Orange, Brown
+    'PIT': ['#FFB612', '#FFFFFF'],  # Steelers: Gold, White
+    'BUF': ['#00338D', '#C60C30'],  # Bills: Blue, Red
+    'MIA': ['#008E97', '#FC4C02'],  # Dolphins: Aqua, Orange
+    'NE': ['#002244', '#C60C30'],  # Patriots: Navy, Red
+    'NYJ': ['#125740', '#FFFFFF'],  # Jets: Green, White
+    'HOU': ['#03202F', '#A71930'],  # Texans: Navy, Red
+    'IND': ['#002C5F', '#A2AAAD'],  # Colts: Blue, Gray
+    'JAX': ['#101820', '#D7A22A'],  # Jaguars: Black, Gold
+    'TEN': ['#0C2340', '#4B92DB'],  # Titans: Navy, Light Blue
+    'DEN': ['#FB4F14', '#002244'],  # Broncos: Orange, Navy
+    'KC': ['#E31837', '#FFB81C'],  # Chiefs: Red, Yellow
+    'LV': ['#A5ACAF', '#000000'],  # Raiders: Silver, Black (swapped for visibility)
+    'LAC': ['#0080C6', '#FFC20E'],  # Chargers: Blue, Yellow
+    'CHI': ['#0B162A', '#C83803'],  # Bears: Navy, Orange
+    'DET': ['#0076B6', '#B0B7BC'],  # Lions: Blue, Silver
+    'GB': ['#203731', '#FFB612'],  # Packers: Green, Gold
+    'MIN': ['#4F2683', '#FFC62F'],  # Vikings: Purple, Gold
+    'DAL': ['#003594', '#869397'],  # Cowboys: Blue, Silver
+    'NYG': ['#0B2265', '#A71930'],  # Giants: Blue, Red
+    'PHI': ['#004C54', '#A5ACAF'],  # Eagles: Green, Silver
+    'WAS': ['#5A1414', '#FFB612'],  # Commanders: Burgundy, Gold
+    'ATL': ['#A71930', '#A5ACAF'],  # Falcons: Red, Silver
+    'CAR': ['#0085CA', '#BFC0BF'],  # Panthers: Blue, Silver
+    'NO': ['#D3BC8D', '#FFFFFF'],  # Saints: Gold, White
+    'TB': ['#D50A0A', '#FF7900'],  # Buccaneers: Red, Orange
+    'ARI': ['#97233F', '#FFB612'],  # Cardinals: Red, Yellow
+    'LAR': ['#003594', '#FFD100'],  # Rams: Blue, Gold
+    'SF': ['#AA0000', '#B3995D'],  # 49ers: Red, Gold
+    'SEA': ['#002244', '#69BE28'],  # Seahawks: Navy, Green
 }
 
-def get_team_color(team: str) -> str:
-    """Get the primary color for a specific team"""
-    return TEAM_COLORS.get(team, '#888888')  # Default gray if team not found
+def get_team_color(team: str, secondary: bool = False) -> str:
+    """Get the primary or secondary color for a specific team"""
+    colors = TEAM_COLORS.get(team, ['#888888', '#CCCCCC'])  # Default gray if team not found
+    return colors[1] if secondary and len(colors) > 1 else colors[0]
