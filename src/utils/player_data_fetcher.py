@@ -250,6 +250,37 @@ def load_2024_stats() -> Dict[str, Dict]:
     return {}
 
 
+def load_weekly_stats_2024() -> Dict[str, list]:
+    """Load 2024 weekly stats from aggregated stats file"""
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        stats_file = os.path.join(project_root, 'scripts', 'aggregated_player_stats_2024.json')
+        
+        if os.path.exists(stats_file):
+            with open(stats_file, 'r') as f:
+                stats_data = json.load(f)
+                # Create mapping for name matching
+                name_to_weekly = {}
+                for player_id, player_data in stats_data.items():
+                    if player_data.get('player_name'):
+                        name = player_data['player_name']
+                        weekly_stats = player_data.get('weekly_stats', [])
+                        
+                        # Store with original name
+                        name_to_weekly[name] = weekly_stats
+                        
+                        # Also store with formatted name for matching
+                        formatted = format_name(name)
+                        name_to_weekly[formatted] = weekly_stats
+                        
+                print(f"Loaded weekly stats for {len(stats_data)} players")
+                return name_to_weekly
+    except Exception as e:
+        print(f"Error loading weekly stats: {e}")
+    return {}
+
+
 def load_projections() -> Dict[str, float]:
     """Load 2025 projection data from custom scoring file"""
     try:
@@ -304,6 +335,7 @@ def match_with_sleeper_data(players: List[Dict]) -> List[Dict]:
     """Match ADP players with Sleeper player IDs, 2024 stats, and projections"""
     sleeper_players = load_sleeper_players()
     stats_2024 = load_2024_stats()
+    weekly_stats = load_weekly_stats_2024()
     projections = load_projections()
     
     for player in players:
@@ -343,6 +375,12 @@ def match_with_sleeper_data(players: List[Dict]) -> List[Dict]:
             player['points_2025_proj'] = projections[player['name']]
         elif formatted_name in projections:
             player['points_2025_proj'] = projections[formatted_name]
+            
+        # Match with weekly stats
+        if player['name'] in weekly_stats:
+            player['weekly_stats_2024'] = weekly_stats[player['name']]
+        elif formatted_name in weekly_stats:
+            player['weekly_stats_2024'] = weekly_stats[formatted_name]
         
         # Debug first few players
         if len(players) < 10 or player.get('rank', 999) <= 5:

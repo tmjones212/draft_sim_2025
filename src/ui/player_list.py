@@ -4,6 +4,7 @@ from typing import List, Optional, Callable, Dict
 from ..models import Player
 from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
+from .player_stats_popup import PlayerStatsPopup
 
 
 class PlayerList(StyledFrame):
@@ -150,7 +151,8 @@ class PlayerList(StyledFrame):
             ('CR', 35, 'custom_rank'),  # Custom Rank
             ('', 25, None),      # Star column
             ('Pos', 45, None),
-            ('Name', 180, None),
+            ('', 25, None),      # Info button column
+            ('Name', 155, None),
             ('Team', 45, None),
             ('ADP', 45, 'adp'),
             ('GP', 40, 'games_2024'),  # Added 5px
@@ -640,8 +642,29 @@ class PlayerList(StyledFrame):
         pos_inner.bind('<Double-Button-1>', row._double_click_handler)
         pos_label.bind('<Double-Button-1>', row._double_click_handler)
         
+        # Stats info button
+        info_frame = tk.Frame(row, bg=bg, width=25)
+        info_frame.pack(side='left', fill='y')
+        info_frame.pack_propagate(False)
+        
+        info_btn = tk.Button(
+            info_frame,
+            text="?",
+            bg=bg,
+            fg=DARK_THEME['text_muted'],
+            font=(DARK_THEME['font_family'], 10, 'bold'),
+            bd=0,
+            relief='flat',
+            cursor='hand2',
+            command=lambda p=player: self._show_player_stats(p),
+            activebackground=bg,
+            width=2
+        )
+        info_btn.pack(expand=True)
+        info_btn._is_info_button = True
+        
         # Name
-        self.create_cell(row, player.format_name(), 180, bg, select_row, anchor='w', field_type='name')
+        self.create_cell(row, player.format_name(), 155, bg, select_row, anchor='w', field_type='name')
         
         # Team
         self.create_cell(row, player.team or '-', 45, bg, select_row, field_type='team')
@@ -757,6 +780,10 @@ class PlayerList(StyledFrame):
                 if self.on_draft:
                     self.on_draft()
                 return
+    
+    def _show_player_stats(self, player: Player):
+        """Show the player stats popup"""
+        PlayerStatsPopup(self.winfo_toplevel(), player)
     
     def filter_by_position(self, position: str):
         """Filter players by position"""

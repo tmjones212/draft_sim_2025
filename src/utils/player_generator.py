@@ -88,7 +88,8 @@ def generate_mock_players() -> List[Player]:
             player_id=data.get('player_id'),
             games_2024=data.get('games_2024'),
             points_2024=data.get('points_2024'),
-            points_2025_proj=data.get('points_2025_proj')
+            points_2025_proj=data.get('points_2025_proj'),
+            weekly_stats_2024=data.get('weekly_stats_2024')
         )
         players.append(player)
     

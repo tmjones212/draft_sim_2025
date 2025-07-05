@@ -17,6 +17,7 @@ class Player:
     position_rank_2024: Optional[int] = None
     position_rank_proj: Optional[int] = None
     var: Optional[float] = None  # Value Above Replacement
+    weekly_stats_2024: Optional[list] = None  # Weekly stats from 2024 season
     
     def __str__(self):
         return f"{self.rank}. {self.name} ({self.position})"
