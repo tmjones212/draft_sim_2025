@@ -1,10 +1,12 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from typing import List, Optional, Callable, Dict
+import os
 from ..models import Player
 from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
 from .player_stats_popup import PlayerStatsPopup
+from ..services.custom_adp_manager import CustomADPManager
 
 
 class PlayerList(StyledFrame):
@@ -20,7 +22,7 @@ class PlayerList(StyledFrame):
         self.image_service = image_service
         self.all_players: List[Player] = []  # Store all players
         self.selected_position = "ALL"  # Current filter
-        self.sort_by = "rank"  # Default sort by rank
+        self.sort_by = "adp"  # Default sort by ADP
         self.sort_ascending = True  # Track sort direction
         self.dragging_player = None  # Track dragged player
         self.drag_window = None  # Drag preview window
@@ -35,6 +37,9 @@ class PlayerList(StyledFrame):
         
         # Add player ID to row mapping for better tracking
         self.player_id_to_row: Dict[str, tk.Frame] = {}
+        
+        # Initialize custom ADP manager
+        self.custom_adp_manager = CustomADPManager()
         
         # Row management for performance
         self.row_frames = []  # Active row frames
@@ -89,6 +94,22 @@ class PlayerList(StyledFrame):
         )
         self.search_entry.pack(side='left')
         self.search_var.trace('w', lambda *args: self.on_search_changed())
+        
+        # Reset ADP button
+        self.reset_adp_button = tk.Button(
+            header_frame,
+            text="RESET ADP",
+            bg=DARK_THEME['button_bg'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 9, 'bold'),
+            bd=0,
+            relief='flat',
+            padx=10,
+            pady=4,
+            command=self.reset_all_adp,
+            cursor='hand2'
+        )
+        self.reset_adp_button.pack(side='right', padx=5)
         
         # Position filter buttons
         filter_frame = StyledFrame(header_frame, bg_type='secondary')
@@ -147,20 +168,19 @@ class PlayerList(StyledFrame):
         
         # Column headers with exact pixel widths matching the cells
         headers = [
-            ('Rank', 50, 'rank'),
+            ('Rank', 50, 'var'),  # Changed to sort by VAR when clicking Rank column
             ('CR', 35, 'custom_rank'),  # Custom Rank
             ('', 25, None),      # Star column
             ('Pos', 45, None),
             ('', 25, None),      # Info button column
             ('Name', 155, None),
             ('Team', 45, None),
-            ('ADP ✏', 45, 'adp'),  # Added pencil emoji to indicate editable
+            ('ADP ✏', 55, 'adp'),  # Added pencil emoji to indicate editable
             ('GP', 40, 'games_2024'),  # Added 5px
             ('2024 Pts', 75, 'points_2024'),  # Added 10px
             ('Proj Rank', 85, 'position_rank_proj'),  # Added 10px
             ('Proj Pts', 75, 'points_2025_proj'),  # Added 10px
-            ('VAR', 60, 'var'),  # Added 10px
-            ('', 80, None)       # Draft button
+            ('VAR', 60, 'var')  # Added 10px
         ]
         
         for text, width, sort_key in headers:
@@ -170,8 +190,8 @@ class PlayerList(StyledFrame):
             
             # Add sort indicator to default sort column
             display_text = text
-            if sort_key == 'rank' and not hasattr(self, '_sort_initialized'):
-                display_text = text + ' ▲'  # Default sort by rank ascending
+            if sort_key == 'adp' and not hasattr(self, '_sort_initialized'):
+                display_text = text + ' ▲'  # Default sort by ADP ascending
                 self._sort_initialized = True
                 
             header = tk.Label(
@@ -235,6 +255,9 @@ class PlayerList(StyledFrame):
     def update_players(self, players: List[Player], limit: int = 30, force_refresh: bool = False):
         # Store all players
         self.all_players = players
+        
+        # Apply custom ADP values to all players
+        self.custom_adp_manager.apply_custom_adp_to_players(players)
         
         # Pre-compute position groups for faster filtering if players list changed
         if not hasattr(self, '_position_cache') or self._position_cache.get('players') != id(players):
@@ -560,13 +583,50 @@ class PlayerList(StyledFrame):
         row.bind('<Double-Button-1>', draft_on_double_click)
         row._double_click_handler = draft_on_double_click
         
+        # Add right-click to draft
+        def on_right_click(e):
+            # Select the row first
+            select_row(e)
+            
+            # Create context menu
+            menu = tk.Menu(row, tearoff=0,
+                          bg=DARK_THEME['bg_secondary'],
+                          fg=DARK_THEME['text_primary'],
+                          activebackground=DARK_THEME['button_active'],
+                          activeforeground='white')
+            
+            if self.draft_enabled:
+                menu.add_command(label=f"Draft {player.format_name()}",
+                                command=lambda: self.draft_specific_player(player))
+                menu.add_separator()
+            
+            menu.add_command(label="View Stats",
+                            command=lambda: self._show_player_stats(player))
+            
+            # Show menu
+            menu.post(e.x_root, e.y_root)
+            return "break"
+        
+        row.bind('<Button-3>', on_right_click)
+        
         # Bind mousewheel
         if hasattr(self, '_mousewheel_handler'):
             row.bind('<MouseWheel>', self._mousewheel_handler)
         
         # Create cells with player data
-        # Rank
-        self.create_cell(row, f"#{player.rank}", 50, bg, select_row, field_type='rank')
+        # Rank (now showing VAR rank)
+        # Calculate VAR rank dynamically based on current filtered players
+        var_rank = 1
+        if hasattr(player, 'var') and player.var is not None:
+            # Count how many players have higher VAR
+            for p in self.players:
+                if hasattr(p, 'var') and p.var is not None and p.var > player.var:
+                    var_rank += 1
+        else:
+            # If no VAR, use original rank
+            var_rank = player.rank
+        
+        self.create_cell(row, f"#{var_rank}", 50, bg, select_row, field_type='rank')
         
         # Custom Rank with tier color
         custom_rank = self.custom_rankings.get(player.player_id, '')
@@ -666,12 +726,12 @@ class PlayerList(StyledFrame):
         # Name
         self.create_cell(row, player.format_name(), 155, bg, select_row, anchor='w', field_type='name')
         
-        # Team
-        self.create_cell(row, player.team or '-', 45, bg, select_row, field_type='team')
+        # Team Logo
+        self._create_team_logo_cell(row, player, bg, select_row)
         
         # ADP (editable)
-        adp_text = f"{player.adp:.1f}" if player.adp else '-'
-        adp_cell = self.create_cell(row, adp_text, 45, bg, select_row, field_type='adp')
+        adp_text = f"{int(player.adp)}" if player.adp else '-'
+        adp_cell = self.create_cell(row, adp_text, 55, bg, select_row, field_type='adp')
         # Make ADP cell look more clickable
         if player.adp:
             adp_cell.config(fg=DARK_THEME['text_accent'], cursor='hand2')
@@ -697,28 +757,7 @@ class PlayerList(StyledFrame):
         var_text = f"{player.var:.0f}" if hasattr(player, 'var') and player.var is not None else '-'
         self.create_cell(row, var_text, 60, bg, select_row, field_type='var')
         
-        # Draft button
-        if self.draft_enabled:
-            btn_frame = tk.Frame(row, bg=bg, width=80)
-            btn_frame.pack(side='left', fill='y')
-            btn_frame.pack_propagate(False)
-            
-            draft_btn = tk.Button(
-                btn_frame,
-                text='DRAFT',
-                bg=DARK_THEME['button_active'],
-                fg='white',
-                font=(DARK_THEME['font_family'], 9, 'bold'),
-                relief='flat',
-                cursor='hand2',
-                command=lambda p=player: self.draft_specific_player(p)
-            )
-            draft_btn._is_draft_button = True
-            draft_btn.pack(expand=True)
-            
-            if hasattr(self, '_mousewheel_handler'):
-                btn_frame.bind('<MouseWheel>', self._mousewheel_handler)
-                draft_btn.bind('<MouseWheel>', self._mousewheel_handler)
+        # No more draft button - users can double-click or right-click to draft
     
     def create_cell(self, parent, text, width, bg, click_handler, anchor='center', field_type=None):
         """Create a table cell with exact pixel width"""
@@ -735,20 +774,23 @@ class PlayerList(StyledFrame):
             anchor=anchor
         )
         cell.pack(expand=True, fill='both')
-        cell.bind('<Button-1>', click_handler)
+        
+        # Bind click handler only if not ADP field (ADP gets special handling below)
+        if field_type != 'adp':
+            cell.bind('<Button-1>', click_handler)
         
         # Store field type for updates
         if field_type:
             cell._field_type = field_type
             
-            # Add double-click to edit ADP
+            # Add click to edit ADP
             if field_type == 'adp' and hasattr(parent, 'player'):
                 def edit_adp(e):
                     self._edit_player_adp(parent.player)
                     return "break"  # Prevent event propagation
                 
-                cell.bind('<Double-Button-1>', edit_adp)
-                cell_frame.bind('<Double-Button-1>', edit_adp)
+                cell.bind('<Button-1>', edit_adp)
+                cell_frame.bind('<Button-1>', edit_adp)
                 cell.config(cursor='hand2')  # Show hand cursor to indicate it's clickable
                 
                 # Add hover effect to show it's editable
@@ -757,7 +799,7 @@ class PlayerList(StyledFrame):
                     # Show tooltip
                     tooltip = tk.Label(
                         self.winfo_toplevel(),
-                        text="Double-click to edit ADP",
+                        text="Click to edit ADP",
                         bg='#333333',
                         fg='white',
                         font=(DARK_THEME['font_family'], 9),
@@ -1144,7 +1186,7 @@ class PlayerList(StyledFrame):
         )
         label.pack(side='left', padx=(0, 10))
         
-        adp_var = tk.StringVar(value=f"{player.adp:.1f}")
+        adp_var = tk.StringVar(value=f"{int(player.adp)}")
         entry = tk.Entry(
             input_frame,
             textvariable=adp_var,
@@ -1170,6 +1212,9 @@ class PlayerList(StyledFrame):
                 # Update player's ADP
                 player.adp = new_adp
                 
+                # Save to custom ADP manager
+                self.custom_adp_manager.set_custom_adp(player.player_id, new_adp)
+                
                 # Update the row display immediately
                 for row in self.row_frames:
                     if hasattr(row, 'player') and row.player.player_id == player.player_id:
@@ -1178,7 +1223,7 @@ class PlayerList(StyledFrame):
                             if isinstance(widget, tk.Frame):
                                 for child in widget.winfo_children():
                                     if isinstance(child, tk.Label) and hasattr(child, '_field_type') and child._field_type == 'adp':
-                                        child.config(text=f"{new_adp:.1f}")
+                                        child.config(text=f"{int(new_adp)}")
                                         break
                         break
                 
@@ -1256,6 +1301,81 @@ class PlayerList(StyledFrame):
                     text="★" if is_watched else "☆",
                     fg=DARK_THEME['text_accent'] if is_watched else DARK_THEME['text_muted']
                 )
+    
+    def _create_team_logo_cell(self, row, player, bg, select_row):
+        """Create a cell with team logo"""
+        frame = tk.Frame(row, bg=bg, width=45)
+        frame.pack(side='left', fill='y')
+        frame.pack_propagate(False)
+        frame.bind('<Button-1>', select_row)
+        
+        if player.team and self.image_service:
+            # Create logo label
+            logo_label = tk.Label(frame, bg=bg)
+            logo_label.pack(expand=True)
+            
+            # Load team logo asynchronously
+            team_code = player.team.lower()
+            logo_path = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'team_logos', f'{team_code}.png')
+            
+            if os.path.exists(logo_path):
+                try:
+                    # Load and resize image
+                    from PIL import Image, ImageTk
+                    img = Image.open(logo_path)
+                    img = img.resize((20, 20), Image.Resampling.LANCZOS)
+                    photo = ImageTk.PhotoImage(img)
+                    
+                    # Keep reference to prevent garbage collection
+                    logo_label.image = photo
+                    logo_label.config(image=photo)
+                except Exception as e:
+                    # Fallback to text
+                    logo_label.config(text=player.team, fg=DARK_THEME['text_secondary'], font=(DARK_THEME['font_family'], 9))
+            else:
+                # Fallback to text if logo not found
+                logo_label.config(text=player.team, fg=DARK_THEME['text_secondary'], font=(DARK_THEME['font_family'], 9))
+        else:
+            # No team
+            label = tk.Label(frame, text='-', bg=bg, fg=DARK_THEME['text_secondary'], font=(DARK_THEME['font_family'], 9))
+            label.pack(expand=True)
+        
+        frame._field_type = 'team'
+        return frame
+    
+    def reset_all_adp(self):
+        """Reset all custom ADP values"""
+        # Ask for confirmation
+        result = messagebox.askyesno(
+            "Reset ADP Values",
+            "Are you sure you want to reset all custom ADP values to defaults?",
+            parent=self.winfo_toplevel()
+        )
+        
+        if result:
+            # Clear all custom ADP values
+            self.custom_adp_manager.clear_all_custom_adp()
+            
+            # Reload player data to get original ADP values
+            from ..utils import generate_mock_players
+            original_players = generate_mock_players()
+            
+            # Create a map of original ADP values
+            original_adp = {p.player_id: p.adp for p in original_players if hasattr(p, 'player_id')}
+            
+            # Reset ADP values for all current players
+            for player in self.all_players:
+                if hasattr(player, 'player_id') and player.player_id in original_adp:
+                    player.adp = original_adp[player.player_id]
+            
+            # Refresh the display
+            self.update_players(self.all_players, force_refresh=True)
+            
+            messagebox.showinfo(
+                "ADP Reset",
+                "All ADP values have been reset to defaults.",
+                parent=self.winfo_toplevel()
+            )
     
     def set_watch_list_ref(self, watch_list):
         """Set reference to watch list widget"""

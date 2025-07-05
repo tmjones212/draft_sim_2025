@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from typing import Optional
+import os
+from PIL import Image, ImageTk
 from ..models import Player
 from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
@@ -208,6 +210,7 @@ class PlayerStatsPopup:
             'opp': 80,
             'points': 70,
             'snaps': 60,
+            'comp': 50,
             'pass_yds': 70,
             'pass_td': 60,
             'int': 40,
@@ -278,6 +281,7 @@ class PlayerStatsPopup:
         
         # Add position-specific headers
         if self.player.position == 'QB':
+            self.header_cells.append(create_header_cell(header_row, 'Comp', col_widths['comp'], 'pass_cmp'))
             self.header_cells.append(create_header_cell(header_row, 'Pass Yds', col_widths['pass_yds'], 'pass_yd'))
             self.header_cells.append(create_header_cell(header_row, 'Pass TD', col_widths['pass_td'], 'pass_td'))
             self.header_cells.append(create_header_cell(header_row, 'INT', col_widths['int'], 'pass_int'))
@@ -373,6 +377,7 @@ class PlayerStatsPopup:
                 
                 # Position-specific stats
                 if self.player.position == 'QB':
+                    week_entry['pass_cmp'] = stats.get('pass_cmp', 0)
                     week_entry['pass_yd'] = stats.get('pass_yd', 0)
                     week_entry['pass_td'] = stats.get('pass_td', 0)
                     week_entry['pass_int'] = stats.get('pass_int', 0)
@@ -396,11 +401,172 @@ class PlayerStatsPopup:
                 
                 # Zero out position-specific stats
                 if self.player.position == 'QB':
-                    week_entry.update({'pass_yd': 0, 'pass_td': 0, 'pass_int': 0, 'rush_yd': 0, 'rush_td': 0})
+                    week_entry.update({'pass_cmp': 0, 'pass_yd': 0, 'pass_td': 0, 'pass_int': 0, 'rush_yd': 0, 'rush_td': 0})
                 elif self.player.position in ['RB', 'WR', 'TE']:
                     week_entry.update({'rush_yd': 0, 'rush_td': 0, 'rec': 0, 'rec_yd': 0, 'rec_td': 0})
             
             self.weekly_data.append(week_entry)
+    
+    def get_stat_color(self, stat_name, value, position):
+        """Determine color for a stat based on good/bad thresholds"""
+        # Default colors
+        good_color = '#00ff00'  # Bright green
+        bad_color = '#ff4444'   # Bright red
+        normal_color = DARK_THEME['text_primary']
+        
+        if position == 'QB':
+            if stat_name == 'pass_yd':
+                if value >= 300:
+                    return good_color
+                elif value < 250:
+                    return bad_color
+            elif stat_name == 'pass_cmp':
+                if value >= 30:
+                    return good_color
+                elif value < 20:
+                    return bad_color
+            elif stat_name == 'pass_td':
+                if value >= 3:
+                    return good_color
+            elif stat_name == 'rush_yd':
+                if value >= 40:
+                    return good_color
+                elif value < 20:
+                    return bad_color
+            elif stat_name == 'rush_td':
+                if value >= 1:
+                    return good_color
+            elif stat_name == 'snaps':
+                if value < 50:
+                    return bad_color
+                    
+        elif position == 'RB':
+            if stat_name == 'rush_yd':
+                if value >= 90:
+                    return good_color
+                elif value < 50:
+                    return bad_color
+            elif stat_name == 'rush_td':
+                if value >= 1:
+                    return good_color
+            elif stat_name == 'rec':
+                if value >= 4:
+                    return good_color
+                elif value <= 2:
+                    return bad_color
+            elif stat_name == 'rec_yd':
+                if value >= 40:
+                    return good_color
+            elif stat_name == 'rec_td':
+                if value >= 1:
+                    return good_color
+            elif stat_name == 'snaps':
+                if value > 43:
+                    return good_color
+                elif value < 30:
+                    return bad_color
+                    
+        elif position == 'WR':
+            if stat_name == 'rec':
+                if value >= 6:
+                    return good_color
+            elif stat_name == 'rec_yd':
+                if value >= 90:
+                    return good_color
+                elif value < 70:
+                    return bad_color
+            elif stat_name == 'rec_td':
+                if value >= 1:
+                    return good_color
+            elif stat_name == 'snaps':
+                if value >= 50:
+                    return good_color
+                elif value < 40:
+                    return bad_color
+                    
+        elif position == 'TE':
+            if stat_name == 'rec':
+                if value >= 5:
+                    return good_color
+                elif value <= 3:
+                    return bad_color
+            elif stat_name == 'rec_yd':
+                if value >= 50:
+                    return good_color
+                elif value < 50:
+                    return bad_color
+            elif stat_name == 'rec_td':
+                if value >= 1:
+                    return good_color
+            elif stat_name == 'snaps':
+                if value >= 50:
+                    return good_color
+                    
+        return normal_color
+    
+    def create_opponent_cell(self, parent, opponent, is_home, width, bg):
+        """Create a cell with opponent team logo and home/away indicator"""
+        cell_frame = tk.Frame(parent, bg=bg, width=width, height=30)
+        cell_frame.pack(side='left', padx=1)
+        cell_frame.pack_propagate(False)
+        
+        # Create container for @ or vs text and logo
+        content_frame = tk.Frame(cell_frame, bg=bg)
+        content_frame.pack(expand=True)
+        
+        # Add @ or vs text
+        prefix_label = tk.Label(
+            content_frame,
+            text="vs" if is_home else "@",
+            bg=bg,
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        prefix_label.pack(side='left', padx=(0, 3))
+        
+        # Try to load team logo
+        if opponent and opponent != '-':
+            team_code = opponent.lower()
+            logo_path = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'team_logos', f'{team_code}.png')
+            
+            if os.path.exists(logo_path):
+                try:
+                    # Load and resize image
+                    img = Image.open(logo_path)
+                    img = img.resize((20, 20), Image.Resampling.LANCZOS)
+                    photo = ImageTk.PhotoImage(img)
+                    
+                    # Create logo label
+                    logo_label = tk.Label(content_frame, image=photo, bg=bg)
+                    logo_label.image = photo  # Keep reference
+                    logo_label.pack(side='left')
+                except Exception:
+                    # Fallback to text
+                    text_label = tk.Label(
+                        content_frame,
+                        text=opponent,
+                        bg=bg,
+                        fg=DARK_THEME['text_secondary'],
+                        font=(DARK_THEME['font_family'], 10)
+                    )
+                    text_label.pack(side='left')
+            else:
+                # No logo found, use text
+                text_label = tk.Label(
+                    content_frame,
+                    text=opponent,
+                    bg=bg,
+                    fg=DARK_THEME['text_secondary'],
+                    font=(DARK_THEME['font_family'], 10)
+                )
+                text_label.pack(side='left')
+        
+        # Bind mousewheel if handler exists
+        if hasattr(self, '_mousewheel_handler'):
+            cell_frame.bind('<MouseWheel>', self._mousewheel_handler)
+            content_frame.bind('<MouseWheel>', self._mousewheel_handler)
+        
+        return cell_frame
     
     def display_weekly_data(self):
         """Display the weekly data in the scrollable frame"""
@@ -436,8 +602,7 @@ class PlayerStatsPopup:
             # Opponent with home/away
             if week_entry['played']:
                 is_home = (week_entry['week'] + hash(week_entry['team'])) % 2 == 0
-                opponent_display = f"vs {week_entry['opponent']}" if is_home else f"@ {week_entry['opponent']}"
-                create_cell(opponent_display, self.col_widths['opp'], DARK_THEME['text_secondary'])
+                self.create_opponent_cell(row, week_entry['opponent'], is_home, self.col_widths['opp'], row_bg)
             else:
                 create_cell("DNP", self.col_widths['opp'], DARK_THEME['text_muted'])
             
@@ -446,22 +611,54 @@ class PlayerStatsPopup:
                        DARK_THEME['text_primary'] if week_entry['points'] > 0 else DARK_THEME['text_muted'])
             
             # Snaps
-            snaps_text = f"{int(week_entry['snaps'])}" if week_entry['snaps'] > 0 else '-'
-            create_cell(snaps_text, self.col_widths['snaps'])
+            snaps_val = int(week_entry['snaps'])
+            snaps_text = f"{snaps_val}" if snaps_val > 0 else '-'
+            snaps_color = self.get_stat_color('snaps', snaps_val, self.player.position) if snaps_val > 0 else None
+            create_cell(snaps_text, self.col_widths['snaps'], snaps_color)
             
             # Position-specific stats
             if self.player.position == 'QB':
-                create_cell(f"{int(week_entry['pass_yd'])}", self.col_widths['pass_yds'])
-                create_cell(f"{int(week_entry['pass_td'])}", self.col_widths['pass_td'])
+                comp_val = int(week_entry['pass_cmp'])
+                create_cell(f"{comp_val}", self.col_widths['comp'], 
+                           self.get_stat_color('pass_cmp', comp_val, 'QB') if week_entry['played'] else None)
+                
+                pass_yd_val = int(week_entry['pass_yd'])
+                create_cell(f"{pass_yd_val}", self.col_widths['pass_yds'],
+                           self.get_stat_color('pass_yd', pass_yd_val, 'QB') if week_entry['played'] else None)
+                
+                pass_td_val = int(week_entry['pass_td'])
+                create_cell(f"{pass_td_val}", self.col_widths['pass_td'],
+                           self.get_stat_color('pass_td', pass_td_val, 'QB') if week_entry['played'] else None)
+                
                 create_cell(f"{int(week_entry['pass_int'])}", self.col_widths['int'])
-                create_cell(f"{int(week_entry['rush_yd'])}", self.col_widths['rush_yds'])
-                create_cell(f"{int(week_entry['rush_td'])}", self.col_widths['rush_td'])
+                
+                rush_yd_val = int(week_entry['rush_yd'])
+                create_cell(f"{rush_yd_val}", self.col_widths['rush_yds'],
+                           self.get_stat_color('rush_yd', rush_yd_val, 'QB') if week_entry['played'] else None)
+                
+                rush_td_val = int(week_entry['rush_td'])
+                create_cell(f"{rush_td_val}", self.col_widths['rush_td'],
+                           self.get_stat_color('rush_td', rush_td_val, 'QB') if week_entry['played'] else None)
             elif self.player.position in ['RB', 'WR', 'TE']:
-                create_cell(f"{int(week_entry['rush_yd'])}", self.col_widths['rush_yds'])
-                create_cell(f"{int(week_entry['rush_td'])}", self.col_widths['rush_td'])
-                create_cell(f"{int(week_entry['rec'])}", self.col_widths['rec'])
-                create_cell(f"{int(week_entry['rec_yd'])}", self.col_widths['rec_yds'])
-                create_cell(f"{int(week_entry['rec_td'])}", self.col_widths['rec_td'])
+                rush_yd_val = int(week_entry['rush_yd'])
+                create_cell(f"{rush_yd_val}", self.col_widths['rush_yds'],
+                           self.get_stat_color('rush_yd', rush_yd_val, self.player.position) if week_entry['played'] and rush_yd_val > 0 else None)
+                
+                rush_td_val = int(week_entry['rush_td'])
+                create_cell(f"{rush_td_val}", self.col_widths['rush_td'],
+                           self.get_stat_color('rush_td', rush_td_val, self.player.position) if week_entry['played'] and rush_td_val > 0 else None)
+                
+                rec_val = int(week_entry['rec'])
+                create_cell(f"{rec_val}", self.col_widths['rec'],
+                           self.get_stat_color('rec', rec_val, self.player.position) if week_entry['played'] else None)
+                
+                rec_yd_val = int(week_entry['rec_yd'])
+                create_cell(f"{rec_yd_val}", self.col_widths['rec_yds'],
+                           self.get_stat_color('rec_yd', rec_yd_val, self.player.position) if week_entry['played'] else None)
+                
+                rec_td_val = int(week_entry['rec_td'])
+                create_cell(f"{rec_td_val}", self.col_widths['rec_td'],
+                           self.get_stat_color('rec_td', rec_td_val, self.player.position) if week_entry['played'] and rec_td_val > 0 else None)
     
     def sort_data(self, sort_key, arrow_label):
         """Sort the weekly data by the specified column"""

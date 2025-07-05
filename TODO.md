@@ -9,3 +9,5 @@
 -by default only show the first 3 rounds in teh draft table and make the available players table taller
 - the header is too tall like where the undo, restart draft etc. buttons are. thats too tall let's make it a little smaller so everything else has more vertical space
 - When you learn useful things that would be helpful in the future, memorialize them in CLAUDE.md
+
+

@@ -121,7 +121,7 @@ class MockDraftApp:
         
         # Header section
         header_frame = StyledFrame(main_frame, bg_type='primary')
-        header_frame.pack(fill='x', pady=(0, 15))
+        header_frame.pack(fill='x', pady=(0, 10))
         
         # Title and status container
         status_container = StyledFrame(header_frame, bg_type='primary')
@@ -132,7 +132,7 @@ class MockDraftApp:
             text="",
             bg=DARK_THEME['bg_primary'],
             fg=DARK_THEME['text_primary'],
-            font=(DARK_THEME['font_family'], 18, 'bold')
+            font=(DARK_THEME['font_family'], 14, 'bold')
         )
         self.status_label.pack(anchor='w')
         
@@ -141,7 +141,7 @@ class MockDraftApp:
             text="",
             bg=DARK_THEME['bg_primary'],
             fg=DARK_THEME['text_secondary'],
-            font=(DARK_THEME['font_family'], 13)
+            font=(DARK_THEME['font_family'], 11)
         )
         self.on_clock_label.pack(anchor='w', pady=(3, 0))
         
@@ -174,8 +174,8 @@ class MockDraftApp:
             command=self.undo_reversion,
             bg=DARK_THEME['button_bg'],
             font=(DARK_THEME['font_family'], 11, 'bold'),
-            padx=20,
-            pady=10,
+            padx=15,
+            pady=5,
             state='disabled'
         )
         self.undo_button.pack(side='left', padx=(0, 10))
@@ -346,7 +346,7 @@ class MockDraftApp:
             draft_panel, 
             self.teams, 
             total_rounds, 
-            max_visible_rounds=9,
+            max_visible_rounds=3,
             on_team_select=self.on_team_selected,
             on_pick_click=self.on_pick_clicked,
             image_service=self.image_service
@@ -527,9 +527,8 @@ class MockDraftApp:
     
     def setup_keyboard_shortcuts(self):
         """Setup keyboard shortcuts for drafting"""
-        # Enter or Space to draft selected player
-        self.root.bind('<Return>', lambda e: self.draft_player())
-        self.root.bind('<space>', lambda e: self.draft_player())
+        # Removed global Enter/Space bindings that interfere with search inputs
+        # Users can still draft via double-click or the Draft button
         
         # Arrow keys to navigate players
         self.root.bind('<Left>', lambda e: self.navigate_players(-1))
@@ -560,7 +559,7 @@ class MockDraftApp:
         paned_window.update_idletasks()
         height = paned_window.winfo_height()
         if height > 1:  # Ensure we have a valid height
-            paned_window.sash_place(0, 0, int(height * 0.65))
+            paned_window.sash_place(0, 0, int(height * 0.45))  # Reduced from 65% to 45%
     
     def on_team_selected(self, team_id):
         """Handle team selection for user control"""

@@ -3,9 +3,14 @@ from tkinter import ttk
 import json
 import os
 from typing import Dict, List, Optional
+from PIL import Image, ImageTk
 from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
 from ..utils.player_extensions import format_name
+from ..config.scoring import SCORING_CONFIG
+
+# Teams with dome stadiums
+DOME_TEAMS = {'ATL', 'DET', 'MIN', 'NO', 'LV', 'ARI', 'AZ', 'DAL', 'HOU', 'IND'}
 
 
 class GameHistory(StyledFrame):
@@ -22,13 +27,14 @@ class GameHistory(StyledFrame):
         self.sort_column = None
         self.sort_ascending = True
         self.search_var = tk.StringVar()
-        self.roster_position_filter = None  # For QB1, RB1, etc.
+        self.view_mode = "detailed"  # "detailed" or "summarized"
         
         # Filter history for back button
         self.filter_history = []
         self.current_filter_state = None
         
         self.setup_ui()
+        self.update_column_visibility()  # Set initial column visibility
         self.load_weekly_stats()
         
     def setup_ui(self):
@@ -84,18 +90,15 @@ class GameHistory(StyledFrame):
         )
         pos_label.pack(side='left', padx=(0, 5))
         
-        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX", "QB1", "RB1", "RB2", "WR1", "WR2", "TE1"]
+        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX"]
         self.position_buttons = {}
         
-        # Create two rows of position buttons
+        # Create position buttons container (single row)
         pos_container = tk.Frame(filter_frame, bg=DARK_THEME['bg_secondary'])
         pos_container.pack(side='left', padx=(0, 20))
         
-        # First row - main positions
-        pos_row1 = tk.Frame(pos_container, bg=DARK_THEME['bg_secondary'])
-        pos_row1.pack()
-        
-        for pos in ["ALL", "QB", "RB", "WR", "TE", "FLEX"]:
+        # Main positions only
+        for pos in positions:
             if pos == "ALL":
                 btn_bg = DARK_THEME['button_active'] if pos == self.selected_position else DARK_THEME['button_bg']
             elif pos == "FLEX":
@@ -104,7 +107,7 @@ class GameHistory(StyledFrame):
                 btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
             
             btn = tk.Button(
-                pos_row1,
+                pos_container,
                 text=pos,
                 bg=btn_bg,
                 fg='white',
@@ -114,31 +117,6 @@ class GameHistory(StyledFrame):
                 padx=10,
                 pady=3,
                 command=lambda p=pos: self.filter_by_position(p),
-                cursor='hand2'
-            )
-            btn.pack(side='left', padx=1)
-            self.position_buttons[pos] = btn
-        
-        # Second row - roster positions
-        pos_row2 = tk.Frame(pos_container, bg=DARK_THEME['bg_secondary'])
-        pos_row2.pack(pady=(2, 0))
-        
-        for pos in ["QB1", "RB1", "RB2", "WR1", "WR2", "TE1"]:
-            # Extract base position for color
-            base_pos = pos[:-1]
-            btn_bg = get_position_color(base_pos) if pos == self.selected_position else DARK_THEME['button_bg']
-            
-            btn = tk.Button(
-                pos_row2,
-                text=pos,
-                bg=btn_bg,
-                fg='white',
-                font=(DARK_THEME['font_family'], 8, 'bold'),
-                bd=0,
-                relief='flat',
-                padx=8,
-                pady=2,
-                command=lambda p=pos: self.filter_by_roster_position(p),
                 cursor='hand2'
             )
             btn.pack(side='left', padx=1)
@@ -165,6 +143,50 @@ class GameHistory(StyledFrame):
         )
         self.week_dropdown.pack(side='left')
         self.week_dropdown.bind('<<ComboboxSelected>>', lambda e: self.apply_filters())
+        
+        # Home/Away filter
+        home_away_label = tk.Label(
+            filter_frame,
+            text="Location:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        home_away_label.pack(side='left', padx=(20, 5))
+        
+        self.location_var = tk.StringVar(value="ALL")
+        self.location_dropdown = ttk.Combobox(
+            filter_frame,
+            textvariable=self.location_var,
+            values=["ALL", "HOME", "AWAY"],
+            width=8,
+            state='readonly',
+            font=(DARK_THEME['font_family'], 10)
+        )
+        self.location_dropdown.pack(side='left')
+        self.location_dropdown.bind('<<ComboboxSelected>>', lambda e: self.apply_filters())
+        
+        # Dome/Outside filter
+        dome_label = tk.Label(
+            filter_frame,
+            text="Venue:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        dome_label.pack(side='left', padx=(20, 5))
+        
+        self.venue_var = tk.StringVar(value="ALL")
+        self.venue_dropdown = ttk.Combobox(
+            filter_frame,
+            textvariable=self.venue_var,
+            values=["ALL", "DOME", "OUTSIDE"],
+            width=10,
+            state='readonly',
+            font=(DARK_THEME['font_family'], 10)
+        )
+        self.venue_dropdown.pack(side='left')
+        self.venue_dropdown.bind('<<ComboboxSelected>>', lambda e: self.apply_filters())
         
         # Clear filter button
         self.clear_button = tk.Button(
@@ -199,12 +221,55 @@ class GameHistory(StyledFrame):
         )
         self.back_button.pack(side='left', padx=5)
         
+        # View mode toggle buttons
+        view_separator = tk.Frame(filter_frame, width=20, bg=DARK_THEME['bg_secondary'])
+        view_separator.pack(side='left')
+        
+        view_label = tk.Label(
+            filter_frame,
+            text="View:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        view_label.pack(side='left', padx=(0, 5))
+        
+        self.detailed_btn = tk.Button(
+            filter_frame,
+            text="DETAILED",
+            bg=DARK_THEME['button_active'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 9, 'bold'),
+            bd=0,
+            relief='flat',
+            padx=10,
+            pady=4,
+            command=lambda: self.set_view_mode("detailed"),
+            cursor='hand2'
+        )
+        self.detailed_btn.pack(side='left', padx=1)
+        
+        self.summarized_btn = tk.Button(
+            filter_frame,
+            text="SUMMARIZED",
+            bg=DARK_THEME['button_bg'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 9, 'bold'),
+            bd=0,
+            relief='flat',
+            padx=10,
+            pady=4,
+            command=lambda: self.set_view_mode("summarized"),
+            cursor='hand2'
+        )
+        self.summarized_btn.pack(side='left', padx=1)
+        
         # Table container
         table_container = StyledFrame(container, bg_type='secondary')
         table_container.pack(fill='both', expand=True)
         
         # Create treeview for table
-        columns = ('player', 'pos', 'team', 'week', 'opp', 'pts', 'pass_yd', 'pass_td', 
+        columns = ('player', 'pos', 'team', 'week', 'opp', 'pts', 'comp', 'pass_yd', 'pass_td', 
                   'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td')
         
         self.tree = ttk.Treeview(
@@ -220,8 +285,9 @@ class GameHistory(StyledFrame):
         self.tree.column('pos', width=50, anchor='center')
         self.tree.column('team', width=50, anchor='center')
         self.tree.column('week', width=50, anchor='center')
-        self.tree.column('opp', width=50, anchor='center')
+        self.tree.column('opp', width=70, anchor='center')
         self.tree.column('pts', width=70, anchor='center')
+        self.tree.column('comp', width=60, anchor='center')
         self.tree.column('pass_yd', width=80, anchor='center')
         self.tree.column('pass_td', width=70, anchor='center')
         self.tree.column('rush_yd', width=80, anchor='center')
@@ -237,6 +303,7 @@ class GameHistory(StyledFrame):
         self.tree.heading('week', text='Wk', command=lambda: self.sort_by('week'))
         self.tree.heading('opp', text='Opp', command=lambda: self.sort_by('opp'))
         self.tree.heading('pts', text='Pts', command=lambda: self.sort_by('pts'))
+        self.tree.heading('comp', text='Comp', command=lambda: self.sort_by('comp'))
         self.tree.heading('pass_yd', text='Pass Yds', command=lambda: self.sort_by('pass_yd'))
         self.tree.heading('pass_td', text='Pass TD', command=lambda: self.sort_by('pass_td'))
         self.tree.heading('rush_yd', text='Rush Yds', command=lambda: self.sort_by('rush_yd'))
@@ -320,6 +387,40 @@ class GameHistory(StyledFrame):
         
         self.apply_filters()
         self.status_label.config(text=f"Loaded {len(self.weekly_stats)} weeks of game data")
+    
+    def calculate_custom_points(self, stats, position):
+        """Calculate custom fantasy points based on our scoring rules"""
+        points = 0.0
+        
+        # Passing points
+        if position == 'QB':
+            points += stats.get('pass_cmp', 0) * SCORING_CONFIG['pass_completion']
+            points += stats.get('pass_yd', 0) * SCORING_CONFIG['pass_yard']
+            points += stats.get('pass_td', 0) * SCORING_CONFIG['touchdown']
+            
+            # Pass bonus
+            if stats.get('pass_yd', 0) >= 300:
+                points += SCORING_CONFIG['bonus_pass_300_yards']
+        
+        # Rushing points (all positions)
+        points += stats.get('rush_yd', 0) * SCORING_CONFIG['rush_yard']
+        points += stats.get('rush_td', 0) * SCORING_CONFIG['touchdown']
+        
+        # Rush bonus
+        if stats.get('rush_yd', 0) >= 100:
+            points += SCORING_CONFIG['bonus_rush_100_yards']
+        
+        # Receiving points (non-QBs)
+        if position != 'QB':
+            points += stats.get('rec', 0) * SCORING_CONFIG['reception']
+            points += stats.get('rec_yd', 0) * SCORING_CONFIG['rec_yard']
+            points += stats.get('rec_td', 0) * SCORING_CONFIG['touchdown']
+            
+            # Rec bonus
+            if stats.get('rec_yd', 0) >= 100:
+                points += SCORING_CONFIG['bonus_rec_100_yards']
+        
+        return points
         
     def apply_filters(self):
         """Apply all filters and update display"""
@@ -334,10 +435,43 @@ class GameHistory(StyledFrame):
             self.tree.delete(item)
         
         # Build filtered data
+        if self.view_mode == "summarized":
+            rows = self.build_summarized_data(search_text, selected_week)
+        else:
+            rows = self.build_detailed_data(search_text, selected_week)
+        
+        # Sort if needed
+        if self.sort_column:
+            self.sort_rows(rows)
+        
+        # Add to tree
+        for row in rows:
+            values = (row['player'], row['pos'], row['team'], row['week'], row['opp'],
+                     row['pts'], row['comp'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
+                     row['rush_td'], row['rec'], row['rec_yd'], row['rec_td'])
+            
+            # Add row with alternating colors
+            tags = ()
+            if len(self.tree.get_children()) % 2 == 0:
+                tags = ('even',)
+            else:
+                tags = ('odd',)
+                
+            self.tree.insert('', 'end', values=values, tags=tags)
+        
+        # Configure tag colors
+        self.tree.tag_configure('even', background=DARK_THEME['bg_tertiary'])
+        self.tree.tag_configure('odd', background=DARK_THEME['bg_secondary'])
+        
+        # Update status
+        self.status_label.config(text=f"Showing {len(rows)} {'seasons' if self.view_mode == 'summarized' else 'games'}")
+    
+    def build_detailed_data(self, search_text, selected_week):
+        """Build data for detailed view (individual games)"""
         rows = []
         
-        # If roster position filter is active, we need to calculate ranks per week
-        if self.roster_position_filter:
+        # Normal filtering
+        if False:  # Removed roster position filtering
             for week, week_data in self.weekly_stats.items():
                 # Skip if week filter is active
                 if selected_week != "ALL" and str(week) != selected_week:
@@ -379,22 +513,61 @@ class GameHistory(StyledFrame):
                     # Process the game
                     for stat in stats_list:
                         stats = stat.get('stats', {})
+                        opponent = stat.get('opponent', '')
+                        player_team = stat.get('team', player.team)
+                        
+                        # Apply location filter (HOME/AWAY)
+                        if self.location_var.get() != "ALL":
+                            # Determine if home or away game
+                            # We'll use week + team hash to determine home/away (simplified logic)
+                            is_home = (week + hash(player_team)) % 2 == 0
+                            
+                            if self.location_var.get() == "HOME" and not is_home:
+                                continue
+                            elif self.location_var.get() == "AWAY" and is_home:
+                                continue
+                        
+                        # Apply venue filter (DOME/OUTSIDE)
+                        if self.venue_var.get() != "ALL":
+                            # Check if game is in a dome
+                            # Game is in dome if either team plays in a dome and it's their home game
+                            is_home = (week + hash(player_team)) % 2 == 0
+                            
+                            if is_home:
+                                # Home game - check if player's team has a dome
+                                game_in_dome = player_team in DOME_TEAMS
+                            else:
+                                # Away game - check if opponent has a dome
+                                game_in_dome = opponent in DOME_TEAMS
+                            
+                            if self.venue_var.get() == "DOME" and not game_in_dome:
+                                continue
+                            elif self.venue_var.get() == "OUTSIDE" and game_in_dome:
+                                continue
+                        
+                        # Calculate custom points
+                        custom_pts = self.calculate_custom_points(stats, player.position)
+                        
+                        # Format opponent with home/away indicator
+                        is_home = (week + hash(player_team)) % 2 == 0
+                        opponent_display = f"vs {opponent}" if is_home else f"@ {opponent}"
                         
                         row = {
                             'player': format_name(player.name),
                             'pos': player.position,
                             'team': player.team or '-',
                             'week': week,
-                            'opp': stat.get('opponent', '-'),
-                            'pts': f"{stats.get('pts_ppr', 0):.1f}",
+                            'opp': opponent_display,
+                            'pts': f"{custom_pts:.1f}",
+                            'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
                             'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
                             'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
                             'rush_yd': int(stats.get('rush_yd', 0)),
-                            'rush_td': int(stats.get('rush_rec_td', 0) - stats.get('rec_td', 0)) if player.position != 'QB' else int(stats.get('rush_td', 0)),
+                            'rush_td': max(0, int(stats.get('rush_td', 0))),
                             'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
                             'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
                             'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
-                            '_pts_float': stats.get('pts_ppr', 0),  # For sorting
+                            '_pts_float': custom_pts,  # For sorting
                             '_week_int': week  # For sorting
                         }
                         rows.append(row)
@@ -425,51 +598,155 @@ class GameHistory(StyledFrame):
                     # Process each game for this player
                     for stat in stats_list:
                         stats = stat.get('stats', {})
+                        opponent = stat.get('opponent', '')
+                        player_team = stat.get('team', player.team)
+                        
+                        # Apply location filter (HOME/AWAY)
+                        if self.location_var.get() != "ALL":
+                            # Determine if home or away game
+                            # We'll use week + team hash to determine home/away (simplified logic)
+                            is_home = (week + hash(player_team)) % 2 == 0
+                            
+                            if self.location_var.get() == "HOME" and not is_home:
+                                continue
+                            elif self.location_var.get() == "AWAY" and is_home:
+                                continue
+                        
+                        # Apply venue filter (DOME/OUTSIDE)
+                        if self.venue_var.get() != "ALL":
+                            # Check if game is in a dome
+                            # Game is in dome if either team plays in a dome and it's their home game
+                            is_home = (week + hash(player_team)) % 2 == 0
+                            
+                            if is_home:
+                                # Home game - check if player's team has a dome
+                                game_in_dome = player_team in DOME_TEAMS
+                            else:
+                                # Away game - check if opponent has a dome
+                                game_in_dome = opponent in DOME_TEAMS
+                            
+                            if self.venue_var.get() == "DOME" and not game_in_dome:
+                                continue
+                            elif self.venue_var.get() == "OUTSIDE" and game_in_dome:
+                                continue
+                        
+                        # Calculate custom points
+                        custom_pts = self.calculate_custom_points(stats, player.position)
+                        
+                        # Format opponent with home/away indicator
+                        is_home = (week + hash(player_team)) % 2 == 0
+                        opponent_display = f"vs {opponent}" if is_home else f"@ {opponent}"
                         
                         row = {
                             'player': format_name(player.name),
                             'pos': player.position,
                             'team': player.team or '-',
                             'week': week,
-                            'opp': stat.get('opponent', '-'),
-                            'pts': f"{stats.get('pts_ppr', 0):.1f}",
+                            'opp': opponent_display,
+                            'pts': f"{custom_pts:.1f}",
+                            'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
                             'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
                             'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
                             'rush_yd': int(stats.get('rush_yd', 0)),
-                            'rush_td': int(stats.get('rush_rec_td', 0) - stats.get('rec_td', 0)) if player.position != 'QB' else int(stats.get('rush_td', 0)),
+                            'rush_td': max(0, int(stats.get('rush_td', 0))),
                             'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
                             'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
                             'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
-                            '_pts_float': stats.get('pts_ppr', 0),  # For sorting
+                            '_pts_float': custom_pts,  # For sorting
                             '_week_int': week  # For sorting
                         }
                         rows.append(row)
         
-        # Sort if needed
-        if self.sort_column:
-            self.sort_rows(rows)
+        return rows
+    
+    def build_summarized_data(self, search_text, selected_week):
+        """Build data for summarized view (season totals)"""
+        rows = []
+        player_totals = {}
         
-        # Add to tree
-        for row in rows:
-            values = (row['player'], row['pos'], row['team'], row['week'], row['opp'],
-                     row['pts'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
-                     row['rush_td'], row['rec'], row['rec_yd'], row['rec_td'])
+        # Aggregate data by player
+        for week, week_data in self.weekly_stats.items():
+            # Skip if week filter is active
+            if selected_week != "ALL" and str(week) != selected_week:
+                continue
             
-            # Add row with alternating colors
-            tags = ()
-            if len(self.tree.get_children()) % 2 == 0:
-                tags = ('even',)
-            else:
-                tags = ('odd',)
+            for player_id, stats_list in week_data.items():
+                if player_id not in self.player_lookup:
+                    continue
+                    
+                player = self.player_lookup[player_id]
                 
-            self.tree.insert('', 'end', values=values, tags=tags)
+                # Position filter
+                if self.selected_position == "FLEX":
+                    if player.position not in ["RB", "WR", "TE"]:
+                        continue
+                elif self.selected_position != "ALL" and player.position != self.selected_position:
+                    continue
+                
+                # Search filter
+                if search_text and search_text not in player.name.lower():
+                    continue
+                
+                # Initialize player totals if needed
+                if player_id not in player_totals:
+                    player_totals[player_id] = {
+                        'player': format_name(player.name),
+                        'pos': player.position,
+                        'team': player.team or '-',
+                        'games': 0,
+                        'pts': 0,
+                        'comp': 0,
+                        'pass_yd': 0,
+                        'pass_td': 0,
+                        'rush_yd': 0,
+                        'rush_td': 0,
+                        'rec': 0,
+                        'rec_yd': 0,
+                        'rec_td': 0
+                    }
+                
+                # Aggregate stats
+                for stat in stats_list:
+                    stats = stat.get('stats', {})
+                    totals = player_totals[player_id]
+                    totals['games'] += 1
+                    # Calculate custom points for this game
+                    custom_pts = self.calculate_custom_points(stats, player.position)
+                    totals['pts'] += custom_pts
+                    if player.position == 'QB':
+                        totals['comp'] += int(stats.get('pass_cmp', 0))
+                        totals['pass_yd'] += int(stats.get('pass_yd', 0))
+                        totals['pass_td'] += int(stats.get('pass_td', 0))
+                    totals['rush_yd'] += int(stats.get('rush_yd', 0))
+                    totals['rush_td'] += int(stats.get('rush_td', 0))
+                    if player.position != 'QB':
+                        totals['rec'] += int(stats.get('rec', 0))
+                        totals['rec_yd'] += int(stats.get('rec_yd', 0))
+                        totals['rec_td'] += int(stats.get('rec_td', 0))
         
-        # Configure tag colors
-        self.tree.tag_configure('even', background=DARK_THEME['bg_tertiary'])
-        self.tree.tag_configure('odd', background=DARK_THEME['bg_secondary'])
+        # Convert to rows
+        for player_id, totals in player_totals.items():
+            row = {
+                'player': totals['player'],
+                'pos': totals['pos'],
+                'team': totals['team'],
+                'week': f"{totals['games']}g",  # Show games played
+                'opp': '2024',  # Show year instead of opponent
+                'pts': f"{totals['pts']:.1f}",
+                'comp': totals['comp'] if totals['comp'] > 0 else '-',
+                'pass_yd': totals['pass_yd'] if totals['pass_yd'] > 0 else '-',
+                'pass_td': totals['pass_td'] if totals['pass_td'] > 0 else '-',
+                'rush_yd': totals['rush_yd'] if totals['rush_yd'] > 0 else '-',
+                'rush_td': totals['rush_td'] if totals['rush_td'] > 0 else '-',
+                'rec': totals['rec'] if totals['rec'] > 0 else '-',
+                'rec_yd': totals['rec_yd'] if totals['rec_yd'] > 0 else '-',
+                'rec_td': totals['rec_td'] if totals['rec_td'] > 0 else '-',
+                '_pts_float': totals['pts'],  # For sorting
+                '_week_int': totals['games']  # For sorting
+            }
+            rows.append(row)
         
-        # Update status
-        self.status_label.config(text=f"Showing {len(rows)} games")
+        return rows
         
     def sort_rows(self, rows):
         """Sort rows by current sort column"""
@@ -482,7 +759,7 @@ class GameHistory(StyledFrame):
                 return row['_week_int']
             elif self.sort_column == 'pts':
                 return row['_pts_float']
-            elif self.sort_column in ['pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']:
+            elif self.sort_column in ['comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']:
                 val = row[self.sort_column]
                 return 0 if val == '-' else int(val)
             else:
@@ -503,7 +780,6 @@ class GameHistory(StyledFrame):
     def filter_by_position(self, position):
         """Filter by position"""
         self.selected_position = position
-        self.roster_position_filter = None  # Clear roster position filter
         
         # Update button appearances
         for pos, btn in self.position_buttons.items():
@@ -516,16 +792,75 @@ class GameHistory(StyledFrame):
                     btn.config(bg=get_position_color(pos))
             else:
                 btn.config(bg=DARK_THEME['button_bg'])
-                
+        
+        # Update column visibility
+        self.update_column_visibility()
         self.apply_filters()
+    
+    def set_view_mode(self, mode):
+        """Set the view mode (detailed or summarized)"""
+        self.view_mode = mode
+        
+        # Update button appearances
+        if mode == "detailed":
+            self.detailed_btn.config(bg=DARK_THEME['button_active'])
+            self.summarized_btn.config(bg=DARK_THEME['button_bg'])
+        else:
+            self.detailed_btn.config(bg=DARK_THEME['button_bg'])
+            self.summarized_btn.config(bg=DARK_THEME['button_active'])
+        
+        self.apply_filters()
+    
+    def update_column_visibility(self):
+        """Show/hide columns based on selected position"""
+        # Define which columns are relevant for each position
+        qb_columns = ['comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td']
+        skill_columns = ['rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']
+        
+        if self.selected_position == "QB":
+            # Show QB columns, hide receiving columns
+            for col in qb_columns:
+                if col == 'comp':
+                    self.tree.column(col, width=60)
+                else:
+                    self.tree.column(col, width=80 if 'yd' in col else 70)
+            for col in ['rec', 'rec_yd', 'rec_td']:
+                self.tree.column(col, width=0, stretch=False)
+        elif self.selected_position in ["RB", "WR", "TE"]:
+            # Show skill position columns, hide passing columns
+            for col in ['comp', 'pass_yd', 'pass_td']:
+                self.tree.column(col, width=0, stretch=False)
+            for col in skill_columns:
+                if col == 'rec':
+                    self.tree.column(col, width=50)
+                else:
+                    self.tree.column(col, width=80 if 'yd' in col else 70)
+        elif self.selected_position == "FLEX":
+            # Show skill position columns, hide passing columns
+            for col in ['comp', 'pass_yd', 'pass_td']:
+                self.tree.column(col, width=0, stretch=False)
+            for col in skill_columns:
+                if col == 'rec':
+                    self.tree.column(col, width=50)
+                else:
+                    self.tree.column(col, width=80 if 'yd' in col else 70)
+        else:  # ALL
+            # Show all columns with default widths
+            self.tree.column('comp', width=60)
+            self.tree.column('pass_yd', width=80)
+            self.tree.column('pass_td', width=70)
+            self.tree.column('rush_yd', width=80)
+            self.tree.column('rush_td', width=70)
+            self.tree.column('rec', width=50)
+            self.tree.column('rec_yd', width=70)
+            self.tree.column('rec_td', width=60)
     
     def save_filter_state(self):
         """Save current filter state to history"""
         state = {
             'search': self.search_var.get(),
             'position': self.selected_position,
-            'week': self.week_var.get(),
-            'roster_position': self.roster_position_filter
+            'week': self.week_var.get()
         }
         
         # Only save if different from current state
@@ -544,7 +879,8 @@ class GameHistory(StyledFrame):
         self.search_var.set('')
         self.selected_position = "ALL"
         self.week_var.set("ALL")
-        self.roster_position_filter = None
+        self.location_var.set("ALL")
+        self.venue_var.set("ALL")
         
         # Update button appearances
         for pos, btn in self.position_buttons.items():
@@ -565,7 +901,6 @@ class GameHistory(StyledFrame):
             self.search_var.set(prev_state['search'])
             self.selected_position = prev_state['position']
             self.week_var.set(prev_state['week'])
-            self.roster_position_filter = prev_state.get('roster_position')
             
             # Update UI
             for pos, btn in self.position_buttons.items():
@@ -634,20 +969,3 @@ class GameHistory(StyledFrame):
         # Apply the filter
         self.apply_filters()
     
-    def filter_by_roster_position(self, roster_pos):
-        """Filter by roster position (QB1, RB1, etc.)"""
-        self.selected_position = roster_pos[:-1]  # Extract base position
-        self.roster_position_filter = roster_pos
-        
-        # Update button appearances
-        for pos, btn in self.position_buttons.items():
-            if pos == roster_pos:
-                base_pos = pos[:-1] if pos in ["QB1", "RB1", "RB2", "WR1", "WR2", "TE1"] else pos
-                if base_pos in ["QB", "RB", "WR", "TE"]:
-                    btn.config(bg=get_position_color(base_pos))
-                else:
-                    btn.config(bg=DARK_THEME['button_active'])
-            else:
-                btn.config(bg=DARK_THEME['button_bg'])
-        
-        self.apply_filters()
