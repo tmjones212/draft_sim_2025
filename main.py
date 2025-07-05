@@ -250,9 +250,23 @@ class MockDraftApp:
             bg=DARK_THEME['button_bg'],
             font=(DARK_THEME['font_family'], 10),
             padx=15,
-            pady=8
+            pady=8,
+            state='disabled'
         )
-        self.load_template_button.pack(side='left', padx=(0, 10))
+        self.load_template_button.pack(side='left', padx=(0, 5))
+        
+        # Delete template button
+        self.delete_template_button = StyledButton(
+            button_container,
+            text="DELETE",
+            command=self.delete_template,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 10),
+            padx=15,
+            pady=8,
+            state='disabled'
+        )
+        self.delete_template_button.pack(side='left', padx=(0, 10))
         
         # Save template button
         self.save_template_button = StyledButton(
@@ -1455,9 +1469,13 @@ class MockDraftApp:
     
     def on_template_selected(self, event=None):
         """Handle template selection from dropdown"""
-        # Enable load button when template is selected
+        # Enable load and delete buttons when template is selected
         if self.template_var.get():
             self.load_template_button.config(state='normal')
+            self.delete_template_button.config(state='normal')
+        else:
+            self.load_template_button.config(state='disabled')
+            self.delete_template_button.config(state='disabled')
     
     def save_template(self):
         """Save current draft state as a template"""
@@ -1470,6 +1488,12 @@ class MockDraftApp:
         # Center dialog on parent
         dialog.transient(self.root)
         dialog.grab_set()
+        
+        # Center the dialog on parent window
+        dialog.update_idletasks()
+        x = (self.root.winfo_x() + (self.root.winfo_width() // 2) - (dialog.winfo_width() // 2))
+        y = (self.root.winfo_y() + (self.root.winfo_height() // 2) - (dialog.winfo_height() // 2))
+        dialog.geometry(f"+{x}+{y}")
         
         # Name input
         label = tk.Label(
@@ -1507,7 +1531,7 @@ class MockDraftApp:
             watch_list = []
             wl = self.roster_view.get_watch_list()
             if wl:
-                watch_list = wl.get_watched_players()
+                watch_list = [p.player_id for p in wl.watched_players]
             
             success = self.template_manager.save_template(
                 name=name,
@@ -1553,6 +1577,43 @@ class MockDraftApp:
         
         # Save on Enter
         entry.bind('<Return>', lambda e: save())
+    
+    def delete_template(self):
+        """Delete the selected template"""
+        selected = self.template_var.get()
+        if not selected:
+            messagebox.showwarning("No Selection", "Please select a template to delete")
+            return
+        
+        # Confirm deletion
+        result = messagebox.askyesno(
+            "Delete Template",
+            f"Are you sure you want to delete the template '{selected}'?",
+            parent=self.root
+        )
+        
+        if result:
+            # Find the template file
+            templates = self.template_manager.list_templates()
+            template_file = None
+            for t in templates:
+                if t["name"] == selected:
+                    template_file = t["filename"]
+                    break
+            
+            if template_file:
+                success = self.template_manager.delete_template(template_file)
+                if success:
+                    messagebox.showinfo("Success", f"Template '{selected}' deleted successfully")
+                    self.update_template_dropdown()
+                    # Clear selection and disable buttons
+                    self.template_var.set("")
+                    self.load_template_button.config(state='disabled')
+                    self.delete_template_button.config(state='disabled')
+                else:
+                    messagebox.showerror("Error", "Failed to delete template")
+            else:
+                messagebox.showerror("Error", "Template file not found")
     
     def load_template(self):
         """Load a selected template"""
