@@ -36,6 +36,7 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Columns dynamically show/hide based on position filter
 - Added summarized/detailed view toggle
 - Fixed Rush TD calculation to prevent negative numbers
+- Added snap counts column showing offensive snaps per game (from 'off_snp' stat)
 
 ### Player List
 - Team logos replace text (logos in assets/team_logos/)
@@ -73,6 +74,9 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Added Venue filter (ALL/DOME/OUTSIDE)
 - Dome teams: ATL, DET, MIN, NO, LV, ARI, DAL, HOU, IND
 - Opponent column shows @ for away games, vs for home games
+- Uses ttk.Treeview for performance (no logos in table, but fast loading)
+- Added snaps column showing offensive snap counts (after points column)
+- First click on columns sorts descending for better stats viewing
 
 ### Player Stats Popup Improvements
 - Added completions column for QBs

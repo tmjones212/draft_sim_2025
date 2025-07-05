@@ -175,7 +175,7 @@ class PlayerList(StyledFrame):
             ('', 25, None),      # Info button column
             ('Name', 155, None),
             ('Team', 45, None),
-            ('ADP ✏', 55, 'adp'),  # Added pencil emoji to indicate editable
+            ('ADP', 55, 'adp'),  # Editable column
             ('GP', 40, 'games_2024'),  # Added 5px
             ('2024 Pts', 75, 'points_2024'),  # Added 10px
             ('Proj Rank', 85, 'position_rank_proj'),  # Added 10px

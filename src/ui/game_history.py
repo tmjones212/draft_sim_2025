@@ -269,7 +269,7 @@ class GameHistory(StyledFrame):
         table_container.pack(fill='both', expand=True)
         
         # Create treeview for table
-        columns = ('player', 'pos', 'team', 'week', 'opp', 'pts', 'comp', 'pass_yd', 'pass_td', 
+        columns = ('player', 'pos', 'team', 'week', 'opp', 'pts', 'snaps', 'comp', 'pass_yd', 'pass_td', 
                   'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td')
         
         self.tree = ttk.Treeview(
@@ -281,20 +281,21 @@ class GameHistory(StyledFrame):
         
         # Configure columns
         self.tree.column('#0', width=0, stretch=False)  # Hide tree column
-        self.tree.column('player', width=180, anchor='w')
-        self.tree.column('pos', width=50, anchor='center')
-        self.tree.column('team', width=50, anchor='center')
-        self.tree.column('week', width=50, anchor='center')
-        self.tree.column('opp', width=70, anchor='center')
-        self.tree.column('pts', width=70, anchor='center')
-        self.tree.column('comp', width=60, anchor='center')
-        self.tree.column('pass_yd', width=80, anchor='center')
-        self.tree.column('pass_td', width=70, anchor='center')
-        self.tree.column('rush_yd', width=80, anchor='center')
-        self.tree.column('rush_td', width=70, anchor='center')
-        self.tree.column('rec', width=50, anchor='center')
-        self.tree.column('rec_yd', width=70, anchor='center')
-        self.tree.column('rec_td', width=60, anchor='center')
+        self.tree.column('player', width=140, anchor='w')
+        self.tree.column('pos', width=35, anchor='center')
+        self.tree.column('team', width=35, anchor='center')
+        self.tree.column('week', width=35, anchor='center')
+        self.tree.column('opp', width=50, anchor='center')
+        self.tree.column('pts', width=50, anchor='center')
+        self.tree.column('snaps', width=45, anchor='center')
+        self.tree.column('comp', width=45, anchor='center')
+        self.tree.column('pass_yd', width=60, anchor='center')
+        self.tree.column('pass_td', width=50, anchor='center')
+        self.tree.column('rush_yd', width=60, anchor='center')
+        self.tree.column('rush_td', width=50, anchor='center')
+        self.tree.column('rec', width=35, anchor='center')
+        self.tree.column('rec_yd', width=55, anchor='center')
+        self.tree.column('rec_td', width=45, anchor='center')
         
         # Configure headings
         self.tree.heading('player', text='Player', command=lambda: self.sort_by('player'))
@@ -303,6 +304,7 @@ class GameHistory(StyledFrame):
         self.tree.heading('week', text='Wk', command=lambda: self.sort_by('week'))
         self.tree.heading('opp', text='Opp', command=lambda: self.sort_by('opp'))
         self.tree.heading('pts', text='Pts', command=lambda: self.sort_by('pts'))
+        self.tree.heading('snaps', text='Snaps', command=lambda: self.sort_by('snaps'))
         self.tree.heading('comp', text='Comp', command=lambda: self.sort_by('comp'))
         self.tree.heading('pass_yd', text='Pass Yds', command=lambda: self.sort_by('pass_yd'))
         self.tree.heading('pass_td', text='Pass TD', command=lambda: self.sort_by('pass_td'))
@@ -447,7 +449,7 @@ class GameHistory(StyledFrame):
         # Add to tree
         for row in rows:
             values = (row['player'], row['pos'], row['team'], row['week'], row['opp'],
-                     row['pts'], row['comp'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
+                     row['pts'], row['snaps'], row['comp'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
                      row['rush_td'], row['rec'], row['rec_yd'], row['rec_td'])
             
             # Add row with alternating colors
@@ -559,6 +561,7 @@ class GameHistory(StyledFrame):
                             'week': week,
                             'opp': opponent_display,
                             'pts': f"{custom_pts:.1f}",
+                            'snaps': int(stats.get('off_snp', 0)),
                             'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
                             'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
                             'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
@@ -644,6 +647,7 @@ class GameHistory(StyledFrame):
                             'week': week,
                             'opp': opponent_display,
                             'pts': f"{custom_pts:.1f}",
+                            'snaps': int(stats.get('off_snp', 0)),
                             'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
                             'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
                             'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
@@ -695,6 +699,7 @@ class GameHistory(StyledFrame):
                         'team': player.team or '-',
                         'games': 0,
                         'pts': 0,
+                        'snaps': 0,
                         'comp': 0,
                         'pass_yd': 0,
                         'pass_td': 0,
@@ -713,6 +718,7 @@ class GameHistory(StyledFrame):
                     # Calculate custom points for this game
                     custom_pts = self.calculate_custom_points(stats, player.position)
                     totals['pts'] += custom_pts
+                    totals['snaps'] += int(stats.get('off_snp', 0))
                     if player.position == 'QB':
                         totals['comp'] += int(stats.get('pass_cmp', 0))
                         totals['pass_yd'] += int(stats.get('pass_yd', 0))
@@ -733,6 +739,7 @@ class GameHistory(StyledFrame):
                 'week': f"{totals['games']}g",  # Show games played
                 'opp': '2024',  # Show year instead of opponent
                 'pts': f"{totals['pts']:.1f}",
+                'snaps': totals['snaps'] if totals['snaps'] > 0 else '-',
                 'comp': totals['comp'] if totals['comp'] > 0 else '-',
                 'pass_yd': totals['pass_yd'] if totals['pass_yd'] > 0 else '-',
                 'pass_td': totals['pass_td'] if totals['pass_td'] > 0 else '-',
@@ -759,7 +766,7 @@ class GameHistory(StyledFrame):
                 return row['_week_int']
             elif self.sort_column == 'pts':
                 return row['_pts_float']
-            elif self.sort_column in ['comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']:
+            elif self.sort_column in ['snaps', 'comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']:
                 val = row[self.sort_column]
                 return 0 if val == '-' else int(val)
             else:
@@ -773,7 +780,7 @@ class GameHistory(StyledFrame):
             self.sort_ascending = not self.sort_ascending
         else:
             self.sort_column = column
-            self.sort_ascending = True
+            self.sort_ascending = False
             
         self.apply_filters()
         
