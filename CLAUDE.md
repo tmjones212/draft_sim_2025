@@ -8,6 +8,8 @@ After making ANY changes, ALWAYS sync to Windows version:
 ./sync_to_windows.sh
 ```
 
+MAKE SURE TO COMMIT WHEN YOU MAKE A CHANGE.
+
 Windows local path: `C:\Users\alaba\source\repos\Python\draft_sim_2025`
 
 ### Misc
@@ -25,3 +27,4 @@ Also use the formatted player name (the format_name function in player_extension
 - Linux: `python3 main.py`
 - Windows: Double-click `run_windows.bat`
 
+When you learn useful things that would be helpful in the future, memorialize them in CLAUDE.md

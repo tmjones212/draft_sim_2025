@@ -1,4 +1,11 @@
-
-- i want the ability to view and change a players ADP inside of the app
-- i want another tab that shows game history by week for all players. filterable, sortable, use your imagination
-- once we sit down, get rid of the "sit" row of the table (or buttons or whatever they are). we can hit repick slot and then t hey show up again
+- on game history tab when i start typying to search it keeps popping up "please select a player to draft" for some reason
+- also RB1, RB2, etc. are not positions. its just the top row, ALL, QB, RB, WR, TE, FLEX
+- can we hide the irrelvant columns like pass yards when we're showing WR's only (assuming there's nothing to show), receptions for QBs, etc?
+- the Rush TD's show negative numbers for a lot of players... that doesn't make sense
+- on game history add buttons to switch between summarized and detailed views, basically group it by year and week
+- for the Team in the available players table, let's put the team logos instead
+-the ADP header doesn't quite fit in the available players table
+- get rid of the draft button on each row of the table and just add a right click draft option. that combined w/ our double click draft we already have should be enough
+-by default only show the first 3 rounds in teh draft table and make the available players table taller
+- the header is too tall like where the undo, restart draft etc. buttons are. thats too tall let's make it a little smaller so everything else has more vertical space
+- When you learn useful things that would be helpful in the future, memorialize them in CLAUDE.md

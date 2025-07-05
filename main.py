@@ -1186,10 +1186,13 @@ class MockDraftApp:
         # Reset draft results
         self.draft_engine.draft_results = picks_to_keep
         
-        # Batch add removed players back
-        players_to_add = [pick.player for pick in picks_to_remove if pick.player not in self.available_players]
-        self.available_players.extend(players_to_add)
-        self.available_players.sort(key=lambda p: p.rank)
+        # Rebuild available players list from scratch to ensure consistency
+        # Start with all players
+        self.available_players = list(self.all_players)
+        
+        # Remove players that are still drafted (in picks_to_keep)
+        drafted_player_ids = {pick.player.player_id for pick in picks_to_keep}
+        self.available_players = [p for p in self.available_players if p.player_id not in drafted_player_ids]
         
         # Reset team rosters in one pass
         for team in self.teams.values():
@@ -1231,7 +1234,9 @@ class MockDraftApp:
             if selected_player:
                 try:
                     self.draft_engine.make_pick(current_team, selected_player)
-                    self.available_players.remove(selected_player)
+                    # Only remove if player is actually in the list
+                    if selected_player in self.available_players:
+                        self.available_players.remove(selected_player)
                     picks_made.append(selected_player)
                     
                     # Update position count cache
