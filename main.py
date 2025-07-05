@@ -228,6 +228,28 @@ class MockDraftApp:
         draft_tab = StyledFrame(self.notebook, bg_type='primary')
         self.notebook.add(draft_tab, text="Draft")
         
+        # Banner for "CHOOSE A DRAFT SPOT"
+        self.draft_spot_banner = StyledFrame(draft_tab, bg_type='secondary')
+        self.draft_spot_banner.pack(fill='x', padx=50, pady=20)
+        
+        banner_label = tk.Label(
+            self.draft_spot_banner,
+            text="CHOOSE A DRAFT SPOT",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 24, 'bold')
+        )
+        banner_label.pack(pady=15)
+        
+        banner_hint = tk.Label(
+            self.draft_spot_banner,
+            text="Click a 'Sit' button above any team to select your draft position",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_muted'],
+            font=(DARK_THEME['font_family'], 12)
+        )
+        banner_hint.pack(pady=(0, 15))
+        
         # Create vertical PanedWindow for draggable divider in draft tab
         paned_window = tk.PanedWindow(
             draft_tab, 
@@ -471,6 +493,8 @@ class MockDraftApp:
     def on_team_selected(self, team_id):
         """Handle team selection for user control"""
         self.user_team_id = team_id
+        # Hide the banner when team is selected
+        self.draft_spot_banner.pack_forget()
         # Enable draft button
         self.draft_button.config(state='normal', bg=DARK_THEME['button_active'])
         # Enable player draft buttons
@@ -488,12 +512,16 @@ class MockDraftApp:
             # Always enable draft controls
             self.draft_button.config(state='normal', bg=DARK_THEME['button_active'])
             self.player_list.set_draft_enabled(True)
+            # Hide the banner in manual mode
+            self.draft_spot_banner.pack_forget()
         else:
             # Normal mode - need to select a team
             if not self.user_team_id:
                 self.status_label.config(text="Select a team to control")
                 self.draft_button.config(state='disabled', bg=DARK_THEME['button_bg'])
                 self.player_list.set_draft_enabled(False)
+                # Show the banner if no team selected
+                self.draft_spot_banner.pack(fill='x', padx=50, pady=20, before=self.notebook.winfo_children()[0].winfo_children()[-1])
             else:
                 # Update display to show correct status
                 self.update_display(full_update=False)
@@ -939,6 +967,9 @@ class MockDraftApp:
         # Disable draft controls since no team is selected
         self.draft_button.config(state='disabled', bg=DARK_THEME['button_bg'])
         self.player_list.set_draft_enabled(False)
+        
+        # Show the "CHOOSE A DRAFT SPOT" banner again
+        self.draft_spot_banner.pack(fill='x', padx=50, pady=20, before=self.notebook.winfo_children()[0].winfo_children()[-1])
         
         # Update display with full refresh
         self.update_display(full_update=True, force_refresh=True)

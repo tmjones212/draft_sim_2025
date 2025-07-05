@@ -167,34 +167,26 @@ class RosterView(StyledFrame):
             )
             pos_label.pack(side='left')
             
-            # Players grid (2 columns for compact display)
+            # Players list (vertical display)
             players_frame = StyledFrame(pos_section, bg_type='tertiary')
             players_frame.pack(fill='x', padx=(10, 0))
             
             # Show players
             for i, player in enumerate(roster[pos_key]):
-                row = i // 2
-                col = i % 2
-                
                 player_label = tk.Label(
                     players_frame,
-                    text=f"• {player.name[:15]}",  # Truncate long names
+                    text=f"• {player.name}",  # Show full name
                     bg=DARK_THEME['bg_tertiary'],
                     fg=DARK_THEME['text_primary'],
                     font=(DARK_THEME['font_family'], 8),
                     anchor='w'
                 )
-                player_label.grid(row=row, column=col, sticky='w', padx=(0, 10))
+                player_label.pack(anchor='w', pady=1)
             
             # Show empty slots
             empty_count = total - filled
             if empty_count > 0:
-                start_idx = filled
                 for i in range(empty_count):
-                    idx = start_idx + i
-                    row = idx // 2
-                    col = idx % 2
-                    
                     empty_label = tk.Label(
                         players_frame,
                         text="• --",
@@ -203,7 +195,7 @@ class RosterView(StyledFrame):
                         font=(DARK_THEME['font_family'], 8),
                         anchor='w'
                     )
-                    empty_label.grid(row=row, column=col, sticky='w', padx=(0, 10))
+                    empty_label.pack(anchor='w', pady=1)
     
     def switch_tab(self, tab):
         self.current_tab = tab
