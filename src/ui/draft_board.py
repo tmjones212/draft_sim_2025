@@ -251,9 +251,24 @@ class DraftBoard(StyledFrame):
                     text='Sit'
                 )
         
+        # Hide the sit row after selection
+        self.hide_sit_row()
+        
         # Notify parent if callback provided
         if self.on_team_select:
             self.on_team_select(team_id)
+    
+    def hide_sit_row(self):
+        """Hide the row containing sit buttons"""
+        for button in self.team_buttons.values():
+            button.master.grid_forget()
+    
+    def show_sit_row(self):
+        """Show the row containing sit buttons"""
+        col_width = max(100, self.winfo_width() // self.num_teams)
+        for team_id, button in self.team_buttons.items():
+            button.master.grid(row=0, column=team_id - 1, sticky='nsew', padx=2, pady=(0, 2))
+            button.master.config(width=col_width, height=25)
     
     def update_picks(self, picks: List[DraftPick], current_pick_num: int):
         self.current_pick_num = current_pick_num

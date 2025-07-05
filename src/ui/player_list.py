@@ -154,7 +154,7 @@ class PlayerList(StyledFrame):
             ('', 25, None),      # Info button column
             ('Name', 155, None),
             ('Team', 45, None),
-            ('ADP', 45, 'adp'),
+            ('ADP ✏', 45, 'adp'),  # Added pencil emoji to indicate editable
             ('GP', 40, 'games_2024'),  # Added 5px
             ('2024 Pts', 75, 'points_2024'),  # Added 10px
             ('Proj Rank', 85, 'position_rank_proj'),  # Added 10px
@@ -741,6 +741,14 @@ class PlayerList(StyledFrame):
             if field_type == 'adp' and hasattr(parent, 'player'):
                 cell.bind('<Double-Button-1>', lambda e: self._edit_player_adp(parent.player))
                 cell.config(cursor='hand2')  # Show hand cursor to indicate it's clickable
+                
+                # Add hover effect to show it's editable
+                def on_enter(e, c=cell):
+                    c.config(fg=DARK_THEME['text_accent'])
+                def on_leave(e, c=cell):
+                    c.config(fg=DARK_THEME['text_primary'])
+                cell.bind('<Enter>', on_enter)
+                cell.bind('<Leave>', on_leave)
         
         # Also bind double-click if the parent row has it
         if hasattr(parent, '_double_click_handler'):
@@ -1134,12 +1142,22 @@ class PlayerList(StyledFrame):
                 # Update player's ADP
                 player.adp = new_adp
                 
+                # Update the row display immediately
+                for row in self.row_frames:
+                    if hasattr(row, 'player') and row.player.player_id == player.player_id:
+                        # Find the ADP cell and update it
+                        for widget in row.winfo_children():
+                            if isinstance(widget, tk.Frame):
+                                for child in widget.winfo_children():
+                                    if isinstance(child, tk.Label) and hasattr(child, '_field_type') and child._field_type == 'adp':
+                                        child.config(text=f"{new_adp:.1f}")
+                                        break
+                        break
+                
                 # Re-sort if currently sorted by ADP
-                if self.current_sort_column == 'adp':
-                    self.sort_players(self.current_sort_column)
-                else:
-                    # Just update the display
-                    self.update_display()
+                if self.sort_by == 'adp':
+                    # Trigger a full update with current players
+                    self.update_players(self.all_players)
                 
                 dialog.destroy()
                 

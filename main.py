@@ -13,7 +13,7 @@ import config
 from src.models import Team, Player
 from src.core import DraftEngine
 from src.core.template_manager import TemplateManager
-from src.ui import DraftBoard, PlayerList, RosterView
+from src.ui import DraftBoard, PlayerList, RosterView, GameHistory
 from src.ui.cheat_sheet import CheatSheet
 from src.ui.theme import DARK_THEME
 from src.ui.styled_widgets import StyledFrame, StyledButton
@@ -384,6 +384,11 @@ class MockDraftApp:
         self.notebook.add(self.cheat_sheet_container, text="Cheat Sheet")
         self._cheat_sheet_needs_sync = False
         self.cheat_sheet = None  # Will be created on first access
+        
+        # Tab 3: Game History (defer creation)
+        self.game_history_container = StyledFrame(self.notebook, bg_type='primary')
+        self.notebook.add(self.game_history_container, text="Game History")
+        self.game_history = None  # Will be created on first access
     
     def update_display(self, full_update=True, force_refresh=False):
         # Update status
@@ -1033,6 +1038,9 @@ class MockDraftApp:
                 text='Sit'
             )
         
+        # Show the sit row again
+        self.draft_board.show_sit_row()
+        
         # Start glow animation again since no team is selected
         self.draft_board.selected_team_id = None
         self.draft_board.start_glow_animation()
@@ -1378,6 +1386,18 @@ class MockDraftApp:
             if self.cheat_sheet:
                 # Force focus to cheat sheet for mouse wheel scrolling
                 self.root.after(10, lambda: self.cheat_sheet.focus_set())
+        elif tab_text == "Game History":
+            # Create game history on first access
+            if self.game_history is None and self.players_loaded:
+                self.game_history = GameHistory(
+                    self.game_history_container,
+                    self.all_players
+                )
+                self.game_history.pack(fill='both', expand=True)
+            
+            if self.game_history:
+                # Force focus for scrolling
+                self.root.after(10, lambda: self.game_history.focus_set())
         elif tab_text == "Draft" and self._cheat_sheet_needs_sync and self.cheat_sheet:
             # Sync rankings when switching back to draft tab
             self._cheat_sheet_needs_sync = False
