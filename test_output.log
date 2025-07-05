@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/home/alaba/mock_sim_2025/main.py", line 1, in <module>
+    import tkinter as tk
+ModuleNotFoundError: No module named 'tkinter'

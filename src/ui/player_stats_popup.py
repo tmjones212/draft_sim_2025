@@ -7,16 +7,23 @@ from .styled_widgets import StyledFrame
 
 
 class PlayerStatsPopup:
-    def __init__(self, parent, player: Player):
+    def __init__(self, parent, player: Player, image_service=None):
         self.player = player
         self.parent = parent
+        self.image_service = image_service
+        self.sort_column = None
+        self.sort_ascending = True
+        self.weekly_data = []  # Store weekly data for sorting
         
         # Create popup window
         self.window = tk.Toplevel(parent)
         self.window.title(f"{player.format_name()} - 2024 Stats")
         self.window.configure(bg=DARK_THEME['bg_primary'])
         
-        # Set window size and position
+        # Hide window initially to prevent flashing
+        self.window.withdraw()
+        
+        # Set window size
         self.window.geometry("800x600")
         
         # Center the window
@@ -24,6 +31,9 @@ class PlayerStatsPopup:
         x = (self.window.winfo_screenwidth() // 2) - (800 // 2)
         y = (self.window.winfo_screenheight() // 2) - (600 // 2)
         self.window.geometry(f"800x600+{x}+{y}")
+        
+        # Show window after positioning
+        self.window.deiconify()
         
         # Make window modal
         self.window.transient(parent)
@@ -44,13 +54,16 @@ class PlayerStatsPopup:
         header_frame.pack(fill='x', pady=(0, 20))
         header_frame.configure(relief='flat', bd=1, highlightbackground=DARK_THEME['border'])
         
-        # Player info container
+        # Player info container with 3 sections
         info_frame = tk.Frame(header_frame, bg=DARK_THEME['bg_secondary'])
         info_frame.pack(fill='x', padx=20, pady=15)
         
-        # Player name and position
-        name_frame = tk.Frame(info_frame, bg=DARK_THEME['bg_secondary'])
-        name_frame.pack(side='left')
+        # LEFT: Player name, position, and team
+        left_frame = tk.Frame(info_frame, bg=DARK_THEME['bg_secondary'])
+        left_frame.pack(side='left', fill='both', expand=True)
+        
+        name_frame = tk.Frame(left_frame, bg=DARK_THEME['bg_secondary'])
+        name_frame.pack(anchor='w')
         
         name_label = tk.Label(
             name_frame,
@@ -85,7 +98,42 @@ class PlayerStatsPopup:
             )
             team_label.pack(side='left', padx=(10, 0))
         
-        # Season totals on the right
+        # CENTER: Player image
+        center_frame = tk.Frame(info_frame, bg=DARK_THEME['bg_secondary'])
+        center_frame.pack(side='left', padx=20)
+        
+        # Player image placeholder
+        image_label = tk.Label(
+            center_frame,
+            bg=DARK_THEME['bg_tertiary'],
+            width=80,
+            height=80,
+            text="",
+            relief='flat'
+        )
+        image_label.pack()
+        
+        # Load player image if available
+        if self.image_service and self.player.player_id:
+            player_image = self.image_service.get_image(self.player.player_id, size=(80, 64))
+            if player_image:
+                image_label.configure(image=player_image)
+                image_label.image = player_image  # Keep reference
+            else:
+                # Try to load async
+                def update_image(photo):
+                    if image_label.winfo_exists():
+                        image_label.configure(image=photo)
+                        image_label.image = photo
+                
+                self.image_service.load_image_async(
+                    self.player.player_id,
+                    size=(80, 64),
+                    callback=update_image,
+                    widget=self.window
+                )
+        
+        # RIGHT: Season totals
         totals_frame = tk.Frame(info_frame, bg=DARK_THEME['bg_secondary'])
         totals_frame.pack(side='right')
         
@@ -175,40 +223,72 @@ class PlayerStatsPopup:
         header_row.pack(fill='x', padx=10, pady=(10, 5))
         header_row.pack_propagate(False)
         
-        # Create header cells with exact widths
-        def create_header_cell(parent, text, width):
+        # Create header cells with exact widths and sorting
+        def create_header_cell(parent, text, width, sort_key=None):
             cell = tk.Frame(parent, bg=DARK_THEME['bg_primary'], width=width, height=35)
             cell.pack(side='left', padx=1)
             cell.pack_propagate(False)
+            
+            # Container for label and arrow
+            content = tk.Frame(cell, bg=DARK_THEME['bg_primary'])
+            content.pack(expand=True)
+            
             label = tk.Label(
-                cell,
+                content,
                 text=text,
                 bg=DARK_THEME['bg_primary'],
                 fg=DARK_THEME['text_secondary'],
                 font=(DARK_THEME['font_family'], 10, 'bold')
             )
-            label.pack(expand=True)
+            label.pack(side='left')
+            
+            # Sort arrow label (initially hidden)
+            arrow_label = tk.Label(
+                content,
+                text="",
+                bg=DARK_THEME['bg_primary'],
+                fg=DARK_THEME['text_secondary'],
+                font=(DARK_THEME['font_family'], 8)
+            )
+            arrow_label.pack(side='left', padx=(2, 0))
+            
+            # Make clickable if sort_key provided
+            if sort_key:
+                cell.config(cursor='hand2')
+                label.config(cursor='hand2')
+                
+                def on_click(e):
+                    self.sort_data(sort_key, arrow_label)
+                
+                cell.bind('<Button-1>', on_click)
+                label.bind('<Button-1>', on_click)
+                
+                # Store arrow label for updating
+                cell._arrow_label = arrow_label
+                cell._sort_key = sort_key
+            
             return cell
         
         # Header columns
-        create_header_cell(header_row, 'Week', col_widths['week'])
-        create_header_cell(header_row, 'Opp', col_widths['opp'])
-        create_header_cell(header_row, 'Points', col_widths['points'])
-        create_header_cell(header_row, 'Snaps', col_widths['snaps'])
+        self.header_cells = []
+        self.header_cells.append(create_header_cell(header_row, 'Week', col_widths['week'], 'week'))
+        self.header_cells.append(create_header_cell(header_row, 'Opp', col_widths['opp'], 'opponent'))
+        self.header_cells.append(create_header_cell(header_row, 'Points', col_widths['points'], 'points'))
+        self.header_cells.append(create_header_cell(header_row, 'Snaps', col_widths['snaps'], 'snaps'))
         
         # Add position-specific headers
         if self.player.position == 'QB':
-            create_header_cell(header_row, 'Pass Yds', col_widths['pass_yds'])
-            create_header_cell(header_row, 'Pass TD', col_widths['pass_td'])
-            create_header_cell(header_row, 'INT', col_widths['int'])
-            create_header_cell(header_row, 'Rush Yds', col_widths['rush_yds'])
-            create_header_cell(header_row, 'Rush TD', col_widths['rush_td'])
+            self.header_cells.append(create_header_cell(header_row, 'Pass Yds', col_widths['pass_yds'], 'pass_yd'))
+            self.header_cells.append(create_header_cell(header_row, 'Pass TD', col_widths['pass_td'], 'pass_td'))
+            self.header_cells.append(create_header_cell(header_row, 'INT', col_widths['int'], 'pass_int'))
+            self.header_cells.append(create_header_cell(header_row, 'Rush Yds', col_widths['rush_yds'], 'rush_yd'))
+            self.header_cells.append(create_header_cell(header_row, 'Rush TD', col_widths['rush_td'], 'rush_td'))
         elif self.player.position in ['RB', 'WR', 'TE']:
-            create_header_cell(header_row, 'Rush Yds', col_widths['rush_yds'])
-            create_header_cell(header_row, 'Rush TD', col_widths['rush_td'])
-            create_header_cell(header_row, 'Rec', col_widths['rec'])
-            create_header_cell(header_row, 'Rec Yds', col_widths['rec_yds'])
-            create_header_cell(header_row, 'Rec TD', col_widths['rec_td'])
+            self.header_cells.append(create_header_cell(header_row, 'Rush Yds', col_widths['rush_yds'], 'rush_yd'))
+            self.header_cells.append(create_header_cell(header_row, 'Rush TD', col_widths['rush_td'], 'rush_td'))
+            self.header_cells.append(create_header_cell(header_row, 'Rec', col_widths['rec'], 'rec'))
+            self.header_cells.append(create_header_cell(header_row, 'Rec Yds', col_widths['rec_yds'], 'rec_yd'))
+            self.header_cells.append(create_header_cell(header_row, 'Rec TD', col_widths['rec_td'], 'rec_td'))
         
         # Create a helper to make data cells
         def create_data_cell(parent, text, width, bg, fg=None):
@@ -225,90 +305,13 @@ class PlayerStatsPopup:
             label.pack(expand=True)
             return cell
         
-        # Create a dictionary of weekly stats for easy lookup
-        week_stats_dict = {}
-        for week_data in self.player.weekly_stats_2024:
-            week_stats_dict[week_data['week']] = week_data
+        # Store references for redrawing
+        self.scrollable_frame = scrollable_frame
+        self.col_widths = col_widths
         
-        # Show all weeks except bye week
-        row_index = 0
-        for week_num in range(1, 19):
-            # Skip bye week
-            if hasattr(self.player, 'bye_week') and self.player.bye_week == week_num:
-                continue
-                
-            row_bg = DARK_THEME['bg_secondary'] if row_index % 2 == 0 else DARK_THEME['bg_tertiary']
-            row = tk.Frame(scrollable_frame, bg=row_bg, height=30)
-            row.pack(fill='x', padx=10, pady=1)
-            row.pack_propagate(False)
-            row_index += 1
-            
-            # Check if player played this week
-            if week_num in week_stats_dict:
-                week_data = week_stats_dict[week_num]
-                stats = week_data.get('stats', {})
-                
-                # Week number
-                create_data_cell(row, f"{week_num}", col_widths['week'], row_bg)
-                
-                # Opponent with home/away indicator
-                opponent = week_data['opponent']
-                # Simple heuristic: alternate home/away each week for each team
-                # In a real implementation, this would come from schedule data
-                is_home = (week_num + hash(week_data.get('team', ''))) % 2 == 0
-                opponent_display = f"vs {opponent}" if is_home else f"@ {opponent}"
-                create_data_cell(row, opponent_display, col_widths['opp'], row_bg, DARK_THEME['text_secondary'])
-                
-                # Points
-                points = stats.get('pts_ppr', 0)
-                create_data_cell(row, f"{points:.1f}", col_widths['points'], row_bg, DARK_THEME['text_primary'] if points > 0 else DARK_THEME['text_muted'])
-                
-                # Snap count
-                snaps = stats.get('off_snp', 0)
-                create_data_cell(row, f"{int(snaps)}" if snaps > 0 else '-', col_widths['snaps'], row_bg)
-                
-                # Position-specific stats
-                if self.player.position == 'QB':
-                    pass_yds = stats.get('pass_yd', 0)
-                    pass_td = stats.get('pass_td', 0)
-                    pass_int = stats.get('pass_int', 0)
-                    rush_yds = stats.get('rush_yd', 0)
-                    rush_td = stats.get('rush_td', 0)
-                    
-                    create_data_cell(row, f"{int(pass_yds)}", col_widths['pass_yds'], row_bg)
-                    create_data_cell(row, f"{int(pass_td)}", col_widths['pass_td'], row_bg)
-                    create_data_cell(row, f"{int(pass_int)}", col_widths['int'], row_bg)
-                    create_data_cell(row, f"{int(rush_yds)}", col_widths['rush_yds'], row_bg)
-                    create_data_cell(row, f"{int(rush_td)}", col_widths['rush_td'], row_bg)
-                    
-                elif self.player.position in ['RB', 'WR', 'TE']:
-                    rush_yds = stats.get('rush_yd', 0)
-                    rush_td = stats.get('rush_td', 0)
-                    rec = stats.get('rec', 0)
-                    rec_yds = stats.get('rec_yd', 0)
-                    rec_td = stats.get('rec_td', 0)
-                    
-                    create_data_cell(row, f"{int(rush_yds)}", col_widths['rush_yds'], row_bg)
-                    create_data_cell(row, f"{int(rush_td)}", col_widths['rush_td'], row_bg)
-                    create_data_cell(row, f"{int(rec)}", col_widths['rec'], row_bg)
-                    create_data_cell(row, f"{int(rec_yds)}", col_widths['rec_yds'], row_bg)
-                    create_data_cell(row, f"{int(rec_td)}", col_widths['rec_td'], row_bg)
-            else:
-                # Player didn't play this week - show zeros
-                create_data_cell(row, f"{week_num}", col_widths['week'], row_bg)
-                create_data_cell(row, "DNP", col_widths['opp'], row_bg, DARK_THEME['text_muted'])
-                create_data_cell(row, "0.0", col_widths['points'], row_bg, DARK_THEME['text_muted'])
-                create_data_cell(row, "0", col_widths['snaps'], row_bg, DARK_THEME['text_muted'])
-                
-                # Position-specific zeros
-                if self.player.position == 'QB':
-                    for width in [col_widths['pass_yds'], col_widths['pass_td'], col_widths['int'], 
-                                 col_widths['rush_yds'], col_widths['rush_td']]:
-                        create_data_cell(row, "0", width, row_bg, DARK_THEME['text_muted'])
-                elif self.player.position in ['RB', 'WR', 'TE']:
-                    for width in [col_widths['rush_yds'], col_widths['rush_td'], col_widths['rec'], 
-                                 col_widths['rec_yds'], col_widths['rec_td']]:
-                        create_data_cell(row, "0", width, row_bg, DARK_THEME['text_muted'])
+        # Build and display data
+        self.build_weekly_data()
+        self.display_weekly_data()
         
         # Pack canvas and scrollbar
         canvas.pack(side='left', fill='both', expand=True, padx=(10, 0))
@@ -318,15 +321,7 @@ class PlayerStatsPopup:
         self.window.update_idletasks()
         canvas.configure(scrollregion=canvas.bbox("all"))
         
-        # Note about snap count
-        note_label = tk.Label(
-            main_frame,
-            text="Note: Snap count data is not currently available",
-            bg=DARK_THEME['bg_primary'],
-            fg=DARK_THEME['text_muted'],
-            font=(DARK_THEME['font_family'], 9, 'italic')
-        )
-        note_label.pack(pady=(10, 5))
+        # Removed note about snap count since we now have the data
         
         # Close button
         close_btn = tk.Button(
@@ -348,3 +343,148 @@ class PlayerStatsPopup:
     def close(self):
         self.window.grab_release()
         self.window.destroy()
+    
+    def build_weekly_data(self):
+        """Build the weekly data structure for display and sorting"""
+        self.weekly_data = []
+        
+        # Create a dictionary of weekly stats for easy lookup
+        week_stats_dict = {}
+        for week_data in self.player.weekly_stats_2024:
+            week_stats_dict[week_data['week']] = week_data
+        
+        # Process all weeks except bye week
+        for week_num in range(1, 19):
+            # Skip bye week
+            if hasattr(self.player, 'bye_week') and self.player.bye_week == week_num:
+                continue
+            
+            week_entry = {'week': week_num}
+            
+            if week_num in week_stats_dict:
+                week_data = week_stats_dict[week_num]
+                stats = week_data.get('stats', {})
+                
+                # Store all relevant data
+                week_entry['opponent'] = week_data['opponent']
+                week_entry['team'] = week_data.get('team', '')
+                week_entry['points'] = stats.get('pts_ppr', 0)
+                week_entry['snaps'] = stats.get('off_snp', 0)
+                
+                # Position-specific stats
+                if self.player.position == 'QB':
+                    week_entry['pass_yd'] = stats.get('pass_yd', 0)
+                    week_entry['pass_td'] = stats.get('pass_td', 0)
+                    week_entry['pass_int'] = stats.get('pass_int', 0)
+                    week_entry['rush_yd'] = stats.get('rush_yd', 0)
+                    week_entry['rush_td'] = stats.get('rush_td', 0)
+                elif self.player.position in ['RB', 'WR', 'TE']:
+                    week_entry['rush_yd'] = stats.get('rush_yd', 0)
+                    week_entry['rush_td'] = stats.get('rush_td', 0)
+                    week_entry['rec'] = stats.get('rec', 0)
+                    week_entry['rec_yd'] = stats.get('rec_yd', 0)
+                    week_entry['rec_td'] = stats.get('rec_td', 0)
+                
+                week_entry['played'] = True
+            else:
+                # Player didn't play
+                week_entry['opponent'] = 'DNP'
+                week_entry['team'] = ''
+                week_entry['points'] = 0
+                week_entry['snaps'] = 0
+                week_entry['played'] = False
+                
+                # Zero out position-specific stats
+                if self.player.position == 'QB':
+                    week_entry.update({'pass_yd': 0, 'pass_td': 0, 'pass_int': 0, 'rush_yd': 0, 'rush_td': 0})
+                elif self.player.position in ['RB', 'WR', 'TE']:
+                    week_entry.update({'rush_yd': 0, 'rush_td': 0, 'rec': 0, 'rec_yd': 0, 'rec_td': 0})
+            
+            self.weekly_data.append(week_entry)
+    
+    def display_weekly_data(self):
+        """Display the weekly data in the scrollable frame"""
+        # Clear existing rows
+        for widget in self.scrollable_frame.winfo_children():
+            if widget != self.scrollable_frame.winfo_children()[0]:  # Keep header
+                widget.destroy()
+        
+        # Create data rows
+        for i, week_entry in enumerate(self.weekly_data):
+            row_bg = DARK_THEME['bg_secondary'] if i % 2 == 0 else DARK_THEME['bg_tertiary']
+            row = tk.Frame(self.scrollable_frame, bg=row_bg, height=30)
+            row.pack(fill='x', padx=10, pady=1)
+            row.pack_propagate(False)
+            
+            # Helper to create cells
+            def create_cell(text, width, fg=None):
+                cell = tk.Frame(row, bg=row_bg, width=width, height=30)
+                cell.pack(side='left', padx=1)
+                cell.pack_propagate(False)
+                label = tk.Label(
+                    cell,
+                    text=text,
+                    bg=row_bg,
+                    fg=fg or (DARK_THEME['text_primary'] if week_entry['played'] else DARK_THEME['text_muted']),
+                    font=(DARK_THEME['font_family'], 10)
+                )
+                label.pack(expand=True)
+            
+            # Week number
+            create_cell(f"{week_entry['week']}", self.col_widths['week'])
+            
+            # Opponent with home/away
+            if week_entry['played']:
+                is_home = (week_entry['week'] + hash(week_entry['team'])) % 2 == 0
+                opponent_display = f"vs {week_entry['opponent']}" if is_home else f"@ {week_entry['opponent']}"
+                create_cell(opponent_display, self.col_widths['opp'], DARK_THEME['text_secondary'])
+            else:
+                create_cell("DNP", self.col_widths['opp'], DARK_THEME['text_muted'])
+            
+            # Points
+            create_cell(f"{week_entry['points']:.1f}", self.col_widths['points'],
+                       DARK_THEME['text_primary'] if week_entry['points'] > 0 else DARK_THEME['text_muted'])
+            
+            # Snaps
+            snaps_text = f"{int(week_entry['snaps'])}" if week_entry['snaps'] > 0 else '-'
+            create_cell(snaps_text, self.col_widths['snaps'])
+            
+            # Position-specific stats
+            if self.player.position == 'QB':
+                create_cell(f"{int(week_entry['pass_yd'])}", self.col_widths['pass_yds'])
+                create_cell(f"{int(week_entry['pass_td'])}", self.col_widths['pass_td'])
+                create_cell(f"{int(week_entry['pass_int'])}", self.col_widths['int'])
+                create_cell(f"{int(week_entry['rush_yd'])}", self.col_widths['rush_yds'])
+                create_cell(f"{int(week_entry['rush_td'])}", self.col_widths['rush_td'])
+            elif self.player.position in ['RB', 'WR', 'TE']:
+                create_cell(f"{int(week_entry['rush_yd'])}", self.col_widths['rush_yds'])
+                create_cell(f"{int(week_entry['rush_td'])}", self.col_widths['rush_td'])
+                create_cell(f"{int(week_entry['rec'])}", self.col_widths['rec'])
+                create_cell(f"{int(week_entry['rec_yd'])}", self.col_widths['rec_yds'])
+                create_cell(f"{int(week_entry['rec_td'])}", self.col_widths['rec_td'])
+    
+    def sort_data(self, sort_key, arrow_label):
+        """Sort the weekly data by the specified column"""
+        # Toggle sort direction if clicking same column
+        if self.sort_column == sort_key:
+            self.sort_ascending = not self.sort_ascending
+        else:
+            self.sort_column = sort_key
+            self.sort_ascending = True
+        
+        # Clear all arrow labels
+        for cell in self.header_cells:
+            if hasattr(cell, '_arrow_label'):
+                cell._arrow_label.config(text='')
+        
+        # Show arrow on current sort column
+        arrow_label.config(text='▲' if self.sort_ascending else '▼')
+        
+        # Sort the data
+        self.weekly_data.sort(
+            key=lambda x: x.get(sort_key, 0),
+            reverse=not self.sort_ascending
+        )
+        
+        # Redisplay
+        self.display_weekly_data()

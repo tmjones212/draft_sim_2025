@@ -19,7 +19,8 @@
       "Bash(rg:*)",
       "Bash(wget:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }

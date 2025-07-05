@@ -84,7 +84,8 @@ def aggregate_by_player(stats_data: List[Dict[str, Any]]) -> Dict[str, Dict[str,
             'fum', 'fum_lost',
             'bonus_rush_yd_100', 'bonus_rush_yd_200',
             'bonus_rec_yd_100', 'bonus_rec_yd_200',
-            'bonus_pass_yd_300', 'bonus_pass_yd_400'
+            'bonus_pass_yd_300', 'bonus_pass_yd_400',
+            'off_snp'  # Offensive snap count
         ]
         
         for key in stat_keys:
