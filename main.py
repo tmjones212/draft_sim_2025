@@ -500,18 +500,9 @@ class MockDraftApp:
     
     def _remove_drafted_player(self, player):
         """Remove a drafted player from the UI"""
-        if self.player_list.selected_index is not None:
-            # Find the actual index of this player
-            actual_index = None
-            for i, p in enumerate(self.player_list.players):
-                if p == player:
-                    actual_index = i
-                    break
-            
-            if actual_index is not None:
-                # Remove the player from the list
-                self.player_list.remove_players([player])
-                self.player_list.selected_index = None
+        # Always remove the player from the list, regardless of selection
+        self.player_list.remove_players([player])
+        self.player_list.selected_index = None
         
         # Also remove from watch list if present
         watch_list = self.roster_view.get_watch_list()
