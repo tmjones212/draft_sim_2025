@@ -234,14 +234,34 @@ class PlayerList(StyledFrame):
         # Store all players
         self.all_players = players
         
-        # Apply position filter
-        if self.selected_position == "ALL":
-            filtered_players = players
-        elif self.selected_position == "FLEX":
-            # FLEX shows RB, WR, and TE
-            filtered_players = [p for p in players if p.position in ["RB", "WR", "TE"]]
-        else:
-            filtered_players = [p for p in players if p.position == self.selected_position]
+        # Pre-compute position groups for faster filtering if players list changed
+        if not hasattr(self, '_position_cache') or self._position_cache.get('players') != id(players):
+            self._position_cache = {
+                'players': id(players),
+                'ALL': players[:],  # Copy of all players
+                'QB': [],
+                'RB': [],
+                'WR': [],
+                'TE': [],
+                'FLEX': []
+            }
+            
+            # Single pass through players to categorize
+            for p in players:
+                if p.position == 'QB':
+                    self._position_cache['QB'].append(p)
+                elif p.position == 'RB':
+                    self._position_cache['RB'].append(p)
+                    self._position_cache['FLEX'].append(p)
+                elif p.position == 'WR':
+                    self._position_cache['WR'].append(p)
+                    self._position_cache['FLEX'].append(p)
+                elif p.position == 'TE':
+                    self._position_cache['TE'].append(p)
+                    self._position_cache['FLEX'].append(p)
+        
+        # Use pre-computed lists
+        filtered_players = self._position_cache.get(self.selected_position, [])[:]
         
         # Apply sorting
         if self.sort_by == "rank":
@@ -278,6 +298,10 @@ class PlayerList(StyledFrame):
         """Remove multiple players from the list efficiently"""
         if not players_to_remove:
             return
+        
+        # Clear position cache since players are being removed
+        if hasattr(self, '_position_cache'):
+            delattr(self, '_position_cache')
         
         # If force_refresh is requested or we have too few displayed rows, do a full refresh
         if force_refresh or len(self.row_frames) < 10:
