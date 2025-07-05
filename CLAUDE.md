@@ -77,6 +77,7 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Uses ttk.Treeview for performance (no logos in table, but fast loading)
 - Added snaps column showing offensive snap counts (after points column)
 - Added Pts/Snap column showing efficiency metric (3 decimal places)
+- Added Rank column showing positional rank for week (e.g., WR1, RB12, QB7)
 - First click on columns sorts descending for better stats viewing
 - Default sort is Points (descending) to show highest scoring games first
 

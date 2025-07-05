@@ -327,7 +327,7 @@ class GameHistory(StyledFrame):
         paned_window.add(graph_container, minsize=400)
         
         # Create treeview for table
-        columns = ('player', 'pos', 'team', 'week', 'opp', 'pts', 'median', 'avg', 'snaps', 'pts_per_snap', 'comp', 'pass_yd', 'pass_td', 
+        columns = ('player', 'pos', 'rank', 'team', 'week', 'opp', 'pts', 'median', 'avg', 'snaps', 'pts_per_snap', 'comp', 'pass_yd', 'pass_td', 
                   'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td')
         
         self.tree = ttk.Treeview(
@@ -341,6 +341,7 @@ class GameHistory(StyledFrame):
         self.tree.column('#0', width=0, stretch=False)  # Hide tree column
         self.tree.column('player', width=150, anchor='w', stretch=False)
         self.tree.column('pos', width=40, anchor='center', stretch=False)
+        self.tree.column('rank', width=55, anchor='center', stretch=False)
         self.tree.column('team', width=45, anchor='center', stretch=False)
         self.tree.column('week', width=40, anchor='center', stretch=False)
         self.tree.column('opp', width=65, anchor='center', stretch=False)
@@ -361,6 +362,7 @@ class GameHistory(StyledFrame):
         # Configure headings
         self.tree.heading('player', text='Player', command=lambda: self.sort_by('player'))
         self.tree.heading('pos', text='Pos', command=lambda: self.sort_by('pos'))
+        self.tree.heading('rank', text='Rank', command=lambda: self.sort_by('rank'))
         self.tree.heading('team', text='Team', command=lambda: self.sort_by('team'))
         self.tree.heading('week', text='Wk', command=lambda: self.sort_by('week'))
         self.tree.heading('opp', text='Opp', command=lambda: self.sort_by('opp'))
@@ -556,7 +558,7 @@ class GameHistory(StyledFrame):
         
         # Add to tree
         for row in rows:
-            values = (row['player'], row['pos'], row['team'], row['week'], row['opp'],
+            values = (row['player'], row['pos'], row.get('rank', '-'), row['team'], row['week'], row['opp'],
                      row['pts'], row.get('median', '-'), row.get('avg', '-'), row['snaps'], row.get('pts_per_snap', '-'), row['comp'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
                      row['rush_td'], row['rec'], row['rec_yd'], row['rec_td'])
             
@@ -584,6 +586,41 @@ class GameHistory(StyledFrame):
     def build_detailed_data(self, search_text, selected_week):
         """Build data for detailed view (individual games)"""
         rows = []
+        
+        # First pass: collect all games by week and position for ranking
+        week_position_data = {}  # {week: {position: [(player_id, pts)]}}
+        
+        for week, week_data in self.weekly_stats.items():
+            if selected_week != "ALL" and str(week) != selected_week:
+                continue
+                
+            week_position_data[week] = {}
+            
+            for player_id, stats_data in week_data.items():
+                if player_id not in self.player_lookup:
+                    continue
+                    
+                player = self.player_lookup[player_id]
+                position = player.position
+                
+                # Handle both single stat object and list of stats
+                stats_list = stats_data if isinstance(stats_data, list) else [stats_data]
+                
+                for stat in stats_list:
+                    stats = stat.get('stats', {})
+                    # Only count if player actually played
+                    if int(stats.get('off_snp', 0)) > 0:
+                        custom_pts = self.calculate_custom_points(stats, position)
+                        
+                        if position not in week_position_data[week]:
+                            week_position_data[week][position] = []
+                        week_position_data[week][position].append((player_id, custom_pts))
+                        break  # Only one game per week
+        
+        # Sort each position by points descending for ranking
+        for week in week_position_data:
+            for position in week_position_data[week]:
+                week_position_data[week][position].sort(key=lambda x: x[1], reverse=True)
         
         # Normal filtering
         if False:  # Removed roster position filtering
@@ -676,9 +713,18 @@ class GameHistory(StyledFrame):
                         snaps = int(stats.get('off_snp', 0))
                         pts_per_snap = custom_pts / snaps if snaps > 0 else 0
                         
+                        # Find rank for this player
+                        rank = '-'
+                        if week in week_position_data and player.position in week_position_data[week]:
+                            for idx, (pid, pts) in enumerate(week_position_data[week][player.position]):
+                                if pid == player_id and abs(pts - custom_pts) < 0.01:  # Account for float precision
+                                    rank = f"{player.position}{idx + 1}"
+                                    break
+                        
                         row = {
                             'player': format_name(player.name),
                             'pos': player.position,
+                            'rank': rank,
                             'team': player.team or '-',
                             'week': week,
                             'opp': opponent_display,
@@ -695,7 +741,8 @@ class GameHistory(StyledFrame):
                             'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
                             '_pts_float': custom_pts,  # For sorting
                             '_week_int': week,  # For sorting
-                            '_pts_per_snap_float': pts_per_snap  # For sorting
+                            '_pts_per_snap_float': pts_per_snap,  # For sorting
+                            '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
                         }
                         rows.append(row)
         else:
@@ -776,9 +823,18 @@ class GameHistory(StyledFrame):
                         snaps = int(stats.get('off_snp', 0))
                         pts_per_snap = custom_pts / snaps if snaps > 0 else 0
                         
+                        # Find rank for this player
+                        rank = '-'
+                        if week in week_position_data and player.position in week_position_data[week]:
+                            for idx, (pid, pts) in enumerate(week_position_data[week][player.position]):
+                                if pid == player_id and abs(pts - custom_pts) < 0.01:  # Account for float precision
+                                    rank = f"{player.position}{idx + 1}"
+                                    break
+                        
                         row = {
                             'player': format_name(player.name),
                             'pos': player.position,
+                            'rank': rank,
                             'team': player.team or '-',
                             'week': week,
                             'opp': opponent_display,
@@ -795,7 +851,8 @@ class GameHistory(StyledFrame):
                             'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
                             '_pts_float': custom_pts,  # For sorting
                             '_week_int': week,  # For sorting
-                            '_pts_per_snap_float': pts_per_snap  # For sorting
+                            '_pts_per_snap_float': pts_per_snap,  # For sorting
+                            '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
                         }
                         rows.append(row)
         
@@ -805,6 +862,7 @@ class GameHistory(StyledFrame):
         """Build data for summarized view (season totals)"""
         rows = []
         player_totals = {}
+        position_season_totals = {}  # {position: [(player_id, total_pts)]} for ranking
         
         # Aggregate data by player
         for week, week_data in self.weekly_stats.items():
@@ -884,6 +942,17 @@ class GameHistory(StyledFrame):
                         totals['rec_yd'] += int(stats.get('rec_yd', 0))
                         totals['rec_td'] += int(stats.get('rec_td', 0))
         
+        # Collect season totals by position for ranking
+        for player_id, totals in player_totals.items():
+            position = totals['pos']
+            if position not in position_season_totals:
+                position_season_totals[position] = []
+            position_season_totals[position].append((player_id, totals['pts']))
+        
+        # Sort each position by total points descending
+        for position in position_season_totals:
+            position_season_totals[position].sort(key=lambda x: x[1], reverse=True)
+        
         # Convert to rows
         for player_id, totals in player_totals.items():
             # Apply minimum games filter
@@ -901,9 +970,19 @@ class GameHistory(StyledFrame):
             # Calculate average pts per snap
             avg_pts_per_snap = totals['pts'] / totals['snaps'] if totals['snaps'] > 0 else 0
             
+            # Find season rank
+            rank = '-'
+            position = totals['pos']
+            if position in position_season_totals:
+                for idx, (pid, pts) in enumerate(position_season_totals[position]):
+                    if pid == player_id:
+                        rank = f"{position}{idx + 1}"
+                        break
+            
             row = {
                 'player': totals['player'],
                 'pos': totals['pos'],
+                'rank': rank,
                 'team': totals['team'],
                 'week': f"{totals['games']}g",  # Show games played
                 'opp': '2024',  # Show year instead of opponent
@@ -924,7 +1003,8 @@ class GameHistory(StyledFrame):
                 '_week_int': totals['games'],  # For sorting
                 '_median_float': median_pts,  # For sorting
                 '_avg_float': avg_pts,  # For sorting
-                '_pts_per_snap_float': avg_pts_per_snap  # For sorting
+                '_pts_per_snap_float': avg_pts_per_snap,  # For sorting
+                '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
             }
             rows.append(row)
         
@@ -947,6 +1027,8 @@ class GameHistory(StyledFrame):
                 return row.get('_avg_float', 0)
             elif self.sort_column == 'pts_per_snap':
                 return row.get('_pts_per_snap_float', 0)
+            elif self.sort_column == 'rank':
+                return row.get('_rank_int', 999)
             elif self.sort_column in ['snaps', 'comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']:
                 val = row[self.sort_column]
                 return 0 if val == '-' else int(val)
@@ -1010,6 +1092,7 @@ class GameHistory(StyledFrame):
         # First, set base column widths that should always be consistent
         self.tree.column('player', width=150, stretch=False)
         self.tree.column('pos', width=40, stretch=False)
+        self.tree.column('rank', width=55, stretch=False)
         self.tree.column('team', width=45, stretch=False)
         self.tree.column('week', width=40, stretch=False)
         self.tree.column('opp', width=65, stretch=False)
@@ -1247,6 +1330,7 @@ class GameHistory(StyledFrame):
         values = (
             f"TOTALS ({totals['games']} games)",  # Player
             position,  # Pos
+            '-',  # Rank
             '-',  # Team
             '-',  # Week
             '-',  # Opp
@@ -1266,7 +1350,7 @@ class GameHistory(StyledFrame):
         )
         
         # Add separator row
-        self.tree.insert('', 'end', values=('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''), tags=('separator',))
+        self.tree.insert('', 'end', values=('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''), tags=('separator',))
         
         # Add totals row
         self.tree.insert('', 'end', values=values, tags=('totals',))
