@@ -1,6 +1,7 @@
 # Required packages
 requests>=2.31.0
 Pillow>=9.0.0
+matplotlib>=3.7.0
 
 # Testing packages
 pytest>=7.4.0

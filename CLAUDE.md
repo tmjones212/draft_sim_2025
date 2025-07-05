@@ -96,3 +96,11 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Handles both single stat objects and lists of stats for compatibility
 - Added auto-resize columns functionality that adjusts column widths based on content after filtering
 - Added totals row when filtering by single player showing sum of all stats and averages
+- Added points-by-week graph panel on the right side of game history table
+- Click on any player to graph their weekly points
+- Ctrl+Click to add/remove multiple players (toggle functionality)
+- Shows 0 points for bye/injury weeks instead of skipping them
+- Graph legend shows standard deviation (σ) for each player (excluding weeks with <5 snaps)
+- Graph uses team colors for better distinction between players
+- Clear Graph button to reset the visualization
+- Y-axis always starts at 0 for consistent scale

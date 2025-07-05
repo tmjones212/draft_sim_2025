@@ -5,7 +5,11 @@ import os
 import statistics
 from typing import Dict, List, Optional
 from PIL import Image, ImageTk
-from .theme import DARK_THEME, get_position_color
+import matplotlib
+matplotlib.use('TkAgg')
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from .theme import DARK_THEME, get_position_color, get_team_color
 from .styled_widgets import StyledFrame
 from ..utils.player_extensions import format_name
 from ..config.scoring import SCORING_CONFIG
@@ -34,6 +38,11 @@ class GameHistory(StyledFrame):
         # Filter history for back button
         self.filter_history = []
         self.current_filter_state = None
+        
+        # Graph data
+        self.graph_players = {}  # player_id -> {name, weeks, points, color}
+        self.graph_canvas = None
+        self.figure = None
         
         self.setup_ui()
         self.update_column_visibility()  # Set initial column visibility
@@ -295,9 +304,24 @@ class GameHistory(StyledFrame):
         # Initially hide games filter
         self.games_filter_frame.pack_forget()
         
-        # Table container
-        table_container = StyledFrame(container, bg_type='secondary')
-        table_container.pack(fill='both', expand=True)
+        # Create paned window for table and graph
+        paned_window = tk.PanedWindow(
+            container,
+            orient='horizontal',
+            bg=DARK_THEME['bg_secondary'],
+            sashwidth=8,
+            sashrelief='flat',
+            borderwidth=0
+        )
+        paned_window.pack(fill='both', expand=True)
+        
+        # Table container (left side)
+        table_container = StyledFrame(paned_window, bg_type='secondary')
+        paned_window.add(table_container, minsize=600)
+        
+        # Graph container (right side)
+        graph_container = StyledFrame(paned_window, bg_type='secondary')
+        paned_window.add(graph_container, minsize=400)
         
         # Create treeview for table
         columns = ('player', 'pos', 'team', 'week', 'opp', 'pts', 'median', 'avg', 'snaps', 'comp', 'pass_yd', 'pass_td', 
@@ -379,8 +403,12 @@ class GameHistory(StyledFrame):
         table_container.grid_rowconfigure(0, weight=1)
         table_container.grid_columnconfigure(0, weight=1)
         
-        # Bind right-click
+        # Bind right-click and left-click
         self.tree.bind('<Button-3>', self.on_right_click)
+        self.tree.bind('<Button-1>', self.on_left_click)
+        
+        # Setup graph
+        self.setup_graph(graph_container)
         
         # Status label
         self.status_label = tk.Label(
@@ -1218,4 +1246,217 @@ class GameHistory(StyledFrame):
         
         # Style separator
         self.tree.tag_configure('separator', background=DARK_THEME['bg_primary'])
+    
+    def setup_graph(self, container):
+        """Setup the matplotlib graph"""
+        # Graph title
+        title_label = tk.Label(
+            container,
+            text="POINTS BY WEEK",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 12, 'bold')
+        )
+        title_label.pack(pady=(10, 5))
+        
+        # Instructions
+        info_label = tk.Label(
+            container,
+            text="Click player to graph • Ctrl+Click to add/remove multiple",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 9)
+        )
+        info_label.pack(pady=(0, 10))
+        
+        # Create matplotlib figure
+        self.figure = Figure(figsize=(6, 4), dpi=100, facecolor=DARK_THEME['bg_secondary'])
+        self.ax = self.figure.add_subplot(111)
+        
+        # Style the plot
+        self.ax.set_facecolor(DARK_THEME['bg_tertiary'])
+        self.ax.spines['bottom'].set_color(DARK_THEME['text_secondary'])
+        self.ax.spines['top'].set_color(DARK_THEME['text_secondary'])
+        self.ax.spines['left'].set_color(DARK_THEME['text_secondary'])
+        self.ax.spines['right'].set_color(DARK_THEME['text_secondary'])
+        self.ax.tick_params(colors=DARK_THEME['text_secondary'])
+        self.ax.xaxis.label.set_color(DARK_THEME['text_secondary'])
+        self.ax.yaxis.label.set_color(DARK_THEME['text_secondary'])
+        
+        # Create canvas
+        self.graph_canvas = FigureCanvasTkAgg(self.figure, master=container)
+        self.graph_canvas.draw()
+        self.graph_canvas.get_tk_widget().pack(fill='both', expand=True, padx=10, pady=(0, 10))
+        
+        # Clear button
+        clear_btn = tk.Button(
+            container,
+            text="CLEAR GRAPH",
+            bg=DARK_THEME['button_bg'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 9, 'bold'),
+            bd=0,
+            relief='flat',
+            padx=12,
+            pady=4,
+            command=self.clear_graph,
+            cursor='hand2'
+        )
+        clear_btn.pack(pady=(0, 10))
+        
+        # Initialize empty plot
+        self.update_graph()
+    
+    def on_left_click(self, event):
+        """Handle left click on tree item"""
+        # Identify the row
+        item = self.tree.identify_row(event.y)
+        if not item:
+            return
+            
+        # Get player info from the row
+        values = self.tree.item(item, 'values')
+        if not values or values[0] == '' or 'TOTALS' in str(values[0]):
+            return
+            
+        player_name = values[0]
+        
+        # Check if Ctrl is pressed
+        if event.state & 0x4:  # Ctrl key
+            # Add to existing selection
+            self.add_player_to_graph(player_name, add_to_selection=True)
+        else:
+            # Replace selection
+            self.add_player_to_graph(player_name, add_to_selection=False)
+    
+    def add_player_to_graph(self, player_name, add_to_selection=False):
+        """Add a player to the graph"""
+        # Find player ID
+        player_id = None
+        for pid, player in self.player_lookup.items():
+            if format_name(player.name) == player_name:
+                player_id = pid
+                break
+                
+        if not player_id:
+            return
+            
+        # Clear existing if not adding to selection
+        if not add_to_selection:
+            self.graph_players.clear()
+            
+        # Check if already in graph - toggle off if Ctrl+clicking
+        if player_id in self.graph_players:
+            if add_to_selection:
+                # Remove from graph (toggle off)
+                del self.graph_players[player_id]
+                self.update_graph()
+            return
+            
+        # Collect player's weekly data for ALL weeks (1-18)
+        weeks = []
+        points = []
+        snaps = []  # Track snaps for each week
+        
+        for week in range(1, 19):  # All weeks 1-18
+            week_points = 0  # Default to 0
+            week_snaps = 0   # Default to 0
+            
+            if week in self.weekly_stats and player_id in self.weekly_stats[week]:
+                stats_data = self.weekly_stats[week][player_id]
+                # Handle both single stat object and list of stats
+                stats_list = stats_data if isinstance(stats_data, list) else [stats_data]
+                
+                for stat in stats_list:
+                    stats = stat.get('stats', {})
+                    week_snaps = int(stats.get('off_snp', 0))
+                    # Only count if player actually played (had snaps)
+                    if week_snaps > 0:
+                        # Calculate custom points
+                        player = self.player_lookup[player_id]
+                        week_points = self.calculate_custom_points(stats, player.position)
+                        break  # Only one game per week
+            
+            weeks.append(week)
+            points.append(week_points)
+            snaps.append(week_snaps)
+        
+        # Calculate standard deviation for games with 5+ snaps
+        points_for_std = [points[i] for i in range(len(points)) if snaps[i] >= 5]
+        std_dev = statistics.stdev(points_for_std) if len(points_for_std) > 1 else 0
+        
+        # Always add all 18 weeks
+        if weeks and points:
+            # Assign color based on team
+            player = self.player_lookup[player_id]
+            color = get_team_color(player.team)
+            
+            # Store data
+            self.graph_players[player_id] = {
+                'name': player_name,
+                'weeks': weeks,
+                'points': points,
+                'snaps': snaps,
+                'std_dev': std_dev,
+                'color': color,
+                'position': player.position,
+                'team': player.team
+            }
+            
+            # Update graph
+            self.update_graph()
+    
+    def update_graph(self):
+        """Update the matplotlib graph"""
+        self.ax.clear()
+        
+        if not self.graph_players:
+            # Empty graph
+            self.ax.text(0.5, 0.5, 'Click on players to graph their points',
+                        horizontalalignment='center',
+                        verticalalignment='center',
+                        transform=self.ax.transAxes,
+                        color=DARK_THEME['text_secondary'],
+                        fontsize=12)
+            self.ax.set_xlim(0, 18)
+            self.ax.set_ylim(0, 50)
+        else:
+            # Plot each player
+            for player_id, data in self.graph_players.items():
+                # Create label with team and standard deviation
+                label = f"{data['name']} ({data['team']}) σ={data['std_dev']:.1f}"
+                self.ax.plot(data['weeks'], data['points'], 
+                           marker='o', linewidth=2, markersize=6,
+                           color=data['color'], 
+                           label=label)
+            
+            # Add legend
+            legend = self.ax.legend(loc='upper left', frameon=True, 
+                                  facecolor=DARK_THEME['bg_secondary'],
+                                  edgecolor=DARK_THEME['text_secondary'])
+            for text in legend.get_texts():
+                text.set_color(DARK_THEME['text_primary'])
+            
+            # Grid
+            self.ax.grid(True, alpha=0.3, color=DARK_THEME['text_secondary'])
+            
+            # Set x-axis to show all weeks
+            self.ax.set_xlim(0.5, 18.5)
+            self.ax.set_xticks(range(1, 19))
+            
+            # Set y-axis to start at 0
+            self.ax.set_ylim(bottom=0)
+        
+        # Labels
+        self.ax.set_xlabel('Week', color=DARK_THEME['text_primary'])
+        self.ax.set_ylabel('Points', color=DARK_THEME['text_primary'])
+        
+        # Redraw
+        self.figure.tight_layout()
+        self.graph_canvas.draw()
+    
+    def clear_graph(self):
+        """Clear all players from the graph"""
+        self.graph_players.clear()
+        self.update_graph()
     
