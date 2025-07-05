@@ -114,7 +114,7 @@ class PlayerStatsPopup:
         stats_container.pack(fill='both', expand=True)
         
         # Check if we have weekly stats
-        if not self.player.weekly_stats_2024 or len(self.player.weekly_stats_2024) == 0:
+        if not hasattr(self.player, 'weekly_stats_2024') or not self.player.weekly_stats_2024 or len(self.player.weekly_stats_2024) == 0:
             # No stats available
             no_stats_label = tk.Label(
                 stats_container,
@@ -131,152 +131,176 @@ class PlayerStatsPopup:
         scrollbar = ttk.Scrollbar(stats_container, orient='vertical', command=canvas.yview)
         scrollable_frame = tk.Frame(canvas, bg=DARK_THEME['bg_tertiary'])
         
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
+        # Create window in canvas
+        canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        # Configure canvas scrolling
+        def configure_scroll(event=None):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+            # Update window width to match canvas
+            canvas_width = event.width if event else canvas.winfo_width()
+            canvas.itemconfig(canvas_window, width=canvas_width)
+        
+        scrollable_frame.bind("<Configure>", configure_scroll)
+        canvas.bind("<Configure>", configure_scroll)
         canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Define column widths (in pixels) - must match data cells exactly
+        col_widths = {
+            'week': 50,
+            'opp': 60,
+            'points': 70,
+            'pass_yds': 70,
+            'pass_td': 60,
+            'int': 40,
+            'rush_yds': 70,
+            'rush_td': 60,
+            'rec': 40,
+            'rec_yds': 70,
+            'rec_td': 60,
+        }
         
         # Table header
         header_row = tk.Frame(scrollable_frame, bg=DARK_THEME['bg_primary'], height=35)
         header_row.pack(fill='x', padx=10, pady=(10, 5))
         header_row.pack_propagate(False)
         
+        # Create header cells with exact widths
+        def create_header_cell(parent, text, width):
+            cell = tk.Frame(parent, bg=DARK_THEME['bg_primary'], width=width, height=35)
+            cell.pack(side='left', padx=1)
+            cell.pack_propagate(False)
+            label = tk.Label(
+                cell,
+                text=text,
+                bg=DARK_THEME['bg_primary'],
+                fg=DARK_THEME['text_secondary'],
+                font=(DARK_THEME['font_family'], 10, 'bold')
+            )
+            label.pack(expand=True)
+            return cell
+        
         # Header columns
-        headers = [
-            ('Week', 60),
-            ('vs', 60),
-            ('Points', 80),
-        ]
+        create_header_cell(header_row, 'Week', col_widths['week'])
+        create_header_cell(header_row, 'Opp', col_widths['opp'])
+        create_header_cell(header_row, 'Points', col_widths['points'])
         
         # Add position-specific headers
         if self.player.position == 'QB':
-            headers.extend([
-                ('Pass Yds', 80),
-                ('Pass TD', 70),
-                ('INT', 50),
-                ('Rush Yds', 80),
-                ('Rush TD', 70),
-            ])
+            create_header_cell(header_row, 'Pass Yds', col_widths['pass_yds'])
+            create_header_cell(header_row, 'Pass TD', col_widths['pass_td'])
+            create_header_cell(header_row, 'INT', col_widths['int'])
+            create_header_cell(header_row, 'Rush Yds', col_widths['rush_yds'])
+            create_header_cell(header_row, 'Rush TD', col_widths['rush_td'])
         elif self.player.position in ['RB', 'WR', 'TE']:
-            headers.extend([
-                ('Rush Yds', 80),
-                ('Rush TD', 70),
-                ('Rec', 50),
-                ('Rec Yds', 80),
-                ('Rec TD', 70),
-            ])
+            create_header_cell(header_row, 'Rush Yds', col_widths['rush_yds'])
+            create_header_cell(header_row, 'Rush TD', col_widths['rush_td'])
+            create_header_cell(header_row, 'Rec', col_widths['rec'])
+            create_header_cell(header_row, 'Rec Yds', col_widths['rec_yds'])
+            create_header_cell(header_row, 'Rec TD', col_widths['rec_td'])
         
-        for header, width in headers:
+        # Create a helper to make data cells
+        def create_data_cell(parent, text, width, bg, fg=None):
+            cell = tk.Frame(parent, bg=bg, width=width, height=30)
+            cell.pack(side='left', padx=1)
+            cell.pack_propagate(False)
             label = tk.Label(
-                header_row,
-                text=header,
-                bg=DARK_THEME['bg_primary'],
-                fg=DARK_THEME['text_secondary'],
-                font=(DARK_THEME['font_family'], 10, 'bold'),
-                width=width // 8,
-                anchor='center'
+                cell,
+                text=text,
+                bg=bg,
+                fg=fg or DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 10)
             )
-            label.pack(side='left', padx=2)
+            label.pack(expand=True)
+            return cell
         
-        # Weekly data rows
-        for i, week_data in enumerate(self.player.weekly_stats_2024):
+        # Create a dictionary of weekly stats for easy lookup
+        week_stats_dict = {}
+        for week_data in self.player.weekly_stats_2024:
+            week_stats_dict[week_data['week']] = week_data
+        
+        # Show all 18 weeks
+        for week_num in range(1, 19):
+            i = week_num - 1
             row_bg = DARK_THEME['bg_secondary'] if i % 2 == 0 else DARK_THEME['bg_tertiary']
             row = tk.Frame(scrollable_frame, bg=row_bg, height=30)
             row.pack(fill='x', padx=10, pady=1)
             row.pack_propagate(False)
             
-            # Week number
-            week_label = tk.Label(
-                row,
-                text=f"Week {week_data['week']}",
-                bg=row_bg,
-                fg=DARK_THEME['text_primary'],
-                font=(DARK_THEME['font_family'], 10),
-                width=60 // 8,
-                anchor='center'
-            )
-            week_label.pack(side='left', padx=2)
-            
-            # Opponent
-            opp_text = f"@ {week_data['opponent']}" if '@' in str(week_data.get('opponent', '')) else f"vs {week_data['opponent']}"
-            opp_label = tk.Label(
-                row,
-                text=opp_text,
-                bg=row_bg,
-                fg=DARK_THEME['text_secondary'],
-                font=(DARK_THEME['font_family'], 10),
-                width=60 // 8,
-                anchor='center'
-            )
-            opp_label.pack(side='left', padx=2)
-            
-            # Get stats data
-            stats = week_data.get('stats', {})
-            
-            # Points (use custom scoring if available)
-            points = stats.get('pts_custom', stats.get('pts_ppr', 0))
-            points_label = tk.Label(
-                row,
-                text=f"{points:.1f}",
-                bg=row_bg,
-                fg=DARK_THEME['text_primary'],
-                font=(DARK_THEME['font_family'], 10, 'bold'),
-                width=80 // 8,
-                anchor='center'
-            )
-            points_label.pack(side='left', padx=2)
-            
-            # Position-specific stats
-            if self.player.position == 'QB':
-                # Passing stats
-                pass_yds = stats.get('pass_yd', 0)
-                pass_td = stats.get('pass_td', 0)
-                pass_int = stats.get('pass_int', 0)
-                rush_yds = stats.get('rush_yd', 0)
-                rush_td = stats.get('rush_td', 0)
+            # Check if player played this week
+            if week_num in week_stats_dict:
+                week_data = week_stats_dict[week_num]
+                stats = week_data.get('stats', {})
                 
-                for value, width in [(f"{int(pass_yds)}", 80), (f"{int(pass_td)}", 70), 
-                                    (f"{int(pass_int)}", 50), (f"{int(rush_yds)}", 80), 
-                                    (f"{int(rush_td)}", 70)]:
-                    label = tk.Label(
-                        row,
-                        text=value,
-                        bg=row_bg,
-                        fg=DARK_THEME['text_primary'],
-                        font=(DARK_THEME['font_family'], 10),
-                        width=width // 8,
-                        anchor='center'
-                    )
-                    label.pack(side='left', padx=2)
+                # Week number
+                create_data_cell(row, f"{week_num}", col_widths['week'], row_bg)
+                
+                # Opponent
+                create_data_cell(row, week_data['opponent'], col_widths['opp'], row_bg, DARK_THEME['text_secondary'])
+                
+                # Points
+                points = stats.get('pts_ppr', 0)
+                create_data_cell(row, f"{points:.1f}", col_widths['points'], row_bg, DARK_THEME['text_primary'] if points > 0 else DARK_THEME['text_muted'])
+                
+                # Position-specific stats
+                if self.player.position == 'QB':
+                    pass_yds = stats.get('pass_yd', 0)
+                    pass_td = stats.get('pass_td', 0)
+                    pass_int = stats.get('pass_int', 0)
+                    rush_yds = stats.get('rush_yd', 0)
+                    rush_td = stats.get('rush_td', 0)
                     
-            elif self.player.position in ['RB', 'WR', 'TE']:
-                # Rushing/Receiving stats
-                rush_yds = stats.get('rush_yd', 0)
-                rush_td = stats.get('rush_td', 0)
-                rec = stats.get('rec', 0)
-                rec_yds = stats.get('rec_yd', 0)
-                rec_td = stats.get('rec_td', 0)
+                    create_data_cell(row, f"{int(pass_yds)}", col_widths['pass_yds'], row_bg)
+                    create_data_cell(row, f"{int(pass_td)}", col_widths['pass_td'], row_bg)
+                    create_data_cell(row, f"{int(pass_int)}", col_widths['int'], row_bg)
+                    create_data_cell(row, f"{int(rush_yds)}", col_widths['rush_yds'], row_bg)
+                    create_data_cell(row, f"{int(rush_td)}", col_widths['rush_td'], row_bg)
+                    
+                elif self.player.position in ['RB', 'WR', 'TE']:
+                    rush_yds = stats.get('rush_yd', 0)
+                    rush_td = stats.get('rush_td', 0)
+                    rec = stats.get('rec', 0)
+                    rec_yds = stats.get('rec_yd', 0)
+                    rec_td = stats.get('rec_td', 0)
+                    
+                    create_data_cell(row, f"{int(rush_yds)}", col_widths['rush_yds'], row_bg)
+                    create_data_cell(row, f"{int(rush_td)}", col_widths['rush_td'], row_bg)
+                    create_data_cell(row, f"{int(rec)}", col_widths['rec'], row_bg)
+                    create_data_cell(row, f"{int(rec_yds)}", col_widths['rec_yds'], row_bg)
+                    create_data_cell(row, f"{int(rec_td)}", col_widths['rec_td'], row_bg)
+            else:
+                # Player didn't play this week - show zeros
+                create_data_cell(row, f"{week_num}", col_widths['week'], row_bg)
+                create_data_cell(row, "DNP", col_widths['opp'], row_bg, DARK_THEME['text_muted'])
+                create_data_cell(row, "0.0", col_widths['points'], row_bg, DARK_THEME['text_muted'])
                 
-                for value, width in [(f"{int(rush_yds)}", 80), (f"{int(rush_td)}", 70),
-                                    (f"{int(rec)}", 50), (f"{int(rec_yds)}", 80),
-                                    (f"{int(rec_td)}", 70)]:
-                    label = tk.Label(
-                        row,
-                        text=value,
-                        bg=row_bg,
-                        fg=DARK_THEME['text_primary'],
-                        font=(DARK_THEME['font_family'], 10),
-                        width=width // 8,
-                        anchor='center'
-                    )
-                    label.pack(side='left', padx=2)
+                # Position-specific zeros
+                if self.player.position == 'QB':
+                    for width in [col_widths['pass_yds'], col_widths['pass_td'], col_widths['int'], 
+                                 col_widths['rush_yds'], col_widths['rush_td']]:
+                        create_data_cell(row, "0", width, row_bg, DARK_THEME['text_muted'])
+                elif self.player.position in ['RB', 'WR', 'TE']:
+                    for width in [col_widths['rush_yds'], col_widths['rush_td'], col_widths['rec'], 
+                                 col_widths['rec_yds'], col_widths['rec_td']]:
+                        create_data_cell(row, "0", width, row_bg, DARK_THEME['text_muted'])
         
         # Pack canvas and scrollbar
-        canvas.pack(side='left', fill='both', expand=True)
-        scrollbar.pack(side='right', fill='y')
+        canvas.pack(side='left', fill='both', expand=True, padx=(10, 0))
+        scrollbar.pack(side='right', fill='y', padx=(0, 10))
+        
+        # Force update to ensure everything is displayed
+        self.window.update_idletasks()
+        canvas.configure(scrollregion=canvas.bbox("all"))
+        
+        # Note about snap count
+        note_label = tk.Label(
+            main_frame,
+            text="Note: Snap count data is not currently available",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_muted'],
+            font=(DARK_THEME['font_family'], 9, 'italic')
+        )
+        note_label.pack(pady=(10, 5))
         
         # Close button
         close_btn = tk.Button(
@@ -293,7 +317,7 @@ class PlayerStatsPopup:
             cursor='hand2',
             activebackground=DARK_THEME['button_hover']
         )
-        close_btn.pack(pady=(20, 0))
+        close_btn.pack(pady=(5, 0))
         
     def close(self):
         self.window.grab_release()
