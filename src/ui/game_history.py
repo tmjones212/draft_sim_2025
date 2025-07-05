@@ -536,9 +536,14 @@ class GameHistory(StyledFrame):
                 
             self.tree.insert('', 'end', values=values, tags=tags)
         
+        # Add totals row if filtering by single player
+        if self.should_show_totals(rows):
+            self.add_totals_row(rows)
+        
         # Configure tag colors
         self.tree.tag_configure('even', background=DARK_THEME['bg_tertiary'])
         self.tree.tag_configure('odd', background=DARK_THEME['bg_secondary'])
+        self.tree.tag_configure('totals', background=DARK_THEME['button_active'], foreground='white')
         
         # Update status
         self.status_label.config(text=f"Showing {len(rows)} {'seasons' if self.view_mode == 'summarized' else 'games'}")
@@ -1117,4 +1122,100 @@ class GameHistory(StyledFrame):
         
         # Apply the filter
         self.apply_filters()
+    
+    def should_show_totals(self, rows):
+        """Check if we should show totals row (single player in detailed view)"""
+        if self.view_mode == "summarized":
+            return False  # Don't show totals in summarized view
+        
+        if not rows:
+            return False
+            
+        # Check if all rows are for the same player
+        player_names = set(row['player'] for row in rows)
+        return len(player_names) == 1 and len(rows) > 1
+    
+    def add_totals_row(self, rows):
+        """Add a totals row for single player view"""
+        if not rows:
+            return
+            
+        # Initialize totals
+        totals = {
+            'pts': 0.0,
+            'snaps': 0,
+            'comp': 0,
+            'pass_yd': 0,
+            'pass_td': 0,
+            'rush_yd': 0,
+            'rush_td': 0,
+            'rec': 0,
+            'rec_yd': 0,
+            'rec_td': 0,
+            'games': 0
+        }
+        
+        # Sum up the stats
+        for row in rows:
+            totals['games'] += 1
+            
+            # Points (handle float)
+            try:
+                totals['pts'] += float(row['pts'])
+            except:
+                pass
+                
+            # Integer stats
+            for stat in ['snaps', 'comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']:
+                val = row.get(stat, '-')
+                if isinstance(val, (int, float)):
+                    totals[stat] += int(val)
+                elif val != '-':
+                    try:
+                        totals[stat] += int(val)
+                    except:
+                        pass
+        
+        # Calculate averages
+        avg_pts = totals['pts'] / totals['games'] if totals['games'] > 0 else 0
+        avg_snaps = totals['snaps'] / totals['games'] if totals['games'] > 0 else 0
+        
+        # Create totals row
+        player_name = rows[0]['player']
+        position = rows[0]['pos']
+        
+        # Format values
+        def format_stat(val, is_zero_allowed=True):
+            if val == 0 and not is_zero_allowed:
+                return '-'
+            return str(int(val)) if val > 0 or is_zero_allowed else '-'
+        
+        values = (
+            f"TOTALS ({totals['games']} games)",  # Player
+            position,  # Pos
+            '-',  # Team
+            '-',  # Week
+            '-',  # Opp
+            f"{totals['pts']:.1f}",  # Pts
+            '-',  # Median
+            f"{avg_pts:.1f}",  # Avg
+            format_stat(totals['snaps']),  # Snaps
+            format_stat(totals['comp']) if position == 'QB' else '-',  # Comp
+            format_stat(totals['pass_yd']) if position == 'QB' else '-',  # Pass Yd
+            format_stat(totals['pass_td']) if position == 'QB' else '-',  # Pass TD
+            format_stat(totals['rush_yd']),  # Rush Yd
+            format_stat(totals['rush_td']),  # Rush TD
+            format_stat(totals['rec']) if position != 'QB' else '-',  # Rec
+            format_stat(totals['rec_yd']) if position != 'QB' else '-',  # Rec Yd
+            format_stat(totals['rec_td']) if position != 'QB' else '-'  # Rec TD
+        )
+        
+        # Add separator row
+        self.tree.insert('', 'end', values=('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''), tags=('separator',))
+        
+        # Add totals row
+        self.tree.insert('', 'end', values=values, tags=('totals',))
+        
+        # Style separator
+        self.tree.tag_configure('separator', background=DARK_THEME['bg_primary'])
     
