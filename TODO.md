@@ -10,3 +10,6 @@ i want the ability to view and change a players ADP inside of the app
 - game history (player details) should show home vs. away via the "vs" column, it should say "@ x" when they are on teh road and "vs x" when they are at home. Let me know if we dont have that data
 - the week(s) they were on bye shouldn't show up for the game history log
 - we need a column for their bye week in 2025 (this year) in the available players table (let me know if you can't find that data)
+- game history table doesn't scroll when i use teh mouse wheel
+- in the game history table the column headers need to be  click sortable w/ the little arrows
+- add snap counts, the snap counts are in the {yyyy}_{week}_{position}.json files in scripts/stats_data under the "off_snp" key

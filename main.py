@@ -10,8 +10,9 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
 
 import config
-from src.models import Team
+from src.models import Team, Player
 from src.core import DraftEngine
+from src.core.template_manager import TemplateManager
 from src.ui import DraftBoard, PlayerList, RosterView
 from src.ui.cheat_sheet import CheatSheet
 from src.ui.theme import DARK_THEME
@@ -64,6 +65,9 @@ class MockDraftApp:
         # Cheat sheet data
         self.custom_rankings = {}
         self.player_tiers = {}
+        
+        # Template manager
+        self.template_manager = TemplateManager()
         
         # Quick loading indicator
         loading_label = tk.Label(
@@ -212,6 +216,55 @@ class MockDraftApp:
             state='disabled'
         )
         self.draft_button.pack(side='left')
+        
+        # Template controls separator
+        separator = tk.Frame(button_container, width=20, bg=DARK_THEME['bg_primary'])
+        separator.pack(side='left')
+        
+        # Template dropdown
+        template_label = tk.Label(
+            button_container,
+            text="Templates:",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        template_label.pack(side='left', padx=(0, 5))
+        
+        self.template_var = tk.StringVar()
+        self.template_dropdown = ttk.Combobox(
+            button_container,
+            textvariable=self.template_var,
+            width=20,
+            state='readonly',
+            font=(DARK_THEME['font_family'], 10)
+        )
+        self.template_dropdown.pack(side='left', padx=(0, 5))
+        self.template_dropdown.bind('<<ComboboxSelected>>', self.on_template_selected)
+        
+        # Load template button
+        self.load_template_button = StyledButton(
+            button_container,
+            text="LOAD",
+            command=self.load_template,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 10),
+            padx=15,
+            pady=8
+        )
+        self.load_template_button.pack(side='left', padx=(0, 10))
+        
+        # Save template button
+        self.save_template_button = StyledButton(
+            button_container,
+            text="SAVE AS...",
+            command=self.save_template,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 10),
+            padx=15,
+            pady=8
+        )
+        self.save_template_button.pack(side='left')
         
         # Main content area - Notebook for tabs
         content_frame = StyledFrame(main_frame, bg_type='primary')
@@ -493,6 +546,21 @@ class MockDraftApp:
     def on_team_selected(self, team_id):
         """Handle team selection for user control"""
         self.user_team_id = team_id
+        
+        # Rename other teams to league member names
+        league_names = ["Luan", "Joey", "Jerwan", "Karwan", "Johnson", "Erich", "Stan", "Pat", "Peter"]
+        random.shuffle(league_names)  # Randomize the assignment
+        
+        name_index = 0
+        for tid, team in self.teams.items():
+            if tid != team_id:  # Don't rename the user's team
+                if name_index < len(league_names):
+                    team.name = league_names[name_index]
+                    name_index += 1
+        
+        # Update the draft board with new team names
+        self.draft_board.update_team_names(self.teams)
+        
         # Hide the banner when team is selected
         self.draft_spot_banner.pack_forget()
         # Enable draft button
@@ -1376,6 +1444,274 @@ class MockDraftApp:
         
         # Auto-hide after 3 seconds
         self.root.after(3000, notification.destroy)
+    
+    def update_template_dropdown(self):
+        """Update the template dropdown with available templates"""
+        templates = self.template_manager.list_templates()
+        template_names = [t["name"] for t in templates]
+        self.template_dropdown['values'] = template_names
+        if not template_names:
+            self.template_var.set("")
+    
+    def on_template_selected(self, event=None):
+        """Handle template selection from dropdown"""
+        # Enable load button when template is selected
+        if self.template_var.get():
+            self.load_template_button.config(state='normal')
+    
+    def save_template(self):
+        """Save current draft state as a template"""
+        # Ask user for template name
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Save Template")
+        dialog.geometry("400x150")
+        dialog.configure(bg=DARK_THEME['bg_secondary'])
+        
+        # Center dialog on parent
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # Name input
+        label = tk.Label(
+            dialog,
+            text="Template Name:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 11)
+        )
+        label.pack(pady=(20, 5))
+        
+        name_var = tk.StringVar()
+        entry = tk.Entry(
+            dialog,
+            textvariable=name_var,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 11),
+            width=30
+        )
+        entry.pack(pady=5)
+        entry.focus()
+        
+        # Buttons
+        button_frame = tk.Frame(dialog, bg=DARK_THEME['bg_secondary'])
+        button_frame.pack(pady=20)
+        
+        def save():
+            name = name_var.get().strip()
+            if not name:
+                messagebox.showerror("Error", "Please enter a template name")
+                return
+            
+            # Get watch list from roster view
+            watch_list = []
+            wl = self.roster_view.get_watch_list()
+            if wl:
+                watch_list = wl.get_watched_players()
+            
+            success = self.template_manager.save_template(
+                name=name,
+                draft_engine=self.draft_engine,
+                teams=list(self.teams.values()),
+                available_players=self.available_players,
+                all_players=self.all_players,
+                user_team_id=self.user_team_id,
+                manual_mode=self.manual_mode,
+                custom_rankings=self.custom_rankings,
+                player_tiers=self.player_tiers,
+                watch_list=watch_list
+            )
+            
+            if success:
+                messagebox.showinfo("Success", f"Template '{name}' saved successfully")
+                self.update_template_dropdown()
+                dialog.destroy()
+            else:
+                messagebox.showerror("Error", "Failed to save template")
+        
+        save_btn = StyledButton(
+            button_frame,
+            text="SAVE",
+            command=save,
+            bg=DARK_THEME['button_active'],
+            font=(DARK_THEME['font_family'], 10, 'bold'),
+            padx=20,
+            pady=8
+        )
+        save_btn.pack(side='left', padx=5)
+        
+        cancel_btn = StyledButton(
+            button_frame,
+            text="CANCEL",
+            command=dialog.destroy,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 10),
+            padx=20,
+            pady=8
+        )
+        cancel_btn.pack(side='left', padx=5)
+        
+        # Save on Enter
+        entry.bind('<Return>', lambda e: save())
+    
+    def load_template(self):
+        """Load a selected template"""
+        selected = self.template_var.get()
+        if not selected:
+            messagebox.showwarning("No Selection", "Please select a template to load")
+            return
+        
+        # Find the template file
+        templates = self.template_manager.list_templates()
+        template_file = None
+        for t in templates:
+            if t["name"] == selected:
+                template_file = t["filename"]
+                break
+        
+        if not template_file:
+            messagebox.showerror("Error", "Template file not found")
+            return
+        
+        # Load the template
+        template = self.template_manager.load_template(template_file)
+        if not template:
+            messagebox.showerror("Error", "Failed to load template")
+            return
+        
+        # Apply the template state
+        self.apply_template(template)
+        messagebox.showinfo("Success", f"Template '{selected}' loaded successfully")
+    
+    def apply_template(self, template):
+        """Apply a loaded template to restore draft state"""
+        # Reset teams and draft engine with saved config
+        config_data = template.draft_config
+        self.teams = self._create_teams()
+        self.draft_engine = DraftEngine(
+            num_teams=config_data.get('num_teams', config.num_teams),
+            roster_spots=config_data.get('roster_spots', config.roster_spots),
+            draft_type=config_data.get('draft_type', config.draft_type),
+            reversal_round=config_data.get('reversal_round', config.reversal_round)
+        )
+        
+        # Restore player pool
+        player_dict = {p['player_id']: p for p in template.player_pool['all_players']}
+        self.all_players = []
+        for p_data in template.player_pool['all_players']:
+            player = Player(
+                name=p_data['name'],
+                position=p_data['position'],
+                team=p_data.get('team', ''),
+                bye_week=p_data.get('bye_week', 0),
+                points_2024=p_data.get('points_2024', 0),
+                points_2025_proj=p_data.get('points_2025_proj', 0),
+                var=p_data.get('var', 0),
+                rank=p_data.get('rank', 999),
+                adp=p_data.get('adp', 999)
+            )
+            player.player_id = p_data['player_id']
+            self.all_players.append(player)
+        
+        # Create player lookup
+        player_lookup = {p.player_id: p for p in self.all_players}
+        
+        # Restore available players
+        self.available_players = [
+            player_lookup[pid] for pid in template.player_pool['available_player_ids']
+            if pid in player_lookup
+        ]
+        
+        # Restore team names and rosters
+        for team_id_str, team_data in template.team_states.items():
+            team_id = int(team_id_str)
+            if team_id in self.teams:
+                team = self.teams[team_id]
+                team.name = team_data['name']
+                
+                # Clear and restore roster
+                for pos in team.roster:
+                    team.roster[pos] = []
+                
+                for position, player_ids in team_data['roster'].items():
+                    if position in team.roster:
+                        team.roster[position] = [
+                            player_lookup[pid] for pid in player_ids
+                            if pid in player_lookup
+                        ]
+        
+        # Restore draft picks
+        for pick_data in template.draft_results:
+            if pick_data['player_id'] and pick_data['player_id'] in player_lookup:
+                player = player_lookup[pick_data['player_id']]
+                team_id = pick_data['team_id']
+                if team_id in self.teams:
+                    self.draft_engine.make_pick(self.teams[team_id], player)
+        
+        # Restore user settings
+        user_settings = template.user_settings
+        self.user_team_id = user_settings.get('user_team_id')
+        self.manual_mode = user_settings.get('manual_mode', False)
+        self.manual_mode_var.set(self.manual_mode)
+        self.custom_rankings = user_settings.get('custom_rankings', {})
+        self.player_tiers = user_settings.get('player_tiers', {})
+        
+        # Apply custom rankings to player list if loaded
+        if self.custom_rankings and hasattr(self, 'player_list'):
+            self.player_list.custom_rankings = self.custom_rankings
+        
+        # Restore watch list
+        watch_list_ids = user_settings.get('watch_list', [])
+        if watch_list_ids and hasattr(self, 'roster_view'):
+            wl = self.roster_view.get_watch_list()
+            if wl:
+                for player_id in watch_list_ids:
+                    if player_id in player_lookup:
+                        wl.add_player(player_lookup[player_id])
+        
+        # Update UI
+        self.update_display(full_update=True, force_refresh=True)
+        
+        # Update draft board
+        self.draft_board.update_board(self.draft_engine.draft_results)
+        self.draft_board.highlight_current_pick()
+        
+        # Update status
+        if self.user_team_id:
+            self.update_draft_status()
+            # Hide draft spot banner
+            if hasattr(self, 'draft_spot_banner'):
+                self.draft_spot_banner.pack_forget()
+        else:
+            self.status_label.config(text="Select a team to control")
+            self.on_clock_label.config(text="Click on a team name in the draft board")
+        
+        # Enable/disable buttons based on state
+        if self.user_team_id:
+            _, _, _, team_on_clock = self.draft_engine.get_current_pick_info()
+            if team_on_clock == self.user_team_id:
+                self.draft_button.config(state="normal", bg=DARK_THEME['button_active'])
+            else:
+                self.draft_button.config(state="disabled", bg=DARK_THEME['button_bg'])
+        
+        # Check for auto-draft
+        self.check_auto_draft()
+    
+    def setup_ui_deferred(self):
+        """Setup UI components after window is shown"""
+        # Remove quick loading
+        if hasattr(self, 'quick_loading'):
+            self.quick_loading.destroy()
+        
+        # Setup UI
+        self.setup_ui()
+        self.setup_keyboard_shortcuts()
+        
+        # Update template dropdown
+        self.update_template_dropdown()
+        
+        # Show loading message for players
+        self.show_loading_message()
 
 
 def main():
@@ -1396,6 +1732,17 @@ def main():
     style.map('TNotebook.Tab',
              background=[('selected', DARK_THEME['bg_hover'])],
              foreground=[('selected', DARK_THEME['text_primary'])])
+    
+    # Configure Combobox for templates
+    style.configure('TCombobox',
+                   fieldbackground=DARK_THEME['bg_tertiary'],
+                   background=DARK_THEME['bg_tertiary'],
+                   foreground=DARK_THEME['text_primary'],
+                   borderwidth=0,
+                   arrowcolor=DARK_THEME['text_secondary'])
+    style.map('TCombobox',
+             fieldbackground=[('readonly', DARK_THEME['bg_tertiary'])],
+             foreground=[('readonly', DARK_THEME['text_primary'])])
     
     MockDraftApp(root)
     root.mainloop()

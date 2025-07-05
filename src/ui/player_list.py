@@ -736,6 +736,11 @@ class PlayerList(StyledFrame):
         # Store field type for updates
         if field_type:
             cell._field_type = field_type
+            
+            # Add double-click to edit ADP
+            if field_type == 'adp' and hasattr(parent, 'player'):
+                cell.bind('<Double-Button-1>', lambda e: self._edit_player_adp(parent.player))
+                cell.config(cursor='hand2')  # Show hand cursor to indicate it's clickable
         
         # Also bind double-click if the parent row has it
         if hasattr(parent, '_double_click_handler'):
@@ -1042,11 +1047,146 @@ class PlayerList(StyledFrame):
                            command=lambda: self._toggle_watch_list(player))
         
         menu.add_separator()
+        menu.add_command(label="Edit ADP", 
+                        command=lambda: self._edit_player_adp(player))
+        
+        menu.add_separator()
         menu.add_command(label="Draft Player", 
                         command=lambda: self.draft_specific_player(player),
                         state='normal' if self.draft_enabled else 'disabled')
         
         menu.post(event.x_root, event.y_root)
+    
+    def _edit_player_adp(self, player):
+        """Show dialog to edit player's ADP"""
+        # Create dialog window
+        dialog = tk.Toplevel(self)
+        dialog.title(f"Edit ADP - {player.name}")
+        dialog.geometry("350x200")
+        dialog.configure(bg=DARK_THEME['bg_secondary'])
+        dialog.transient(self.master)
+        dialog.grab_set()
+        
+        # Center dialog on parent
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
+        y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Player info
+        info_frame = tk.Frame(dialog, bg=DARK_THEME['bg_secondary'])
+        info_frame.pack(pady=10)
+        
+        player_label = tk.Label(
+            info_frame,
+            text=f"{player.name} ({player.position})",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 12, 'bold')
+        )
+        player_label.pack()
+        
+        current_label = tk.Label(
+            info_frame,
+            text=f"Current ADP: {player.adp:.1f}",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        current_label.pack()
+        
+        # ADP input
+        input_frame = tk.Frame(dialog, bg=DARK_THEME['bg_secondary'])
+        input_frame.pack(pady=20)
+        
+        label = tk.Label(
+            input_frame,
+            text="New ADP:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 11)
+        )
+        label.pack(side='left', padx=(0, 10))
+        
+        adp_var = tk.StringVar(value=f"{player.adp:.1f}")
+        entry = tk.Entry(
+            input_frame,
+            textvariable=adp_var,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 11),
+            width=10
+        )
+        entry.pack(side='left')
+        entry.focus()
+        entry.select_range(0, tk.END)
+        
+        # Buttons
+        button_frame = tk.Frame(dialog, bg=DARK_THEME['bg_secondary'])
+        button_frame.pack(pady=10)
+        
+        def save_adp():
+            try:
+                new_adp = float(adp_var.get())
+                if new_adp < 1.0 or new_adp > 300.0:
+                    raise ValueError("ADP must be between 1.0 and 300.0")
+                
+                # Update player's ADP
+                player.adp = new_adp
+                
+                # Re-sort if currently sorted by ADP
+                if self.current_sort_column == 'adp':
+                    self.sort_players(self.current_sort_column)
+                else:
+                    # Just update the display
+                    self.update_display()
+                
+                dialog.destroy()
+                
+            except ValueError as e:
+                error_label = tk.Label(
+                    dialog,
+                    text=str(e) if "must be between" in str(e) else "Invalid ADP value",
+                    bg=DARK_THEME['bg_secondary'],
+                    fg='#ff6b6b',
+                    font=(DARK_THEME['font_family'], 9)
+                )
+                error_label.pack(pady=5)
+                dialog.after(3000, error_label.destroy)
+        
+        save_btn = tk.Button(
+            button_frame,
+            text="SAVE",
+            command=save_adp,
+            bg=DARK_THEME['button_active'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 10, 'bold'),
+            padx=20,
+            pady=5,
+            bd=0,
+            highlightthickness=0
+        )
+        save_btn.pack(side='left', padx=5)
+        
+        cancel_btn = tk.Button(
+            button_frame,
+            text="CANCEL",
+            command=dialog.destroy,
+            bg=DARK_THEME['button_bg'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            padx=20,
+            pady=5,
+            bd=0,
+            highlightthickness=0
+        )
+        cancel_btn.pack(side='left', padx=5)
+        
+        # Bind Enter to save
+        entry.bind('<Return>', lambda e: save_adp())
+        
+        # Bind Escape to cancel
+        dialog.bind('<Escape>', lambda e: dialog.destroy())
     
     def _toggle_watch_list(self, player):
         """Toggle player in watch list"""

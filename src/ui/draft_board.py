@@ -116,6 +116,9 @@ class DraftBoard(StyledFrame):
             button.pack(fill='both', expand=True)
             self.team_buttons[team_id] = button
         
+        # Create storage for team labels
+        self.team_labels = {}
+        
         # Team headers
         for team_id in range(1, self.num_teams + 1):
             team = self.teams[team_id]
@@ -138,6 +141,9 @@ class DraftBoard(StyledFrame):
                 font=(DARK_THEME['font_family'], 11, 'bold')
             )
             team_label.place(relx=0.5, rely=0.5, anchor='center')
+            
+            # Store reference to team label
+            self.team_labels[team_id] = team_label
         
         # Create pick slots for visible rounds only
         pick_number = 1
@@ -578,3 +584,9 @@ class DraftBoard(StyledFrame):
         
         # Clear resizing flag
         self._is_resizing = False
+    
+    def update_team_names(self, teams):
+        """Update team names in the draft board headers"""
+        for team_id, team in teams.items():
+            if team_id in self.team_labels:
+                self.team_labels[team_id].config(text=team.name)

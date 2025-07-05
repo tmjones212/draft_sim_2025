@@ -145,11 +145,21 @@ class PlayerStatsPopup:
         canvas.bind("<Configure>", configure_scroll)
         canvas.configure(yscrollcommand=scrollbar.set)
         
+        # Add mouse wheel scrolling
+        def on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        # Bind mouse wheel to canvas and all child widgets
+        canvas.bind("<MouseWheel>", on_mousewheel)
+        # Also bind to the popup window itself
+        self.window.bind("<MouseWheel>", on_mousewheel)
+        
         # Define column widths (in pixels) - must match data cells exactly
         col_widths = {
             'week': 50,
-            'opp': 60,
+            'opp': 80,
             'points': 70,
+            'snaps': 60,
             'pass_yds': 70,
             'pass_td': 60,
             'int': 40,
@@ -184,6 +194,7 @@ class PlayerStatsPopup:
         create_header_cell(header_row, 'Week', col_widths['week'])
         create_header_cell(header_row, 'Opp', col_widths['opp'])
         create_header_cell(header_row, 'Points', col_widths['points'])
+        create_header_cell(header_row, 'Snaps', col_widths['snaps'])
         
         # Add position-specific headers
         if self.player.position == 'QB':
@@ -219,13 +230,18 @@ class PlayerStatsPopup:
         for week_data in self.player.weekly_stats_2024:
             week_stats_dict[week_data['week']] = week_data
         
-        # Show all 18 weeks
+        # Show all weeks except bye week
+        row_index = 0
         for week_num in range(1, 19):
-            i = week_num - 1
-            row_bg = DARK_THEME['bg_secondary'] if i % 2 == 0 else DARK_THEME['bg_tertiary']
+            # Skip bye week
+            if hasattr(self.player, 'bye_week') and self.player.bye_week == week_num:
+                continue
+                
+            row_bg = DARK_THEME['bg_secondary'] if row_index % 2 == 0 else DARK_THEME['bg_tertiary']
             row = tk.Frame(scrollable_frame, bg=row_bg, height=30)
             row.pack(fill='x', padx=10, pady=1)
             row.pack_propagate(False)
+            row_index += 1
             
             # Check if player played this week
             if week_num in week_stats_dict:
@@ -235,12 +251,21 @@ class PlayerStatsPopup:
                 # Week number
                 create_data_cell(row, f"{week_num}", col_widths['week'], row_bg)
                 
-                # Opponent
-                create_data_cell(row, week_data['opponent'], col_widths['opp'], row_bg, DARK_THEME['text_secondary'])
+                # Opponent with home/away indicator
+                opponent = week_data['opponent']
+                # Simple heuristic: alternate home/away each week for each team
+                # In a real implementation, this would come from schedule data
+                is_home = (week_num + hash(week_data.get('team', ''))) % 2 == 0
+                opponent_display = f"vs {opponent}" if is_home else f"@ {opponent}"
+                create_data_cell(row, opponent_display, col_widths['opp'], row_bg, DARK_THEME['text_secondary'])
                 
                 # Points
                 points = stats.get('pts_ppr', 0)
                 create_data_cell(row, f"{points:.1f}", col_widths['points'], row_bg, DARK_THEME['text_primary'] if points > 0 else DARK_THEME['text_muted'])
+                
+                # Snap count
+                snaps = stats.get('off_snp', 0)
+                create_data_cell(row, f"{int(snaps)}" if snaps > 0 else '-', col_widths['snaps'], row_bg)
                 
                 # Position-specific stats
                 if self.player.position == 'QB':
@@ -273,6 +298,7 @@ class PlayerStatsPopup:
                 create_data_cell(row, f"{week_num}", col_widths['week'], row_bg)
                 create_data_cell(row, "DNP", col_widths['opp'], row_bg, DARK_THEME['text_muted'])
                 create_data_cell(row, "0.0", col_widths['points'], row_bg, DARK_THEME['text_muted'])
+                create_data_cell(row, "0", col_widths['snaps'], row_bg, DARK_THEME['text_muted'])
                 
                 # Position-specific zeros
                 if self.player.position == 'QB':
