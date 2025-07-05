@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import json
 import os
+import statistics
 from typing import Dict, List, Optional
 from PIL import Image, ImageTk
 from .theme import DARK_THEME, get_position_color
@@ -28,6 +29,7 @@ class GameHistory(StyledFrame):
         self.sort_ascending = True
         self.search_var = tk.StringVar()
         self.view_mode = "detailed"  # "detailed" or "summarized"
+        self.min_games_var = tk.IntVar(value=1)  # Minimum games filter
         
         # Filter history for back button
         self.filter_history = []
@@ -264,12 +266,41 @@ class GameHistory(StyledFrame):
         )
         self.summarized_btn.pack(side='left', padx=1)
         
+        # Minimum games filter (only shown in summarized view)
+        self.games_filter_frame = tk.Frame(filter_frame, bg=DARK_THEME['bg_secondary'])
+        self.games_filter_frame.pack(side='left', padx=(20, 0))
+        
+        self.games_label = tk.Label(
+            self.games_filter_frame,
+            text="Min Games:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        self.games_label.pack(side='left', padx=(0, 5))
+        
+        self.games_spinbox = tk.Spinbox(
+            self.games_filter_frame,
+            from_=1,
+            to=17,
+            textvariable=self.min_games_var,
+            width=3,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            command=self.on_min_games_changed
+        )
+        self.games_spinbox.pack(side='left')
+        
+        # Initially hide games filter
+        self.games_filter_frame.pack_forget()
+        
         # Table container
         table_container = StyledFrame(container, bg_type='secondary')
         table_container.pack(fill='both', expand=True)
         
         # Create treeview for table
-        columns = ('player', 'pos', 'team', 'week', 'opp', 'pts', 'snaps', 'comp', 'pass_yd', 'pass_td', 
+        columns = ('player', 'pos', 'team', 'week', 'opp', 'pts', 'median', 'avg', 'snaps', 'comp', 'pass_yd', 'pass_td', 
                   'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td')
         
         self.tree = ttk.Treeview(
@@ -287,6 +318,8 @@ class GameHistory(StyledFrame):
         self.tree.column('week', width=35, anchor='center')
         self.tree.column('opp', width=50, anchor='center')
         self.tree.column('pts', width=50, anchor='center')
+        self.tree.column('median', width=50, anchor='center')
+        self.tree.column('avg', width=50, anchor='center')
         self.tree.column('snaps', width=45, anchor='center')
         self.tree.column('comp', width=45, anchor='center')
         self.tree.column('pass_yd', width=60, anchor='center')
@@ -304,6 +337,8 @@ class GameHistory(StyledFrame):
         self.tree.heading('week', text='Wk', command=lambda: self.sort_by('week'))
         self.tree.heading('opp', text='Opp', command=lambda: self.sort_by('opp'))
         self.tree.heading('pts', text='Pts', command=lambda: self.sort_by('pts'))
+        self.tree.heading('median', text='Med', command=lambda: self.sort_by('median'))
+        self.tree.heading('avg', text='Avg', command=lambda: self.sort_by('avg'))
         self.tree.heading('snaps', text='Snaps', command=lambda: self.sort_by('snaps'))
         self.tree.heading('comp', text='Comp', command=lambda: self.sort_by('comp'))
         self.tree.heading('pass_yd', text='Pass Yds', command=lambda: self.sort_by('pass_yd'))
@@ -358,7 +393,43 @@ class GameHistory(StyledFrame):
         self.status_label.pack(pady=5)
         
     def load_weekly_stats(self):
-        """Load all weekly stats data"""
+        """Load all weekly stats data from aggregated file"""
+        # Try to load from aggregated file first
+        stats_file = os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', 'aggregated_player_stats_2024.json')
+        stats_file = os.path.abspath(stats_file)
+        
+        if os.path.exists(stats_file):
+            try:
+                with open(stats_file, 'r') as f:
+                    all_player_data = json.load(f)
+                
+                # Reorganize data by week
+                for player_id, player_data in all_player_data.items():
+                    if player_id not in self.player_lookup:
+                        continue
+                    
+                    player = self.player_lookup[player_id]
+                    weekly_stats = player_data.get('weekly_stats', [])
+                    
+                    for week_data in weekly_stats:
+                        week = week_data.get('week', 0)
+                        if week < 1 or week > 18:
+                            continue
+                        
+                        if week not in self.weekly_stats:
+                            self.weekly_stats[week] = {}
+                        
+                        # Store the week data directly (not in a list)
+                        # This ensures only one entry per player per week
+                        self.weekly_stats[week][player_id] = week_data
+                
+                self.apply_filters()
+                self.status_label.config(text=f"Loaded {len(self.weekly_stats)} weeks of game data")
+                return
+            except Exception as e:
+                print(f"Error loading aggregated stats: {e}")
+        
+        # Fallback to old method if aggregated file doesn't exist
         stats_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', 'stats_data')
         stats_dir = os.path.abspath(stats_dir)
         
@@ -423,6 +494,10 @@ class GameHistory(StyledFrame):
                 points += SCORING_CONFIG['bonus_rec_100_yards']
         
         return points
+    
+    def on_min_games_changed(self):
+        """Handle minimum games filter changes"""
+        self.apply_filters()
         
     def apply_filters(self):
         """Apply all filters and update display"""
@@ -449,7 +524,7 @@ class GameHistory(StyledFrame):
         # Add to tree
         for row in rows:
             values = (row['player'], row['pos'], row['team'], row['week'], row['opp'],
-                     row['pts'], row['snaps'], row['comp'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
+                     row['pts'], row.get('median', '-'), row.get('avg', '-'), row['snaps'], row['comp'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
                      row['rush_td'], row['rec'], row['rec_yd'], row['rec_td'])
             
             # Add row with alternating colors
@@ -515,6 +590,11 @@ class GameHistory(StyledFrame):
                     # Process the game
                     for stat in stats_list:
                         stats = stat.get('stats', {})
+                        
+                        # Skip games where player didn't play (0 snaps)
+                        if int(stats.get('off_snp', 0)) == 0:
+                            continue
+                        
                         opponent = stat.get('opponent', '')
                         player_team = stat.get('team', player.team)
                         
@@ -581,7 +661,7 @@ class GameHistory(StyledFrame):
                 if selected_week != "ALL" and str(week) != selected_week:
                     continue
                 
-                for player_id, stats_list in week_data.items():
+                for player_id, stats_data in week_data.items():
                     if player_id not in self.player_lookup:
                         continue
                         
@@ -598,9 +678,17 @@ class GameHistory(StyledFrame):
                     if search_text and search_text not in player.name.lower():
                         continue
                     
+                    # Handle both single stat object and list of stats
+                    stats_list = stats_data if isinstance(stats_data, list) else [stats_data]
+                    
                     # Process each game for this player
                     for stat in stats_list:
                         stats = stat.get('stats', {})
+                        
+                        # Skip games where player didn't play (0 snaps)
+                        if int(stats.get('off_snp', 0)) == 0:
+                            continue
+                        
                         opponent = stat.get('opponent', '')
                         player_team = stat.get('team', player.team)
                         
@@ -674,7 +762,7 @@ class GameHistory(StyledFrame):
             if selected_week != "ALL" and str(week) != selected_week:
                 continue
             
-            for player_id, stats_list in week_data.items():
+            for player_id, stats_data in week_data.items():
                 if player_id not in self.player_lookup:
                     continue
                     
@@ -707,18 +795,34 @@ class GameHistory(StyledFrame):
                         'rush_td': 0,
                         'rec': 0,
                         'rec_yd': 0,
-                        'rec_td': 0
+                        'rec_td': 0,
+                        'game_points': []  # Track individual game points for median/avg
                     }
+                
+                # Handle both single stat object and list of stats
+                stats_list = stats_data if isinstance(stats_data, list) else [stats_data]
                 
                 # Aggregate stats
                 for stat in stats_list:
                     stats = stat.get('stats', {})
                     totals = player_totals[player_id]
+                    
+                    # Only count as a game if player actually played (had snaps)
+                    game_snaps = int(stats.get('off_snp', 0))
+                    if game_snaps == 0:
+                        continue
+                    
                     totals['games'] += 1
                     # Calculate custom points for this game
                     custom_pts = self.calculate_custom_points(stats, player.position)
                     totals['pts'] += custom_pts
-                    totals['snaps'] += int(stats.get('off_snp', 0))
+                    
+                    # Track game points if player had meaningful participation
+                    # (20+ snaps OR 20+ points)
+                    if game_snaps >= 20 or custom_pts >= 20:
+                        totals['game_points'].append(custom_pts)
+                    
+                    totals['snaps'] += game_snaps
                     if player.position == 'QB':
                         totals['comp'] += int(stats.get('pass_cmp', 0))
                         totals['pass_yd'] += int(stats.get('pass_yd', 0))
@@ -732,6 +836,18 @@ class GameHistory(StyledFrame):
         
         # Convert to rows
         for player_id, totals in player_totals.items():
+            # Apply minimum games filter
+            if totals['games'] < self.min_games_var.get():
+                continue
+                
+            # Calculate median and average from games with meaningful participation
+            if totals['game_points']:
+                median_pts = statistics.median(totals['game_points'])
+                avg_pts = statistics.mean(totals['game_points'])
+            else:
+                median_pts = 0
+                avg_pts = 0
+            
             row = {
                 'player': totals['player'],
                 'pos': totals['pos'],
@@ -739,6 +855,8 @@ class GameHistory(StyledFrame):
                 'week': f"{totals['games']}g",  # Show games played
                 'opp': '2024',  # Show year instead of opponent
                 'pts': f"{totals['pts']:.1f}",
+                'median': f"{median_pts:.1f}" if median_pts > 0 else '-',
+                'avg': f"{avg_pts:.1f}" if avg_pts > 0 else '-',
                 'snaps': totals['snaps'] if totals['snaps'] > 0 else '-',
                 'comp': totals['comp'] if totals['comp'] > 0 else '-',
                 'pass_yd': totals['pass_yd'] if totals['pass_yd'] > 0 else '-',
@@ -749,7 +867,9 @@ class GameHistory(StyledFrame):
                 'rec_yd': totals['rec_yd'] if totals['rec_yd'] > 0 else '-',
                 'rec_td': totals['rec_td'] if totals['rec_td'] > 0 else '-',
                 '_pts_float': totals['pts'],  # For sorting
-                '_week_int': totals['games']  # For sorting
+                '_week_int': totals['games'],  # For sorting
+                '_median_float': median_pts,  # For sorting
+                '_avg_float': avg_pts  # For sorting
             }
             rows.append(row)
         
@@ -766,6 +886,10 @@ class GameHistory(StyledFrame):
                 return row['_week_int']
             elif self.sort_column == 'pts':
                 return row['_pts_float']
+            elif self.sort_column == 'median':
+                return row.get('_median_float', 0)
+            elif self.sort_column == 'avg':
+                return row.get('_avg_float', 0)
             elif self.sort_column in ['snaps', 'comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']:
                 val = row[self.sort_column]
                 return 0 if val == '-' else int(val)
@@ -812,10 +936,16 @@ class GameHistory(StyledFrame):
         if mode == "detailed":
             self.detailed_btn.config(bg=DARK_THEME['button_active'])
             self.summarized_btn.config(bg=DARK_THEME['button_bg'])
+            # Hide games filter
+            self.games_filter_frame.pack_forget()
         else:
             self.detailed_btn.config(bg=DARK_THEME['button_bg'])
             self.summarized_btn.config(bg=DARK_THEME['button_active'])
+            # Show games filter
+            self.games_filter_frame.pack(side='left', padx=(20, 0))
         
+        # Update column visibility for new mode
+        self.update_column_visibility()
         self.apply_filters()
     
     def update_column_visibility(self):
@@ -823,6 +953,14 @@ class GameHistory(StyledFrame):
         # Define which columns are relevant for each position
         qb_columns = ['comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td']
         skill_columns = ['rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']
+        
+        # Show/hide median and avg columns based on view mode
+        if self.view_mode == "summarized":
+            self.tree.column('median', width=50)
+            self.tree.column('avg', width=50)
+        else:
+            self.tree.column('median', width=0, stretch=False)
+            self.tree.column('avg', width=0, stretch=False)
         
         if self.selected_position == "QB":
             # Show QB columns, hide receiving columns

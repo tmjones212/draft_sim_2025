@@ -87,3 +87,10 @@ When you learn useful things that would be helpful in the future, memorialize th
 ### Player List Changes
 - Rank column now shows VAR rank instead of overall rank
 - Default sort remains ADP (ascending)
+
+### Game History Data Loading (2025-07-05)
+- Fixed duplicate game counting issue
+- Now loads from aggregated_player_stats_2024.json file first
+- Falls back to individual week files in stats_data/ directory if needed
+- Ensures only one entry per player per week
+- Handles both single stat objects and lists of stats for compatibility
