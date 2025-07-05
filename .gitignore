@@ -2,3 +2,5 @@ venv/*
 scripts/*.json
 scripts/projections_data/*
 scripts/stats_data/*
+assets/team_logos/*
+assets/player_images/*

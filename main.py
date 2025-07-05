@@ -30,8 +30,8 @@ class MockDraftApp:
         # Set minimum window size
         self.root.minsize(1800, 900)
         
-        # Center the window on screen
-        self.center_window()
+        # Center the window on screen after UI loads
+        self.root.after(100, self.center_window)
         
         # Initialize draft components
         self.teams = self._create_teams()
@@ -47,9 +47,8 @@ class MockDraftApp:
         self.available_players = []
         self.players_loaded = False
         
-        # Initialize services
-        from src.services import PlayerImageService
-        self.image_service = PlayerImageService()
+        # Defer image service initialization
+        self.image_service = None
         
         # User control state
         self.user_team_id = None  # Which team the user controls
@@ -66,15 +65,35 @@ class MockDraftApp:
         self.custom_rankings = {}
         self.player_tiers = {}
         
+        # Quick loading indicator
+        loading_label = tk.Label(
+            self.root,
+            text="Loading...",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 16)
+        )
+        loading_label.pack(expand=True)
+        self.quick_loading = loading_label
+        
+        # Start loading players immediately
+        self.load_players_async()
+        
+        # Defer UI setup slightly to show window faster
+        self.root.after(1, self.setup_ui_deferred)
+    
+    def setup_ui_deferred(self):
+        """Setup UI components after window is shown"""
+        # Remove quick loading
+        if hasattr(self, 'quick_loading'):
+            self.quick_loading.destroy()
+        
         # Setup UI
         self.setup_ui()
         self.setup_keyboard_shortcuts()
         
-        # Show loading message
+        # Show loading message for players
         self.show_loading_message()
-        
-        # Start loading players in background thread
-        self.load_players_async()
     
     def _create_teams(self):
         teams = {}
@@ -87,6 +106,11 @@ class MockDraftApp:
         return teams
     
     def setup_ui(self):
+        # Initialize image service lazily
+        if self.image_service is None:
+            from src.services import PlayerImageService
+            self.image_service = PlayerImageService()
+        
         # Main container
         main_frame = StyledFrame(self.root, bg_type='primary')
         main_frame.pack(fill='both', expand=True, padx=15, pady=15)
@@ -163,6 +187,18 @@ class MockDraftApp:
             pady=10
         )
         self.restart_button.pack(side='left', padx=(0, 10))
+        
+        # Repick Spot button
+        self.repick_button = StyledButton(
+            button_container,
+            text="REPICK SPOT",
+            command=self.repick_spot,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            padx=20,
+            pady=10
+        )
+        self.repick_button.pack(side='left', padx=(0, 10))
         
         # Draft button (disabled until team selected)
         self.draft_button = StyledButton(
@@ -251,17 +287,14 @@ class MockDraftApp:
         paned_window.add(top_frame, stretch='always')
         paned_window.add(player_panel, stretch='always')
         
-        # Set initial sash position (65% for top, 35% for bottom - more room for player list)
-        paned_window.update_idletasks()  # Ensure geometry is calculated
-        paned_window.sash_place(0, 0, int(paned_window.winfo_height() * 0.65))
+        # Defer sash positioning to avoid layout calculations during startup
+        self.root.after(50, lambda: self._set_sash_position(paned_window))
         
-        # Tab 2: Cheat Sheet
-        cheat_sheet_tab = StyledFrame(self.notebook, bg_type='primary')
-        self.notebook.add(cheat_sheet_tab, text="Cheat Sheet")
-        
-        # Initialize cheat sheet (will be populated when players are loaded)
-        self.cheat_sheet_container = cheat_sheet_tab
+        # Tab 2: Cheat Sheet (defer creation)
+        self.cheat_sheet_container = StyledFrame(self.notebook, bg_type='primary')
+        self.notebook.add(self.cheat_sheet_container, text="Cheat Sheet")
         self._cheat_sheet_needs_sync = False
+        self.cheat_sheet = None  # Will be created on first access
     
     def update_display(self, full_update=True):
         # Update status
@@ -381,8 +414,8 @@ class MockDraftApp:
             print(f"[{time.time()-start_time:.3f}s] Roster view updated")
             
             # Show pick quality indicator
-            current_pick_num = self.draft_engine.get_current_pick_info()[0] - 1  # -1 because pick was just made
-            self.show_pick_quality(player, current_pick_num)
+            # current_pick_num = self.draft_engine.get_current_pick_info()[0] - 1  # -1 because pick was just made
+            # self.show_pick_quality(player, current_pick_num)
             
             # Check if we need to auto-draft next
             print(f"[{time.time()-start_time:.3f}s] Checking auto-draft...")
@@ -427,6 +460,13 @@ class MockDraftApp:
         """Select player by index (for number keys)"""
         if index < len(self.player_list.player_cards):
             self.player_list.select_player(index)
+    
+    def _set_sash_position(self, paned_window):
+        """Set sash position after layout is complete"""
+        paned_window.update_idletasks()
+        height = paned_window.winfo_height()
+        if height > 1:  # Ensure we have a valid height
+            paned_window.sash_place(0, 0, int(height * 0.65))
     
     def on_team_selected(self, team_id):
         """Handle team selection for user control"""
@@ -794,21 +834,8 @@ class MockDraftApp:
         if hasattr(self.draft_board, '_update_pending'):
             self.draft_board._update_pending = False
         
-        # Clear all pick widgets content more efficiently
-        for pick_num, pick_widget in self.draft_board.pick_widgets.items():
-            # Clear any player info frames in one pass
-            children = list(pick_widget.winfo_children())
-            for widget in children:
-                # Only destroy player info frames, not the pick number label
-                if isinstance(widget, tk.Frame) and hasattr(widget, 'winfo_y'):
-                    try:
-                        if widget.winfo_y() > 20:  # Player info is below pick number
-                            widget.destroy()
-                    except:
-                        # Widget might already be destroyed
-                        pass
-            # Reset background color
-            pick_widget.config(bg=DARK_THEME['bg_tertiary'], relief='flat')
+        # Clear all pick widgets content using the draft board's method
+        self.draft_board.clear_picks_after(1)  # Clear all picks starting from pick 1
         
         # Reset player list efficiently
         self.player_list._initialized = False  # Force full refresh
@@ -857,6 +884,97 @@ class MockDraftApp:
         
         # Start auto-drafting from the beginning if needed
         self.check_auto_draft()
+    
+    def repick_spot(self):
+        """Reset the draft and clear user team selection to allow repicking"""
+        # Reset teams
+        self.teams = self._create_teams()
+        
+        # Reset draft engine
+        self.draft_engine = DraftEngine(
+            num_teams=config.num_teams,
+            roster_spots=config.roster_spots,
+            draft_type=config.draft_type,
+            reversal_round=config.reversal_round
+        )
+        
+        # Reset players - load in background if needed
+        if self.players_loaded:
+            # Already loaded, just reset the lists
+            self.available_players = list(self.all_players)
+        else:
+            # Still loading, wait for it to complete
+            self.available_players = []
+        
+        # Clear user team selection - this is the key difference from restart_draft
+        self.user_team_id = None
+        
+        # Clear position count cache
+        self._position_counts_cache.clear()
+        
+        # Reset draft board UI completely
+        self.draft_board.draft_results = []
+        self.draft_board._last_pick_count = 0
+        if hasattr(self.draft_board, '_last_highlighted_pick'):
+            delattr(self.draft_board, '_last_highlighted_pick')
+        if hasattr(self.draft_board, '_update_pending'):
+            self.draft_board._update_pending = False
+        
+        # Clear all pick widgets content using the draft board's method
+        self.draft_board.clear_picks_after(1)  # Clear all picks starting from pick 1
+        
+        # Reset all team selection buttons
+        for team_id, button in self.draft_board.team_buttons.items():
+            button.config(
+                bg=DARK_THEME['button_bg'],
+                fg='white',
+                text='Sit'
+            )
+        
+        # Start glow animation again since no team is selected
+        self.draft_board.selected_team_id = None
+        self.draft_board.start_glow_animation()
+        
+        # Reset player list
+        self.player_list._initialized = False
+        old_rows = self.player_list.row_frames[:]
+        self.player_list.row_frames = []
+        
+        for row in old_rows:
+            row.pack_forget()
+            self.player_list.hidden_rows.append(row)
+        
+        # Disable draft controls since no team is selected
+        self.draft_button.config(state='disabled', bg=DARK_THEME['button_bg'])
+        self.player_list.set_draft_enabled(False)
+        
+        # Update display with full refresh
+        self.update_display(full_update=True)
+        
+        # Force roster view to clear and update
+        self.roster_view.current_team_id = None
+        self.roster_view.update_roster_display()
+        
+        # Clear the watch list
+        watch_list = self.roster_view.get_watch_list()
+        if watch_list:
+            watch_list.clear_all()
+        
+        # Reset last roster team tracking
+        if hasattr(self, '_last_roster_team'):
+            delattr(self, '_last_roster_team')
+        
+        # Disable undo button
+        self.undo_button.config(state='disabled')
+        self.draft_state_before_reversion = None
+        self.players_before_reversion = None
+        
+        # Highlight pick 1 on the draft board
+        self.draft_board.highlight_current_pick()
+        
+        # Show status prompting user to select a team
+        self.status_label.config(text="Select a team to control")
+        self.on_clock_label.config(text="Click on a team name in the draft board")
     
     def on_pick_clicked(self, pick_number):
         """Handle clicking on a completed pick to revert draft to that point"""
@@ -1126,16 +1244,7 @@ class MockDraftApp:
         if hasattr(self, 'loading_label'):
             self.loading_label.destroy()
         
-        # Create cheat sheet now that players are loaded
-        self.cheat_sheet = CheatSheet(
-            self.cheat_sheet_container,
-            self.all_players,
-            on_rankings_update=self.on_cheat_sheet_update
-        )
-        self.cheat_sheet.pack(fill='both', expand=True)
-        
-        # Force focus to enable mouse wheel scrolling
-        self.cheat_sheet.focus_set()
+        # Don't create cheat sheet until tab is accessed
         
         # Update display with loaded players
         self.update_display(full_update=True)
@@ -1151,10 +1260,20 @@ class MockDraftApp:
         selected_tab = self.notebook.select()
         tab_text = self.notebook.tab(selected_tab, "text")
         
-        if tab_text == "Cheat Sheet" and hasattr(self, 'cheat_sheet'):
-            # Force focus to cheat sheet for mouse wheel scrolling
-            self.root.after(10, lambda: self.cheat_sheet.focus_set())
-        elif tab_text == "Draft" and self._cheat_sheet_needs_sync and hasattr(self, 'cheat_sheet'):
+        if tab_text == "Cheat Sheet":
+            # Create cheat sheet on first access
+            if self.cheat_sheet is None and self.players_loaded:
+                self.cheat_sheet = CheatSheet(
+                    self.cheat_sheet_container,
+                    self.all_players,
+                    on_rankings_update=self.on_cheat_sheet_update
+                )
+                self.cheat_sheet.pack(fill='both', expand=True)
+            
+            if self.cheat_sheet:
+                # Force focus to cheat sheet for mouse wheel scrolling
+                self.root.after(10, lambda: self.cheat_sheet.focus_set())
+        elif tab_text == "Draft" and self._cheat_sheet_needs_sync and self.cheat_sheet:
             # Sync rankings when switching back to draft tab
             self._cheat_sheet_needs_sync = False
             self.on_cheat_sheet_update(self.cheat_sheet.custom_rankings, self.cheat_sheet.player_tiers)
