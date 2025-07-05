@@ -669,8 +669,12 @@ class PlayerList(StyledFrame):
         # Team
         self.create_cell(row, player.team or '-', 45, bg, select_row, field_type='team')
         
-        # ADP
-        self.create_cell(row, f"{player.adp:.1f}" if player.adp else '-', 45, bg, select_row, field_type='adp')
+        # ADP (editable)
+        adp_text = f"{player.adp:.1f}" if player.adp else '-'
+        adp_cell = self.create_cell(row, adp_text, 45, bg, select_row, field_type='adp')
+        # Make ADP cell look more clickable
+        if player.adp:
+            adp_cell.config(fg=DARK_THEME['text_accent'], cursor='hand2')
         
         # Stats
         games_text = str(getattr(player, 'games_2024', 0) or 0)
@@ -739,19 +743,43 @@ class PlayerList(StyledFrame):
             
             # Add double-click to edit ADP
             if field_type == 'adp' and hasattr(parent, 'player'):
-                cell.bind('<Double-Button-1>', lambda e: self._edit_player_adp(parent.player))
+                def edit_adp(e):
+                    self._edit_player_adp(parent.player)
+                    return "break"  # Prevent event propagation
+                
+                cell.bind('<Double-Button-1>', edit_adp)
+                cell_frame.bind('<Double-Button-1>', edit_adp)
                 cell.config(cursor='hand2')  # Show hand cursor to indicate it's clickable
                 
                 # Add hover effect to show it's editable
-                def on_enter(e, c=cell):
-                    c.config(fg=DARK_THEME['text_accent'])
-                def on_leave(e, c=cell):
+                def on_enter(e, c=cell, cf=cell_frame):
+                    c.config(fg='#4ECDC4')  # Bright teal to show editable
+                    # Show tooltip
+                    tooltip = tk.Label(
+                        self.winfo_toplevel(),
+                        text="Double-click to edit ADP",
+                        bg='#333333',
+                        fg='white',
+                        font=(DARK_THEME['font_family'], 9),
+                        padx=5,
+                        pady=2
+                    )
+                    tooltip.place(x=cf.winfo_rootx(), y=cf.winfo_rooty() - 25)
+                    cf._tooltip = tooltip
+                    
+                def on_leave(e, c=cell, cf=cell_frame):
                     c.config(fg=DARK_THEME['text_primary'])
+                    if hasattr(cf, '_tooltip'):
+                        cf._tooltip.destroy()
+                        delattr(cf, '_tooltip')
+                        
                 cell.bind('<Enter>', on_enter)
                 cell.bind('<Leave>', on_leave)
+                cell_frame.bind('<Enter>', on_enter)
+                cell_frame.bind('<Leave>', on_leave)
         
-        # Also bind double-click if the parent row has it
-        if hasattr(parent, '_double_click_handler'):
+        # Also bind double-click if the parent row has it (but not for ADP cells)
+        if hasattr(parent, '_double_click_handler') and field_type != 'adp':
             cell.bind('<Double-Button-1>', parent._double_click_handler)
             cell_frame.bind('<Double-Button-1>', parent._double_click_handler)
         

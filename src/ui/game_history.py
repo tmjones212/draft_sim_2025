@@ -22,6 +22,11 @@ class GameHistory(StyledFrame):
         self.sort_column = None
         self.sort_ascending = True
         self.search_var = tk.StringVar()
+        self.roster_position_filter = None  # For QB1, RB1, etc.
+        
+        # Filter history for back button
+        self.filter_history = []
+        self.current_filter_state = None
         
         self.setup_ui()
         self.load_weekly_stats()
@@ -48,7 +53,7 @@ class GameHistory(StyledFrame):
         filter_frame = StyledFrame(container, bg_type='secondary')
         filter_frame.pack(fill='x', pady=(0, 10))
         
-        # Search box
+        # Search box with real-time filtering
         search_label = tk.Label(
             filter_frame,
             text="Search:",
@@ -58,7 +63,7 @@ class GameHistory(StyledFrame):
         )
         search_label.pack(side='left', padx=(0, 5))
         
-        search_entry = tk.Entry(
+        self.search_entry = tk.Entry(
             filter_frame,
             textvariable=self.search_var,
             bg=DARK_THEME['bg_tertiary'],
@@ -66,8 +71,8 @@ class GameHistory(StyledFrame):
             font=(DARK_THEME['font_family'], 10),
             width=20
         )
-        search_entry.pack(side='left', padx=(0, 20))
-        self.search_var.trace('w', lambda *args: self.apply_filters())
+        self.search_entry.pack(side='left', padx=(0, 20))
+        self.search_var.trace('w', lambda *args: self.on_search_changed())
         
         # Position filter
         pos_label = tk.Label(
@@ -79,29 +84,64 @@ class GameHistory(StyledFrame):
         )
         pos_label.pack(side='left', padx=(0, 5))
         
-        positions = ["ALL", "QB", "RB", "WR", "TE"]
+        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX", "QB1", "RB1", "RB2", "WR1", "WR2", "TE1"]
         self.position_buttons = {}
         
-        for pos in positions:
+        # Create two rows of position buttons
+        pos_container = tk.Frame(filter_frame, bg=DARK_THEME['bg_secondary'])
+        pos_container.pack(side='left', padx=(0, 20))
+        
+        # First row - main positions
+        pos_row1 = tk.Frame(pos_container, bg=DARK_THEME['bg_secondary'])
+        pos_row1.pack()
+        
+        for pos in ["ALL", "QB", "RB", "WR", "TE", "FLEX"]:
             if pos == "ALL":
+                btn_bg = DARK_THEME['button_active'] if pos == self.selected_position else DARK_THEME['button_bg']
+            elif pos == "FLEX":
                 btn_bg = DARK_THEME['button_active'] if pos == self.selected_position else DARK_THEME['button_bg']
             else:
                 btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
             
             btn = tk.Button(
-                filter_frame,
+                pos_row1,
                 text=pos,
                 bg=btn_bg,
                 fg='white',
                 font=(DARK_THEME['font_family'], 9, 'bold'),
                 bd=0,
                 relief='flat',
-                padx=12,
-                pady=4,
+                padx=10,
+                pady=3,
                 command=lambda p=pos: self.filter_by_position(p),
                 cursor='hand2'
             )
-            btn.pack(side='left', padx=2)
+            btn.pack(side='left', padx=1)
+            self.position_buttons[pos] = btn
+        
+        # Second row - roster positions
+        pos_row2 = tk.Frame(pos_container, bg=DARK_THEME['bg_secondary'])
+        pos_row2.pack(pady=(2, 0))
+        
+        for pos in ["QB1", "RB1", "RB2", "WR1", "WR2", "TE1"]:
+            # Extract base position for color
+            base_pos = pos[:-1]
+            btn_bg = get_position_color(base_pos) if pos == self.selected_position else DARK_THEME['button_bg']
+            
+            btn = tk.Button(
+                pos_row2,
+                text=pos,
+                bg=btn_bg,
+                fg='white',
+                font=(DARK_THEME['font_family'], 8, 'bold'),
+                bd=0,
+                relief='flat',
+                padx=8,
+                pady=2,
+                command=lambda p=pos: self.filter_by_roster_position(p),
+                cursor='hand2'
+            )
+            btn.pack(side='left', padx=1)
             self.position_buttons[pos] = btn
         
         # Week filter
@@ -125,6 +165,39 @@ class GameHistory(StyledFrame):
         )
         self.week_dropdown.pack(side='left')
         self.week_dropdown.bind('<<ComboboxSelected>>', lambda e: self.apply_filters())
+        
+        # Clear filter button
+        self.clear_button = tk.Button(
+            filter_frame,
+            text="CLEAR",
+            bg=DARK_THEME['button_bg'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 9, 'bold'),
+            bd=0,
+            relief='flat',
+            padx=12,
+            pady=4,
+            command=self.clear_filters,
+            cursor='hand2'
+        )
+        self.clear_button.pack(side='left', padx=(20, 5))
+        
+        # Back button
+        self.back_button = tk.Button(
+            filter_frame,
+            text="← BACK",
+            bg=DARK_THEME['button_bg'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 9, 'bold'),
+            bd=0,
+            relief='flat',
+            padx=12,
+            pady=4,
+            command=self.go_back,
+            cursor='hand2',
+            state='disabled'
+        )
+        self.back_button.pack(side='left', padx=5)
         
         # Table container
         table_container = StyledFrame(container, bg_type='secondary')
@@ -202,6 +275,9 @@ class GameHistory(StyledFrame):
         table_container.grid_rowconfigure(0, weight=1)
         table_container.grid_columnconfigure(0, weight=1)
         
+        # Bind right-click
+        self.tree.bind('<Button-3>', self.on_right_click)
+        
         # Status label
         self.status_label = tk.Label(
             container,
@@ -247,6 +323,9 @@ class GameHistory(StyledFrame):
         
     def apply_filters(self):
         """Apply all filters and update display"""
+        # Save current filter state
+        self.save_filter_state()
+        
         search_text = self.search_var.get().lower()
         selected_week = self.week_var.get()
         
@@ -257,47 +336,114 @@ class GameHistory(StyledFrame):
         # Build filtered data
         rows = []
         
-        for week, week_data in self.weekly_stats.items():
-            # Skip if week filter is active
-            if selected_week != "ALL" and str(week) != selected_week:
-                continue
-                
-            for player_id, stats_list in week_data.items():
-                if player_id not in self.player_lookup:
+        # If roster position filter is active, we need to calculate ranks per week
+        if self.roster_position_filter:
+            for week, week_data in self.weekly_stats.items():
+                # Skip if week filter is active
+                if selected_week != "ALL" and str(week) != selected_week:
                     continue
+                
+                # Get all players of the selected position for this week
+                week_position_scores = []
+                for player_id, stats_list in week_data.items():
+                    if player_id not in self.player_lookup:
+                        continue
+                    player = self.player_lookup[player_id]
+                    if player.position == self.selected_position:
+                        for stat in stats_list:
+                            pts = stat.get('stats', {}).get('pts_ppr', 0)
+                            week_position_scores.append((player_id, pts))
+                
+                # Sort by points to get ranks
+                week_position_scores.sort(key=lambda x: x[1], reverse=True)
+                position_ranks = {pid: rank+1 for rank, (pid, _) in enumerate(week_position_scores)}
+                
+                # Extract rank number from filter (e.g., "RB1" -> 1)
+                target_rank = int(self.roster_position_filter[-1])
+                
+                # Process players for this week
+                for player_id, stats_list in week_data.items():
+                    if player_id not in self.player_lookup:
+                        continue
                     
-                player = self.player_lookup[player_id]
-                
-                # Position filter
-                if self.selected_position != "ALL" and player.position != self.selected_position:
-                    continue
-                
-                # Search filter
-                if search_text and search_text not in player.name.lower():
-                    continue
-                
-                # Process each game for this player
-                for stat in stats_list:
-                    stats = stat.get('stats', {})
+                    player = self.player_lookup[player_id]
                     
-                    row = {
-                        'player': format_name(player.name),
-                        'pos': player.position,
-                        'team': player.team or '-',
-                        'week': week,
-                        'opp': stat.get('opponent', '-'),
-                        'pts': f"{stats.get('pts_ppr', 0):.1f}",
-                        'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
-                        'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
-                        'rush_yd': int(stats.get('rush_yd', 0)),
-                        'rush_td': int(stats.get('rush_rec_td', 0) - stats.get('rec_td', 0)) if player.position != 'QB' else int(stats.get('rush_td', 0)),
-                        'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
-                        'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
-                        'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
-                        '_pts_float': stats.get('pts_ppr', 0),  # For sorting
-                        '_week_int': week  # For sorting
-                    }
-                    rows.append(row)
+                    # Check if this player has the target rank
+                    if position_ranks.get(player_id, 999) != target_rank:
+                        continue
+                    
+                    # Search filter
+                    if search_text and search_text not in player.name.lower():
+                        continue
+                    
+                    # Process the game
+                    for stat in stats_list:
+                        stats = stat.get('stats', {})
+                        
+                        row = {
+                            'player': format_name(player.name),
+                            'pos': player.position,
+                            'team': player.team or '-',
+                            'week': week,
+                            'opp': stat.get('opponent', '-'),
+                            'pts': f"{stats.get('pts_ppr', 0):.1f}",
+                            'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
+                            'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
+                            'rush_yd': int(stats.get('rush_yd', 0)),
+                            'rush_td': int(stats.get('rush_rec_td', 0) - stats.get('rec_td', 0)) if player.position != 'QB' else int(stats.get('rush_td', 0)),
+                            'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
+                            'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
+                            'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
+                            '_pts_float': stats.get('pts_ppr', 0),  # For sorting
+                            '_week_int': week  # For sorting
+                        }
+                        rows.append(row)
+        else:
+            # Normal filtering without roster position
+            for week, week_data in self.weekly_stats.items():
+                # Skip if week filter is active
+                if selected_week != "ALL" and str(week) != selected_week:
+                    continue
+                
+                for player_id, stats_list in week_data.items():
+                    if player_id not in self.player_lookup:
+                        continue
+                        
+                    player = self.player_lookup[player_id]
+                    
+                    # Position filter
+                    if self.selected_position == "FLEX":
+                        if player.position not in ["RB", "WR", "TE"]:
+                            continue
+                    elif self.selected_position != "ALL" and player.position != self.selected_position:
+                        continue
+                    
+                    # Search filter
+                    if search_text and search_text not in player.name.lower():
+                        continue
+                    
+                    # Process each game for this player
+                    for stat in stats_list:
+                        stats = stat.get('stats', {})
+                        
+                        row = {
+                            'player': format_name(player.name),
+                            'pos': player.position,
+                            'team': player.team or '-',
+                            'week': week,
+                            'opp': stat.get('opponent', '-'),
+                            'pts': f"{stats.get('pts_ppr', 0):.1f}",
+                            'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
+                            'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
+                            'rush_yd': int(stats.get('rush_yd', 0)),
+                            'rush_td': int(stats.get('rush_rec_td', 0) - stats.get('rec_td', 0)) if player.position != 'QB' else int(stats.get('rush_td', 0)),
+                            'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
+                            'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
+                            'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
+                            '_pts_float': stats.get('pts_ppr', 0),  # For sorting
+                            '_week_int': week  # For sorting
+                        }
+                        rows.append(row)
         
         # Sort if needed
         if self.sort_column:
@@ -357,15 +503,151 @@ class GameHistory(StyledFrame):
     def filter_by_position(self, position):
         """Filter by position"""
         self.selected_position = position
+        self.roster_position_filter = None  # Clear roster position filter
         
         # Update button appearances
         for pos, btn in self.position_buttons.items():
             if pos == position:
                 if pos == "ALL":
                     btn.config(bg=DARK_THEME['button_active'])
+                elif pos == "FLEX":
+                    btn.config(bg=DARK_THEME['button_active'])
                 else:
                     btn.config(bg=get_position_color(pos))
             else:
                 btn.config(bg=DARK_THEME['button_bg'])
                 
+        self.apply_filters()
+    
+    def save_filter_state(self):
+        """Save current filter state to history"""
+        state = {
+            'search': self.search_var.get(),
+            'position': self.selected_position,
+            'week': self.week_var.get(),
+            'roster_position': self.roster_position_filter
+        }
+        
+        # Only save if different from current state
+        if self.current_filter_state != state:
+            if self.current_filter_state:
+                self.filter_history.append(self.current_filter_state)
+            self.current_filter_state = state
+            
+            # Enable/disable back button
+            self.back_button.config(state='normal' if self.filter_history else 'disabled')
+    
+    def clear_filters(self):
+        """Clear all filters"""
+        self.save_filter_state()
+        
+        self.search_var.set('')
+        self.selected_position = "ALL"
+        self.week_var.set("ALL")
+        self.roster_position_filter = None
+        
+        # Update button appearances
+        for pos, btn in self.position_buttons.items():
+            if pos == "ALL":
+                btn.config(bg=DARK_THEME['button_active'])
+            else:
+                btn.config(bg=DARK_THEME['button_bg'])
+        
+        self.apply_filters()
+    
+    def go_back(self):
+        """Go back to previous filter state"""
+        if self.filter_history:
+            # Save current state for redo if needed
+            prev_state = self.filter_history.pop()
+            
+            # Apply previous state
+            self.search_var.set(prev_state['search'])
+            self.selected_position = prev_state['position']
+            self.week_var.set(prev_state['week'])
+            self.roster_position_filter = prev_state.get('roster_position')
+            
+            # Update UI
+            for pos, btn in self.position_buttons.items():
+                if pos == self.selected_position:
+                    if pos == "ALL":
+                        btn.config(bg=DARK_THEME['button_active'])
+                    else:
+                        btn.config(bg=get_position_color(pos))
+                else:
+                    btn.config(bg=DARK_THEME['button_bg'])
+            
+            self.current_filter_state = prev_state
+            self.back_button.config(state='normal' if self.filter_history else 'disabled')
+            
+            self.apply_filters()
+    
+    def on_search_changed(self):
+        """Handle search text changes with debouncing"""
+        # Cancel any pending search
+        if hasattr(self, '_search_after_id'):
+            self.after_cancel(self._search_after_id)
+        
+        # Schedule new search after 300ms
+        self._search_after_id = self.after(300, self.apply_filters)
+    
+    def on_right_click(self, event):
+        """Handle right-click on tree item"""
+        # Identify the row
+        item = self.tree.identify_row(event.y)
+        if not item:
+            return
+        
+        # Select the item
+        self.tree.selection_set(item)
+        
+        # Get player name from the row
+        values = self.tree.item(item, 'values')
+        if not values:
+            return
+        
+        player_name = values[0]  # First column is player name
+        
+        # Create context menu
+        menu = tk.Menu(self, tearoff=0,
+                      bg=DARK_THEME['bg_secondary'],
+                      fg=DARK_THEME['text_primary'],
+                      activebackground=DARK_THEME['button_active'],
+                      activeforeground='white')
+        
+        menu.add_command(label=f"Filter: {player_name}",
+                        command=lambda: self.filter_by_player(player_name))
+        menu.add_separator()
+        menu.add_command(label="Clear Filters",
+                        command=self.clear_filters)
+        
+        # Show menu
+        menu.post(event.x_root, event.y_root)
+    
+    def filter_by_player(self, player_name):
+        """Filter to show only a specific player"""
+        self.save_filter_state()
+        
+        # Set search to player name
+        self.search_var.set(player_name)
+        
+        # Apply the filter
+        self.apply_filters()
+    
+    def filter_by_roster_position(self, roster_pos):
+        """Filter by roster position (QB1, RB1, etc.)"""
+        self.selected_position = roster_pos[:-1]  # Extract base position
+        self.roster_position_filter = roster_pos
+        
+        # Update button appearances
+        for pos, btn in self.position_buttons.items():
+            if pos == roster_pos:
+                base_pos = pos[:-1] if pos in ["QB1", "RB1", "RB2", "WR1", "WR2", "TE1"] else pos
+                if base_pos in ["QB", "RB", "WR", "TE"]:
+                    btn.config(bg=get_position_color(base_pos))
+                else:
+                    btn.config(bg=DARK_THEME['button_active'])
+            else:
+                btn.config(bg=DARK_THEME['button_bg'])
+        
         self.apply_filters()
