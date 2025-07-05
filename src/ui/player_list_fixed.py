@@ -35,15 +35,6 @@ class PlayerList(StyledFrame):
         # Add player ID to row mapping for better tracking
         self.player_id_to_row: Dict[str, tk.Frame] = {}
         
-        # Row management for performance
-        self.row_frames = []  # Active row frames
-        self.hidden_rows = []  # Hidden rows for reuse
-        
-        # Virtual scrolling
-        self.visible_rows = 15  # Number of rows visible at once
-        self.row_height = 35  # Height of each row
-        self.top_index = 0  # Index of first visible row
-        
         self.setup_ui()
         
     def setup_ui(self):
@@ -227,10 +218,12 @@ class PlayerList(StyledFrame):
         # Bind mousewheel to all children as they're created
         self._mousewheel_handler = on_mousewheel
         
-        # Row frame references are already initialized in __init__
+        # Store row frames
+        self.row_frames = []
         self.selected_row = None
+        self.hidden_rows = []  # Pool of hidden rows to reuse
     
-    def update_players(self, players: List[Player], limit: int = 30, force_refresh: bool = False):
+    def update_players(self, players: List[Player], limit: int = 30):
         # Store all players
         self.all_players = players
         
@@ -264,17 +257,49 @@ class PlayerList(StyledFrame):
         self.players = filtered_players
         self.selected_index = None
         
-        # Use smart update by default, complete refresh only when forced
-        if force_refresh:
-            self._complete_refresh_table()
-        else:
-            self._smart_update_table()
+        # Force complete refresh to avoid sync issues
+        self._complete_refresh_table()
     
     def _complete_refresh_table(self):
-        """Complete refresh of table"""
-        self._smart_update_table()
+        """Complete refresh of table - clears all rows and recreates them"""
+        # Clear player ID mapping
+        self.player_id_to_row.clear()
+        
+        # Hide all existing rows
+        for row in self.row_frames:
+            row.pack_forget()
+            self.hidden_rows.append(row)
+        self.row_frames.clear()
+        
+        # Clear any existing content in table frame
+        for widget in self.table_frame.winfo_children():
+            if not isinstance(widget, tk.Frame) or widget not in self.hidden_rows:
+                widget.destroy()
+        
+        # Limit display
+        max_display = min(100, len(self.players))
+        
+        # Create rows for visible players
+        for i in range(max_display):
+            player = self.players[i]
+            self.create_player_row(i, player)
+        
+        # Show "more players" message if needed
+        if len(self.players) > max_display:
+            more_label = tk.Label(
+                self.table_frame,
+                text=f"... and {len(self.players) - max_display} more players. Use search to find specific players.",
+                bg=DARK_THEME['bg_secondary'],
+                fg=DARK_THEME['text_secondary'],
+                font=(DARK_THEME['font_family'], 10, 'italic')
+            )
+            more_label.pack(pady=10)
+        
+        # Update scroll region
+        self.table_frame.update_idletasks()
+        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
     
-    def remove_players(self, players_to_remove: List[Player], force_refresh: bool = False):
+    def remove_players(self, players_to_remove: List[Player]):
         """Remove multiple players from the list efficiently"""
         if not players_to_remove:
             return
@@ -285,142 +310,33 @@ class PlayerList(StyledFrame):
         # Remove from data
         self.players = [p for p in self.players if p.player_id not in player_ids_to_remove]
         
-        # With virtual scrolling, just update the display
-        self._smart_update_table()
-    
-    def _smart_update_table(self):
-        """Virtual scrolling update - only render visible rows"""
-        # Clear all rows first
-        for row in self.row_frames:
-            row.pack_forget()
-            self.hidden_rows.append(row)
-        self.row_frames.clear()
-        self.player_id_to_row.clear()
-        
-        # Create virtual scroll region based on total players
-        total_height = len(self.players) * self.row_height
-        self.canvas.configure(scrollregion=(0, 0, 0, total_height))
-        
-        # Update visible rows
-        self._update_visible_rows()
-    
-    def _update_visible_rows(self):
-        """Update only the rows that are currently visible"""
-        # Get current scroll position
-        canvas_height = self.canvas.winfo_height()
-        if canvas_height <= 1:
-            canvas_height = 400  # Default height
-        
-        # Calculate visible range
-        try:
-            scroll_top = self.canvas.canvasy(0)
-            scroll_bottom = self.canvas.canvasy(canvas_height)
-        except:
-            scroll_top = 0
-            scroll_bottom = canvas_height
-        
-        # Calculate which rows should be visible
-        start_index = max(0, int(scroll_top // self.row_height))
-        end_index = min(len(self.players), int(scroll_bottom // self.row_height) + 2)
-        
-        # Create/update only visible rows
-        visible_count = 0
-        for i in range(start_index, end_index):
-            if i < len(self.players):
-                player = self.players[i]
-                
-                # Create or reuse a row
-                if self.hidden_rows:
-                    row = self.hidden_rows.pop()
-                    for widget in row.winfo_children():
-                        widget.destroy()
-                else:
-                    row = tk.Frame(
-                        self.table_frame,
-                        height=self.row_height,
-                        relief='flat',
-                        bd=0
-                    )
-                
-                # Position the row at its virtual position
-                row.place(x=0, y=i * self.row_height, relwidth=1, height=self.row_height)
-                
-                # Update row data
-                row.player = player
-                row.player_id = player.player_id
-                row.index = i
-                
-                # Track by player ID
-                if player.player_id:
-                    self.player_id_to_row[player.player_id] = row
-                
-                # Set background
-                bg = DARK_THEME['bg_tertiary'] if i % 2 == 0 else DARK_THEME['bg_secondary']
-                row.configure(bg=bg)
-                
-                # Create row content
-                self._create_row_content(row, player, bg)
-                
-                self.row_frames.append(row)
-                visible_count += 1
-        
-        # Update table frame height to match virtual content
-        self.table_frame.configure(height=len(self.players) * self.row_height)
-    
-    def _update_row_data(self, row, index, player):
-        """Update an existing row with new player data"""
-        # Clear all existing content
-        for widget in row.winfo_children():
-            widget.destroy()
-        
-        # Update row data
-        row.player = player
-        row.player_id = player.player_id
-        row.index = index
-        
-        # Update player ID mapping
-        if player.player_id:
-            # Remove old mapping if exists
-            old_player_id = None
-            for pid, r in self.player_id_to_row.items():
-                if r == row:
-                    old_player_id = pid
-                    break
-            if old_player_id:
-                del self.player_id_to_row[old_player_id]
-            
-            # Add new mapping
-            self.player_id_to_row[player.player_id] = row
-        
-        # Set background
-        bg = DARK_THEME['bg_tertiary'] if index % 2 == 0 else DARK_THEME['bg_secondary']
-        row.configure(bg=bg)
-        
-        # Create row content
-        self._create_row_content(row, player, bg)
+        # Force complete refresh to avoid sync issues
+        self._complete_refresh_table()
     
     def create_player_row(self, index, player):
         """Create a row with player data"""
-        # Reuse or create row
+        # Try to reuse a hidden row
         if self.hidden_rows:
             row = self.hidden_rows.pop()
+            # Clear all existing content
             for widget in row.winfo_children():
                 widget.destroy()
         else:
+            # Create new row
             row = tk.Frame(
                 self.table_frame,
-                height=self.row_height,
+                height=35,
                 relief='flat',
                 bd=0
             )
         
-        # Configure and pack row
+        # Set background
         bg = DARK_THEME['bg_tertiary'] if index % 2 == 0 else DARK_THEME['bg_secondary']
         row.configure(bg=bg)
         row.pack(fill='x', pady=1)
         row.pack_propagate(False)
         
-        # Store player data
+        # Store the player reference and index
         row.player = player
         row.player_id = player.player_id
         row.index = index

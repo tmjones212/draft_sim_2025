@@ -296,7 +296,7 @@ class MockDraftApp:
         self._cheat_sheet_needs_sync = False
         self.cheat_sheet = None  # Will be created on first access
     
-    def update_display(self, full_update=True):
+    def update_display(self, full_update=True, force_refresh=False):
         # Update status
         pick_num, round_num, pick_in_round, team_on_clock = self.draft_engine.get_current_pick_info()
         
@@ -329,7 +329,7 @@ class MockDraftApp:
         
         # Update components
         if full_update:
-            self.player_list.update_players(self.available_players)
+            self.player_list.update_players(self.available_players, force_refresh=force_refresh)
             # Update draft button states based on mode
             self.player_list.set_draft_enabled(self.manual_mode or self.user_team_id is not None)
         
@@ -509,7 +509,8 @@ class MockDraftApp:
                     break
             
             if actual_index is not None:
-                self.player_list.remove_player_card(actual_index)
+                # Remove the player from the list
+                self.player_list.remove_players([player])
                 self.player_list.selected_index = None
         
         # Also remove from watch list if present
@@ -850,7 +851,7 @@ class MockDraftApp:
             self.player_list.hidden_rows.append(row)
         
         # Update display with full refresh
-        self.update_display(full_update=True)
+        self.update_display(full_update=True, force_refresh=True)
         
         # Force roster view to clear and update
         self.roster_view.current_team_id = None
@@ -949,7 +950,7 @@ class MockDraftApp:
         self.player_list.set_draft_enabled(False)
         
         # Update display with full refresh
-        self.update_display(full_update=True)
+        self.update_display(full_update=True, force_refresh=True)
         
         # Force roster view to clear and update
         self.roster_view.current_team_id = None
@@ -1011,7 +1012,7 @@ class MockDraftApp:
         self._restore_watch_list_state(self.draft_state_before_reversion.get('watched_players', {}))
         
         # Update display
-        self.update_display()
+        self.update_display(force_refresh=True)
         
         # Disable undo button
         self.undo_button.config(state='disabled')
@@ -1153,7 +1154,7 @@ class MockDraftApp:
                 self.player_list.watched_player_ids = watch_list.watched_player_ids.copy()
         
         # Update player list once
-        self.player_list.update_players(self.available_players)
+        self.player_list.update_players(self.available_players, force_refresh=True)
         
         # Update star icons
         self.player_list._update_star_icons()

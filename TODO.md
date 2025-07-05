@@ -1,4 +1,7 @@
-- the sorts are extremely slow. they weren't like that earlier
+
 - the background colors in the table for hte star and the draft button can still be wrong, like after i make 1 pick it's off by one row
-- put the whole good value fair value thing at the top right above the draft board (in the empty space to the right of the round and pick number and the on the clock team x thing).
--  restart draft button is a disaster. many of the picks aren't gone from the draft board. its extremely slow
+
+
+- the app loads weirdly. it shows up on  the left side first, then centers. can we just not show it before its centered?
+- when the app first starts, before we pick a draft slot, let's have a banner in the middle somewhere that says "CHOOSE A DRAFT SPOT"
+- the roster section is terrible. dont show players at the same position horizontally. show them below (e.g., show the 2nd WR below your first WR)
