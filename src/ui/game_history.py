@@ -310,25 +310,25 @@ class GameHistory(StyledFrame):
             height=20
         )
         
-        # Configure columns
+        # Configure columns with proper initial widths
         self.tree.column('#0', width=0, stretch=False)  # Hide tree column
-        self.tree.column('player', width=140, anchor='w')
-        self.tree.column('pos', width=35, anchor='center')
-        self.tree.column('team', width=35, anchor='center')
-        self.tree.column('week', width=35, anchor='center')
-        self.tree.column('opp', width=50, anchor='center')
-        self.tree.column('pts', width=50, anchor='center')
-        self.tree.column('median', width=50, anchor='center')
-        self.tree.column('avg', width=50, anchor='center')
-        self.tree.column('snaps', width=45, anchor='center')
-        self.tree.column('comp', width=45, anchor='center')
-        self.tree.column('pass_yd', width=60, anchor='center')
-        self.tree.column('pass_td', width=50, anchor='center')
-        self.tree.column('rush_yd', width=60, anchor='center')
-        self.tree.column('rush_td', width=50, anchor='center')
-        self.tree.column('rec', width=35, anchor='center')
-        self.tree.column('rec_yd', width=55, anchor='center')
-        self.tree.column('rec_td', width=45, anchor='center')
+        self.tree.column('player', width=150, anchor='w', stretch=False)
+        self.tree.column('pos', width=40, anchor='center', stretch=False)
+        self.tree.column('team', width=45, anchor='center', stretch=False)
+        self.tree.column('week', width=40, anchor='center', stretch=False)
+        self.tree.column('opp', width=65, anchor='center', stretch=False)
+        self.tree.column('pts', width=55, anchor='center', stretch=False)
+        self.tree.column('median', width=55, anchor='center', stretch=False)
+        self.tree.column('avg', width=55, anchor='center', stretch=False)
+        self.tree.column('snaps', width=55, anchor='center', stretch=False)
+        self.tree.column('comp', width=55, anchor='center', stretch=False)
+        self.tree.column('pass_yd', width=70, anchor='center', stretch=False)
+        self.tree.column('pass_td', width=65, anchor='center', stretch=False)
+        self.tree.column('rush_yd', width=70, anchor='center', stretch=False)
+        self.tree.column('rush_td', width=65, anchor='center', stretch=False)
+        self.tree.column('rec', width=45, anchor='center', stretch=False)
+        self.tree.column('rec_yd', width=65, anchor='center', stretch=False)
+        self.tree.column('rec_td', width=60, anchor='center', stretch=False)
         
         # Configure headings
         self.tree.heading('player', text='Player', command=lambda: self.sort_by('player'))
@@ -950,55 +950,59 @@ class GameHistory(StyledFrame):
     
     def update_column_visibility(self):
         """Show/hide columns based on selected position"""
-        # Define which columns are relevant for each position
-        qb_columns = ['comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td']
-        skill_columns = ['rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']
+        # First, set base column widths that should always be consistent
+        self.tree.column('player', width=150, stretch=False)
+        self.tree.column('pos', width=40, stretch=False)
+        self.tree.column('team', width=45, stretch=False)
+        self.tree.column('week', width=40, stretch=False)
+        self.tree.column('opp', width=65, stretch=False)
+        self.tree.column('pts', width=55, stretch=False)
+        self.tree.column('snaps', width=55, stretch=False)
         
         # Show/hide median and avg columns based on view mode
         if self.view_mode == "summarized":
-            self.tree.column('median', width=50)
-            self.tree.column('avg', width=50)
+            self.tree.column('median', width=55, stretch=False)
+            self.tree.column('avg', width=55, stretch=False)
         else:
             self.tree.column('median', width=0, stretch=False)
             self.tree.column('avg', width=0, stretch=False)
         
+        # Define which columns are relevant for each position
+        qb_columns = ['comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td']
+        skill_columns = ['rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']
+        
         if self.selected_position == "QB":
             # Show QB columns, hide receiving columns
-            for col in qb_columns:
-                if col == 'comp':
-                    self.tree.column(col, width=60)
-                else:
-                    self.tree.column(col, width=80 if 'yd' in col else 70)
-            for col in ['rec', 'rec_yd', 'rec_td']:
-                self.tree.column(col, width=0, stretch=False)
-        elif self.selected_position in ["RB", "WR", "TE"]:
-            # Show skill position columns, hide passing columns
-            for col in ['comp', 'pass_yd', 'pass_td']:
-                self.tree.column(col, width=0, stretch=False)
-            for col in skill_columns:
-                if col == 'rec':
-                    self.tree.column(col, width=50)
-                else:
-                    self.tree.column(col, width=80 if 'yd' in col else 70)
-        elif self.selected_position == "FLEX":
-            # Show skill position columns, hide passing columns
-            for col in ['comp', 'pass_yd', 'pass_td']:
-                self.tree.column(col, width=0, stretch=False)
-            for col in skill_columns:
-                if col == 'rec':
-                    self.tree.column(col, width=50)
-                else:
-                    self.tree.column(col, width=80 if 'yd' in col else 70)
+            self.tree.column('comp', width=55, stretch=False)
+            self.tree.column('pass_yd', width=70, stretch=False)
+            self.tree.column('pass_td', width=65, stretch=False)
+            self.tree.column('rush_yd', width=70, stretch=False)
+            self.tree.column('rush_td', width=65, stretch=False)
+            # Hide receiving columns
+            self.tree.column('rec', width=0, stretch=False)
+            self.tree.column('rec_yd', width=0, stretch=False)
+            self.tree.column('rec_td', width=0, stretch=False)
+        elif self.selected_position in ["RB", "WR", "TE", "FLEX"]:
+            # Hide passing columns
+            self.tree.column('comp', width=0, stretch=False)
+            self.tree.column('pass_yd', width=0, stretch=False)
+            self.tree.column('pass_td', width=0, stretch=False)
+            # Show skill position columns
+            self.tree.column('rush_yd', width=70, stretch=False)
+            self.tree.column('rush_td', width=65, stretch=False)
+            self.tree.column('rec', width=45, stretch=False)
+            self.tree.column('rec_yd', width=65, stretch=False)
+            self.tree.column('rec_td', width=60, stretch=False)
         else:  # ALL
-            # Show all columns with default widths
-            self.tree.column('comp', width=60)
-            self.tree.column('pass_yd', width=80)
-            self.tree.column('pass_td', width=70)
-            self.tree.column('rush_yd', width=80)
-            self.tree.column('rush_td', width=70)
-            self.tree.column('rec', width=50)
-            self.tree.column('rec_yd', width=70)
-            self.tree.column('rec_td', width=60)
+            # Show all columns with appropriate widths
+            self.tree.column('comp', width=55, stretch=False)
+            self.tree.column('pass_yd', width=70, stretch=False)
+            self.tree.column('pass_td', width=65, stretch=False)
+            self.tree.column('rush_yd', width=70, stretch=False)
+            self.tree.column('rush_td', width=65, stretch=False)
+            self.tree.column('rec', width=45, stretch=False)
+            self.tree.column('rec_yd', width=65, stretch=False)
+            self.tree.column('rec_td', width=60, stretch=False)
     
     def save_filter_state(self):
         """Save current filter state to history"""

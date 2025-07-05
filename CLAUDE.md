@@ -94,3 +94,4 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Falls back to individual week files in stats_data/ directory if needed
 - Ensures only one entry per player per week
 - Handles both single stat objects and lists of stats for compatibility
+- Added auto-resize columns functionality that adjusts column widths based on content after filtering
