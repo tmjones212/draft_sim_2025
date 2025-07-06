@@ -51,7 +51,7 @@ def save_stats_to_json(stats: List[Dict[str, Any]], params: StatRequestParameter
 
 def main():
     year = 2024
-    positions = ["QB", "RB", "WR", "TE", "DB", "LB"]
+    positions = ["QB", "RB", "WR", "TE"]
     weeks = range(1, 19)
     
     output_dir = os.path.join(os.path.dirname(__file__), "stats_data")
@@ -66,15 +66,6 @@ def main():
     
     for week in weeks:
         for position in positions:
-            # Check if file already exists
-            filename = f"{year}_{week}_{position.lower()}.json"
-            filepath = os.path.join(output_dir, filename)
-            
-            if os.path.exists(filepath):
-                print(f"Skipping: {filepath} (already exists)")
-                completed += 1
-                continue
-            
             params = StatRequestParameters(year, week, position)
             stats, params = get_json_from_api_call(params)
             

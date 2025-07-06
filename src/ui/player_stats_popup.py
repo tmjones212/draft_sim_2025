@@ -216,17 +216,10 @@ class PlayerStatsPopup:
             'int': 40,
             'rush_yds': 70,
             'rush_td': 60,
+            'tgt': 40,
             'rec': 40,
             'rec_yds': 70,
             'rec_td': 60,
-            # IDP columns
-            'tkl_solo': 50,
-            'tkl_ast': 50,
-            'sack': 50,
-            'int_def': 40,
-            'pd': 40,
-            'ff': 40,
-            'fr': 40,
         }
         
         # Table header
@@ -298,17 +291,10 @@ class PlayerStatsPopup:
         elif self.player.position in ['RB', 'WR', 'TE']:
             self.header_cells.append(create_header_cell(header_row, 'Rush Yds', col_widths['rush_yds'], 'rush_yd'))
             self.header_cells.append(create_header_cell(header_row, 'Rush TD', col_widths['rush_td'], 'rush_td'))
+            self.header_cells.append(create_header_cell(header_row, 'Tgt', col_widths['tgt'], 'tgt'))
             self.header_cells.append(create_header_cell(header_row, 'Rec', col_widths['rec'], 'rec'))
             self.header_cells.append(create_header_cell(header_row, 'Rec Yds', col_widths['rec_yds'], 'rec_yd'))
             self.header_cells.append(create_header_cell(header_row, 'Rec TD', col_widths['rec_td'], 'rec_td'))
-        elif self.player.position in ['DB', 'LB']:
-            self.header_cells.append(create_header_cell(header_row, 'Solo', col_widths['tkl_solo'], 'tkl_solo'))
-            self.header_cells.append(create_header_cell(header_row, 'Ast', col_widths['tkl_ast'], 'tkl_ast'))
-            self.header_cells.append(create_header_cell(header_row, 'Sack', col_widths['sack'], 'sack'))
-            self.header_cells.append(create_header_cell(header_row, 'INT', col_widths['int_def'], 'int'))
-            self.header_cells.append(create_header_cell(header_row, 'PD', col_widths['pd'], 'pd'))
-            self.header_cells.append(create_header_cell(header_row, 'FF', col_widths['ff'], 'ff'))
-            self.header_cells.append(create_header_cell(header_row, 'FR', col_widths['fr'], 'fr'))
         
         # Create a helper to make data cells
         def create_data_cell(parent, text, width, bg, fg=None):
@@ -388,25 +374,8 @@ class PlayerStatsPopup:
                 # Store all relevant data
                 week_entry['opponent'] = week_data['opponent']
                 week_entry['team'] = week_data.get('team', '')
-                
-                # Calculate points based on position
-                if self.player.position in ['DB', 'LB']:
-                    # Calculate IDP points
-                    points = 0
-                    points += stats.get('idp_tkl_solo', 0) * 1.75
-                    points += stats.get('idp_tkl_ast', 0) * 1.0
-                    points += stats.get('idp_sack', 0) * 3.5
-                    points += stats.get('idp_int', 0) * 4.0
-                    points += stats.get('idp_pass_def', 0) * 1.0
-                    points += stats.get('idp_ff', 0) * 3.0
-                    points += stats.get('idp_fum_rec', 0) * 3.0
-                    points += stats.get('idp_def_td', 0) * 6.0
-                    points += stats.get('idp_safety', 0) * 2.0
-                    week_entry['points'] = round(points, 1)
-                    week_entry['snaps'] = stats.get('def_snp', 0)
-                else:
-                    week_entry['points'] = stats.get('pts_ppr', 0)
-                    week_entry['snaps'] = stats.get('off_snp', 0)
+                week_entry['points'] = stats.get('pts_ppr', 0)
+                week_entry['snaps'] = stats.get('off_snp', 0)
                 
                 # Position-specific stats
                 if self.player.position == 'QB':
@@ -419,18 +388,10 @@ class PlayerStatsPopup:
                 elif self.player.position in ['RB', 'WR', 'TE']:
                     week_entry['rush_yd'] = stats.get('rush_yd', 0)
                     week_entry['rush_td'] = stats.get('rush_td', 0)
+                    week_entry['tgt'] = stats.get('rec_tgt', 0)
                     week_entry['rec'] = stats.get('rec', 0)
                     week_entry['rec_yd'] = stats.get('rec_yd', 0)
                     week_entry['rec_td'] = stats.get('rec_td', 0)
-                elif self.player.position in ['DB', 'LB']:
-                    # IDP stats
-                    week_entry['tkl_solo'] = stats.get('idp_tkl_solo', 0)
-                    week_entry['tkl_ast'] = stats.get('idp_tkl_ast', 0)
-                    week_entry['sack'] = stats.get('idp_sack', 0)
-                    week_entry['int'] = stats.get('idp_int', 0)
-                    week_entry['pd'] = stats.get('idp_pass_def', 0)
-                    week_entry['ff'] = stats.get('idp_ff', 0)
-                    week_entry['fr'] = stats.get('idp_fum_rec', 0)
                 
                 week_entry['played'] = True
             else:
@@ -445,9 +406,7 @@ class PlayerStatsPopup:
                 if self.player.position == 'QB':
                     week_entry.update({'pass_cmp': 0, 'pass_yd': 0, 'pass_td': 0, 'pass_int': 0, 'rush_yd': 0, 'rush_td': 0})
                 elif self.player.position in ['RB', 'WR', 'TE']:
-                    week_entry.update({'rush_yd': 0, 'rush_td': 0, 'rec': 0, 'rec_yd': 0, 'rec_td': 0})
-                elif self.player.position in ['DB', 'LB']:
-                    week_entry.update({'tkl_solo': 0, 'tkl_ast': 0, 'sack': 0, 'int': 0, 'pd': 0, 'ff': 0, 'fr': 0})
+                    week_entry.update({'rush_yd': 0, 'rush_td': 0, 'tgt': 0, 'rec': 0, 'rec_yd': 0, 'rec_td': 0})
             
             self.weekly_data.append(week_entry)
     
@@ -493,6 +452,11 @@ class PlayerStatsPopup:
             elif stat_name == 'rush_td':
                 if value >= 1:
                     return good_color
+            elif stat_name == 'tgt':
+                if value >= 6:
+                    return good_color
+                elif value <= 3:
+                    return bad_color
             elif stat_name == 'rec':
                 if value >= 4:
                     return good_color
@@ -511,7 +475,12 @@ class PlayerStatsPopup:
                     return bad_color
                     
         elif position == 'WR':
-            if stat_name == 'rec':
+            if stat_name == 'tgt':
+                if value >= 8:
+                    return good_color
+                elif value <= 4:
+                    return bad_color
+            elif stat_name == 'rec':
                 if value >= 6:
                     return good_color
             elif stat_name == 'rec_yd':
@@ -529,7 +498,12 @@ class PlayerStatsPopup:
                     return bad_color
                     
         elif position == 'TE':
-            if stat_name == 'rec':
+            if stat_name == 'tgt':
+                if value >= 6:
+                    return good_color
+                elif value <= 3:
+                    return bad_color
+            elif stat_name == 'rec':
                 if value >= 5:
                     return good_color
                 elif value <= 3:
@@ -545,30 +519,6 @@ class PlayerStatsPopup:
             elif stat_name == 'snaps':
                 if value >= 50:
                     return good_color
-        
-        elif position in ['DB', 'LB']:
-            if stat_name == 'tkl_solo':
-                if value >= 8:
-                    return good_color
-                elif value < 4:
-                    return bad_color
-            elif stat_name == 'sack':
-                if value >= 1:
-                    return good_color
-            elif stat_name == 'int':
-                if value >= 1:
-                    return good_color
-            elif stat_name == 'ff':
-                if value >= 1:
-                    return good_color
-            elif stat_name == 'fr':
-                if value >= 1:
-                    return good_color
-            elif stat_name == 'snaps':
-                if value >= 50:
-                    return good_color
-                elif value < 30:
-                    return bad_color
                     
         return normal_color
     
@@ -716,6 +666,10 @@ class PlayerStatsPopup:
                 create_cell(f"{rush_td_val}", self.col_widths['rush_td'],
                            self.get_stat_color('rush_td', rush_td_val, self.player.position) if week_entry['played'] and rush_td_val > 0 else None)
                 
+                tgt_val = int(week_entry['tgt'])
+                create_cell(f"{tgt_val}", self.col_widths['tgt'],
+                           self.get_stat_color('tgt', tgt_val, self.player.position) if week_entry['played'] else None)
+                
                 rec_val = int(week_entry['rec'])
                 create_cell(f"{rec_val}", self.col_widths['rec'],
                            self.get_stat_color('rec', rec_val, self.player.position) if week_entry['played'] else None)
@@ -727,33 +681,6 @@ class PlayerStatsPopup:
                 rec_td_val = int(week_entry['rec_td'])
                 create_cell(f"{rec_td_val}", self.col_widths['rec_td'],
                            self.get_stat_color('rec_td', rec_td_val, self.player.position) if week_entry['played'] and rec_td_val > 0 else None)
-            elif self.player.position in ['DB', 'LB']:
-                # IDP stats
-                tkl_solo_val = int(week_entry.get('tkl_solo', 0))
-                create_cell(f"{tkl_solo_val}" if tkl_solo_val > 0 else '-', self.col_widths['tkl_solo'],
-                           self.get_stat_color('tkl_solo', tkl_solo_val, self.player.position) if week_entry['played'] else None)
-                
-                tkl_ast_val = int(week_entry.get('tkl_ast', 0))
-                create_cell(f"{tkl_ast_val}" if tkl_ast_val > 0 else '-', self.col_widths['tkl_ast'])
-                
-                sack_val = float(week_entry.get('sack', 0))
-                create_cell(f"{sack_val:.1f}" if sack_val > 0 else '-', self.col_widths['sack'],
-                           self.get_stat_color('sack', sack_val, self.player.position) if week_entry['played'] and sack_val > 0 else None)
-                
-                int_val = int(week_entry.get('int', 0))
-                create_cell(f"{int_val}" if int_val > 0 else '-', self.col_widths['int_def'],
-                           self.get_stat_color('int', int_val, self.player.position) if week_entry['played'] and int_val > 0 else None)
-                
-                pd_val = int(week_entry.get('pd', 0))
-                create_cell(f"{pd_val}" if pd_val > 0 else '-', self.col_widths['pd'])
-                
-                ff_val = int(week_entry.get('ff', 0))
-                create_cell(f"{ff_val}" if ff_val > 0 else '-', self.col_widths['ff'],
-                           self.get_stat_color('ff', ff_val, self.player.position) if week_entry['played'] and ff_val > 0 else None)
-                
-                fr_val = int(week_entry.get('fr', 0))
-                create_cell(f"{fr_val}" if fr_val > 0 else '-', self.col_widths['fr'],
-                           self.get_stat_color('fr', fr_val, self.player.position) if week_entry['played'] and fr_val > 0 else None)
     
     def sort_data(self, sort_key, arrow_label):
         """Sort the weekly data by the specified column"""

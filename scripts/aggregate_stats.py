@@ -85,13 +85,7 @@ def aggregate_by_player(stats_data: List[Dict[str, Any]]) -> Dict[str, Dict[str,
             'bonus_rush_yd_100', 'bonus_rush_yd_200',
             'bonus_rec_yd_100', 'bonus_rec_yd_200',
             'bonus_pass_yd_300', 'bonus_pass_yd_400',
-            'off_snp',  # Offensive snap count
-            # IDP stats for DB and LB
-            'def_snp',  # Defensive snap count
-            'idp_tkl', 'idp_tkl_solo', 'idp_tkl_ast', 'idp_tkl_loss',
-            'idp_sack', 'idp_qb_hit', 'idp_int', 'idp_pass_def',
-            'idp_ff', 'idp_fum_rec', 'idp_def_td', 'idp_safety',
-            'idp_blk', 'idp_tkl_miss'
+            'off_snp'  # Offensive snap count
         ]
         
         for key in stat_keys:

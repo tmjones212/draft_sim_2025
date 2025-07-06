@@ -65,7 +65,7 @@ def main():
     
     print(f"Fetching projections for {projection_year} NFL season")
     
-    positions = ["QB", "RB", "WR", "TE", "DB", "LB"]
+    positions = ["QB", "RB", "WR", "TE"]
     weeks = range(1, 19)  # Regular season weeks 1-18
     
     output_dir = os.path.join(os.path.dirname(__file__), "projections_data")
@@ -80,15 +80,6 @@ def main():
     
     for week in weeks:
         for position in positions:
-            # Check if file already exists
-            filename = f"{projection_year}_{week}_{position.lower()}.json"
-            filepath = os.path.join(output_dir, filename)
-            
-            if os.path.exists(filepath):
-                print(f"Skipping: {filepath} (already exists)")
-                completed += 1
-                continue
-            
             params = ProjectionRequestParameters(projection_year, week, position)
             projections, params = get_json_from_api_call(params)
             

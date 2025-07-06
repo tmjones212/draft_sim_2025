@@ -725,7 +725,7 @@ class MockDraftApp:
         if team.id in self._position_counts_cache:
             position_counts = self._position_counts_cache[team.id]
         else:
-            position_counts = {'QB': 0, 'RB': 0, 'WR': 0, 'TE': 0, 'DEF': 0, 'K': 0, 'DB': 0, 'LB': 0}
+            position_counts = {'QB': 0, 'RB': 0, 'WR': 0, 'TE': 0, 'DEF': 0, 'K': 0}
             for players in team.roster.values():
                 for player in players:
                     if player.position in position_counts:
@@ -772,17 +772,13 @@ class MockDraftApp:
                 continue  # Max 5 WRs
             elif pos == 'TE' and position_counts.get('TE', 0) >= 1:
                 continue  # Max 1 TE (special case)
-            elif pos == 'DB' and position_counts.get('DB', 0) >= 2:
-                continue  # Max 2 DBs
-            elif pos == 'LB' and position_counts.get('LB', 0) >= 2:
-                continue  # Max 2 LBs
             elif pos == 'DEF' and position_counts.get('DEF', 0) >= 1:
                 continue  # Max 1 DEF
             elif pos == 'K' and position_counts.get('K', 0) >= 1:
                 continue  # Max 1 K
             
-            # Don't draft K/DEF/DB/LB before round 10
-            if pos in ['K', 'DEF', 'DB', 'LB'] and pick_num < (10 * config.num_teams):
+            # Don't draft K/DEF before round 10
+            if pos in ['K', 'DEF'] and pick_num < (10 * config.num_teams):
                 continue
             
             eligible_players.append(player)

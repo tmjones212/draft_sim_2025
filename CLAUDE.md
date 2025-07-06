@@ -21,7 +21,7 @@ Also use the formatted player name (the format_name function in player_extension
 
 ### UI Requirements
 - Dark theme matching Sleeper's draft board style
-- Position colors: QB (pink), RB (teal), WR (blue), TE (orange), DB (light purple), LB (light pink)
+- Position colors: QB (pink), RB (teal), WR (blue), TE (orange)
 
 ### Running the App
 - Linux: `python3 main.py`
@@ -37,6 +37,10 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Added summarized/detailed view toggle
 - Fixed Rush TD calculation to prevent negative numbers
 - Added snap counts column showing offensive snaps per game (from 'off_snp' stat)
+- Added Targets (Tgt) column positioned between Rush TD and Receptions
+- Added sort direction arrows (↑/↓) to column headers showing current sort
+- Added "Show Available" checkbox to filter out drafted players
+- Moved week range controls and Clear Graph button above the graph for better UX
 
 ### Player List
 - Team logos replace text (logos in assets/team_logos/)
@@ -86,6 +90,8 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Color coding for good/bad performances (green/red)
 - Position-specific thresholds for all stats
 - Opponent shows @ or vs based on home/away
+- Added Targets (Tgt) column for RB/WR/TE positions
+- Color thresholds for targets: RB (6+/≤3), WR (8+/≤4), TE (6+/≤3)
 
 ### Player List Changes
 - Rank column now shows VAR rank instead of overall rank
@@ -111,50 +117,3 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Y-axis always starts at 0 for consistent scale
 - Week range selector with presets: All, First Half, Last Half, Q1-Q4, Playoffs
 - Custom week range using spinboxes for any weeks 1-18
-
-## DB and LB Positions Added (2025-07-05)
-
-### Draft Configuration
-- Added DB and LB roster spots (2 each) to config.py
-- Updated roster view to display DB and LB positions
-
-### UI Updates
-- Added DB and LB to position filters in Player List and Game History
-- Added position colors: DB (light purple #9966ff), LB (light pink #ff66cc)
-- Position buttons now include DB and LB options
-
-### Data Processing
-- Updated pull_stats.py and pull_projections.py to fetch DB and LB data
-- Added DB and LB to VAR calculations with replacement levels of 20 each
-- Added defensive scoring in scoring.py (tackles, sacks, interceptions, etc.)
-
-### Draft Logic
-- Computer teams draft DB and LB positions with max of 2 each
-- DB and LB are treated as late-round positions (after round 10)
-- Added to position counts tracking for draft strategy
-
-### Scoring Configuration for IDP (Updated)
-- Solo Tackle: 1.75 points
-- Tackle Assist: 1.0 points
-- Sack: 3.5 points
-- Interception: 4.0 points
-- Pass Defended: 1.0 point
-- Forced Fumble: 3.0 points
-- Fumble Recovery: 3.0 points
-- Defensive TD: 6.0 points
-- Safety: 2.0 points
-
-### DB/LB Player Fixes (2025-07-06)
-- Fixed issue where clicking on one DB/LB player would highlight all DB/LB players
-  - Problem: DB/LB players in players_2025.json don't have player_id fields
-  - Solution: Updated player_list.py to use object identity comparison when player_id is missing
-- Fixed DB/LB players not showing in game history
-  - Added 'db' and 'lb' to positions loaded in game_history.py
-  - Added IDP scoring calculation for DB/LB players
-  - Use defensive snaps (def_snp) instead of offensive snaps for DB/LB players
-  - Fixed snap filtering to check def_snp > 0 for DB/LB (not off_snp)
-- Implemented dynamic column headers in game history
-  - When DB or LB position is selected, columns switch to show defensive stats
-  - IDP columns: Solo, Ast, Total, Sack, INT, PD, FF, FR
-  - Tree is rebuilt when switching between offensive and defensive positions
-  - DB/LB players only appear when ALL or their specific position is selected

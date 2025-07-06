@@ -1,0 +1,952 @@
+{
+    "nfl_teams": {
+        "afc": {
+            "north": {
+                "baltimore_ravens": {
+                    "name": "Baltimore Ravens",
+                    "colors": {
+                        "primary": {
+                            "name": "purple",
+                            "rgb": [
+                                26,
+                                25,
+                                95
+                            ]
+                        },
+                        "secondary": {
+                            "name": "black",
+                            "rgb": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "gold",
+                            "rgb": [
+                                158,
+                                124,
+                                12
+                            ]
+                        },
+                        "quaternary": {
+                            "name": "red",
+                            "rgb": [
+                                198,
+                                12,
+                                14
+                            ]
+                        }
+                    }
+                },
+                "cincinnati_bengals": {
+                    "name": "Cincinnati Bengals",
+                    "colors": {
+                        "primary": {
+                            "name": "orange",
+                            "rgb": [
+                                251,
+                                79,
+                                20
+                            ]
+                        },
+                        "secondary": {
+                            "name": "black",
+                            "rgb": [
+                                0,
+                                0,
+                                0
+                            ]
+                        }
+                    }
+                },
+                "cleveland_browns": {
+                    "name": "Cleveland Browns",
+                    "colors": {
+                        "primary": {
+                            "name": "brown",
+                            "rgb": [
+                                49,
+                                29,
+                                0
+                            ]
+                        },
+                        "secondary": {
+                            "name": "orange",
+                            "rgb": [
+                                255,
+                                60,
+                                0
+                            ]
+                        }
+                    }
+                },
+                "pittsburgh_steelers": {
+                    "name": "Pittsburgh Steelers",
+                    "colors": {
+                        "primary": {
+                            "name": "steelers_gold",
+                            "rgb": [
+                                255,
+                                182,
+                                18
+                            ]
+                        },
+                        "secondary": {
+                            "name": "black",
+                            "rgb": [
+                                16,
+                                24,
+                                32
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "blue",
+                            "rgb": [
+                                0,
+                                48,
+                                135
+                            ]
+                        },
+                        "quaternary": {
+                            "name": "red",
+                            "rgb": [
+                                198,
+                                12,
+                                48
+                            ]
+                        },
+                        "quinary": {
+                            "name": "silver",
+                            "rgb": [
+                                165,
+                                172,
+                                175
+                            ]
+                        }
+                    }
+                }
+            },
+            "east": {
+                "buffalo_bills": {
+                    "name": "Buffalo Bills",
+                    "colors": {
+                        "primary": {
+                            "name": "blue",
+                            "rgb": [
+                                0,
+                                51,
+                                141
+                            ]
+                        },
+                        "secondary": {
+                            "name": "red",
+                            "rgb": [
+                                198,
+                                12,
+                                48
+                            ]
+                        }
+                    }
+                },
+                "miami_dolphins": {
+                    "name": "Miami Dolphins",
+                    "colors": {
+                        "primary": {
+                            "name": "aqua",
+                            "rgb": [
+                                0,
+                                142,
+                                151
+                            ]
+                        },
+                        "secondary": {
+                            "name": "orange",
+                            "rgb": [
+                                252,
+                                76,
+                                2
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "blue",
+                            "rgb": [
+                                0,
+                                87,
+                                120
+                            ]
+                        }
+                    }
+                },
+                "new_england_patriots": {
+                    "name": "New England Patriots",
+                    "colors": {
+                        "primary": {
+                            "name": "nautical_blue",
+                            "rgb": [
+                                0,
+                                34,
+                                68
+                            ]
+                        },
+                        "secondary": {
+                            "name": "red",
+                            "rgb": [
+                                198,
+                                12,
+                                48
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "new_century_silver",
+                            "rgb": [
+                                176,
+                                183,
+                                188
+                            ]
+                        }
+                    }
+                },
+                "new_york_jets": {
+                    "name": "New York Jets",
+                    "colors": {
+                        "primary": {
+                            "name": "gotham_green",
+                            "rgb": [
+                                18,
+                                87,
+                                64
+                            ]
+                        },
+                        "secondary": {
+                            "name": "stealth_black",
+                            "rgb": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "spotlight_white",
+                            "rgb": [
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    }
+                }
+            },
+            "south": {
+                "houston_texans": {
+                    "name": "Houston Texans",
+                    "colors": {
+                        "primary": {
+                            "name": "deep_steel_blue",
+                            "rgb": [
+                                3,
+                                32,
+                                47
+                            ]
+                        },
+                        "secondary": {
+                            "name": "battle_red",
+                            "rgb": [
+                                167,
+                                25,
+                                48
+                            ]
+                        }
+                    }
+                },
+                "indianapolis_colts": {
+                    "name": "Indianapolis Colts",
+                    "colors": {
+                        "primary": {
+                            "name": "speed_blue",
+                            "rgb": [
+                                0,
+                                44,
+                                95
+                            ]
+                        },
+                        "secondary": {
+                            "name": "gray",
+                            "rgb": [
+                                162,
+                                170,
+                                173
+                            ]
+                        }
+                    }
+                },
+                "jacksonville_jaguars": {
+                    "name": "Jacksonville Jaguars",
+                    "colors": {
+                        "primary": {
+                            "name": "black",
+                            "rgb": [
+                                16,
+                                24,
+                                32
+                            ]
+                        },
+                        "secondary": {
+                            "name": "gold",
+                            "rgb": [
+                                215,
+                                162,
+                                42
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "dark_gold",
+                            "rgb": [
+                                159,
+                                121,
+                                44
+                            ]
+                        },
+                        "quaternary": {
+                            "name": "teal",
+                            "rgb": [
+                                0,
+                                103,
+                                120
+                            ]
+                        }
+                    }
+                },
+                "tennessee_titans": {
+                    "name": "Tennessee Titans",
+                    "colors": {
+                        "primary": {
+                            "name": "titans_navy",
+                            "rgb": [
+                                12,
+                                35,
+                                64
+                            ]
+                        },
+                        "secondary": {
+                            "name": "titans_blue",
+                            "rgb": [
+                                75,
+                                146,
+                                219
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "titans_red",
+                            "rgb": [
+                                200,
+                                16,
+                                46
+                            ]
+                        },
+                        "quaternary": {
+                            "name": "titans_silver",
+                            "rgb": [
+                                138,
+                                141,
+                                143
+                            ]
+                        }
+                    }
+                }
+            },
+            "west": {
+                "denver_broncos": {
+                    "name": "Denver Broncos",
+                    "colors": {
+                        "primary": {
+                            "name": "broncos_orange",
+                            "rgb": [
+                                251,
+                                79,
+                                20
+                            ]
+                        },
+                        "secondary": {
+                            "name": "broncos_navy",
+                            "rgb": [
+                                0,
+                                34,
+                                68
+                            ]
+                        }
+                    }
+                },
+                "kansas_city_chiefs": {
+                    "name": "Kansas City Chiefs",
+                    "colors": {
+                        "primary": {
+                            "name": "red",
+                            "rgb": [
+                                227,
+                                24,
+                                55
+                            ]
+                        },
+                        "secondary": {
+                            "name": "gold",
+                            "rgb": [
+                                255,
+                                184,
+                                28
+                            ]
+                        }
+                    }
+                },
+                "las_vegas_raiders": {
+                    "name": "Las Vegas Raiders",
+                    "colors": {
+                        "primary": {
+                            "name": "raiders_black",
+                            "rgb": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "secondary": {
+                            "name": "raiders_silver",
+                            "rgb": [
+                                165,
+                                172,
+                                175
+                            ]
+                        }
+                    }
+                },
+                "los_angeles_chargers": {
+                    "name": "Los Angeles Chargers",
+                    "colors": {
+                        "primary": {
+                            "name": "powder_blue",
+                            "rgb": [
+                                0,
+                                128,
+                                198
+                            ]
+                        },
+                        "secondary": {
+                            "name": "sunshine_gold",
+                            "rgb": [
+                                255,
+                                194,
+                                14
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "white",
+                            "rgb": [
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "nfc": {
+            "north": {
+                "chicago_bears": {
+                    "name": "Chicago Bears",
+                    "colors": {
+                        "primary": {
+                            "name": "dark_navy",
+                            "rgb": [
+                                11,
+                                22,
+                                42
+                            ]
+                        },
+                        "secondary": {
+                            "name": "orange",
+                            "rgb": [
+                                200,
+                                56,
+                                3
+                            ]
+                        }
+                    }
+                },
+                "detroit_lions": {
+                    "name": "Detroit Lions",
+                    "colors": {
+                        "primary": {
+                            "name": "honolulu_blue",
+                            "rgb": [
+                                0,
+                                118,
+                                182
+                            ]
+                        },
+                        "secondary": {
+                            "name": "silver",
+                            "rgb": [
+                                176,
+                                183,
+                                188
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "black",
+                            "rgb": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "quaternary": {
+                            "name": "white",
+                            "rgb": [
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    }
+                },
+                "green_bay_packers": {
+                    "name": "Green Bay Packers",
+                    "colors": {
+                        "primary": {
+                            "name": "dark_green",
+                            "rgb": [
+                                24,
+                                48,
+                                40
+                            ]
+                        },
+                        "secondary": {
+                            "name": "gold",
+                            "rgb": [
+                                255,
+                                184,
+                                28
+                            ]
+                        }
+                    }
+                },
+                "minnesota_vikings": {
+                    "name": "Minnesota Vikings",
+                    "colors": {
+                        "primary": {
+                            "name": "purple",
+                            "rgb": [
+                                79,
+                                38,
+                                131
+                            ]
+                        },
+                        "secondary": {
+                            "name": "gold",
+                            "rgb": [
+                                255,
+                                198,
+                                47
+                            ]
+                        }
+                    }
+                }
+            },
+            "east": {
+                "dallas_cowboys": {
+                    "name": "Dallas Cowboys",
+                    "colors": {
+                        "primary": {
+                            "name": "royal_blue",
+                            "rgb": [
+                                0,
+                                53,
+                                148
+                            ]
+                        },
+                        "secondary": {
+                            "name": "blue",
+                            "rgb": [
+                                0,
+                                34,
+                                68
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "silver",
+                            "rgb": [
+                                134,
+                                147,
+                                151
+                            ]
+                        },
+                        "quaternary": {
+                            "name": "silver_green",
+                            "rgb": [
+                                127,
+                                150,
+                                149
+                            ]
+                        },
+                        "quinary": {
+                            "name": "white",
+                            "rgb": [
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    }
+                },
+                "new_york_giants": {
+                    "name": "New York Giants",
+                    "colors": {
+                        "primary": {
+                            "name": "dark_blue",
+                            "rgb": [
+                                1,
+                                35,
+                                82
+                            ]
+                        },
+                        "secondary": {
+                            "name": "red",
+                            "rgb": [
+                                163,
+                                13,
+                                45
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "gray",
+                            "rgb": [
+                                155,
+                                161,
+                                162
+                            ]
+                        }
+                    }
+                },
+                "philadelphia_eagles": {
+                    "name": "Philadelphia Eagles",
+                    "colors": {
+                        "primary": {
+                            "name": "midnight_green",
+                            "rgb": [
+                                0,
+                                76,
+                                84
+                            ]
+                        },
+                        "secondary": {
+                            "name": "silver_jersey",
+                            "rgb": [
+                                165,
+                                172,
+                                175
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "silver_helmet",
+                            "rgb": [
+                                186,
+                                202,
+                                211
+                            ]
+                        },
+                        "quaternary": {
+                            "name": "black",
+                            "rgb": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "quinary": {
+                            "name": "charcoal",
+                            "rgb": [
+                                95,
+                                96,
+                                98
+                            ]
+                        }
+                    }
+                },
+                "washington_commanders": {
+                    "name": "Washington Commanders",
+                    "colors": {
+                        "primary": {
+                            "name": "burgundy",
+                            "rgb": [
+                                90,
+                                20,
+                                20
+                            ]
+                        },
+                        "secondary": {
+                            "name": "gold",
+                            "rgb": [
+                                255,
+                                182,
+                                18
+                            ]
+                        }
+                    }
+                }
+            },
+            "south": {
+                "atlanta_falcons": {
+                    "name": "Atlanta Falcons",
+                    "colors": {
+                        "primary": {
+                            "name": "red",
+                            "rgb": [
+                                167,
+                                25,
+                                48
+                            ]
+                        },
+                        "secondary": {
+                            "name": "black",
+                            "rgb": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "silver",
+                            "rgb": [
+                                165,
+                                172,
+                                175
+                            ]
+                        }
+                    }
+                },
+                "carolina_panthers": {
+                    "name": "Carolina Panthers",
+                    "colors": {
+                        "primary": {
+                            "name": "carolina_blue",
+                            "rgb": [
+                                0,
+                                133,
+                                202
+                            ]
+                        },
+                        "secondary": {
+                            "name": "black",
+                            "rgb": [
+                                16,
+                                24,
+                                32
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "silver",
+                            "rgb": [
+                                191,
+                                192,
+                                191
+                            ]
+                        }
+                    }
+                },
+                "new_orleans_saints": {
+                    "name": "New Orleans Saints",
+                    "colors": {
+                        "primary": {
+                            "name": "old_gold",
+                            "rgb": [
+                                211,
+                                188,
+                                141
+                            ]
+                        },
+                        "secondary": {
+                            "name": "black",
+                            "rgb": [
+                                16,
+                                24,
+                                31
+                            ]
+                        }
+                    }
+                },
+                "tampa_bay_buccaneers": {
+                    "name": "Tampa Bay Buccaneers",
+                    "colors": {
+                        "primary": {
+                            "name": "red",
+                            "rgb": [
+                                213,
+                                10,
+                                10
+                            ]
+                        },
+                        "secondary": {
+                            "name": "bay_orange",
+                            "rgb": [
+                                255,
+                                121,
+                                0
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "black",
+                            "rgb": [
+                                10,
+                                10,
+                                8
+                            ]
+                        },
+                        "quaternary": {
+                            "name": "grey",
+                            "rgb": [
+                                177,
+                                186,
+                                191
+                            ]
+                        },
+                        "quinary": {
+                            "name": "pewter",
+                            "rgb": [
+                                52,
+                                48,
+                                43
+                            ]
+                        }
+                    }
+                }
+            },
+            "west": {
+                "arizona_cardinals": {
+                    "name": "Arizona Cardinals",
+                    "colors": {
+                        "primary": {
+                            "name": "red",
+                            "rgb": [
+                                151,
+                                35,
+                                63
+                            ]
+                        },
+                        "secondary": {
+                            "name": "black",
+                            "rgb": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "yellow",
+                            "rgb": [
+                                255,
+                                182,
+                                18
+                            ]
+                        }
+                    }
+                },
+                "los_angeles_rams": {
+                    "name": "Los Angeles Rams",
+                    "colors": {
+                        "primary": {
+                            "name": "blue",
+                            "rgb": [
+                                0,
+                                53,
+                                148
+                            ]
+                        },
+                        "secondary": {
+                            "name": "gold",
+                            "rgb": [
+                                255,
+                                163,
+                                0
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "dark_gold",
+                            "rgb": [
+                                255,
+                                130,
+                                0
+                            ]
+                        },
+                        "quaternary": {
+                            "name": "yellow",
+                            "rgb": [
+                                255,
+                                209,
+                                0
+                            ]
+                        },
+                        "quinary": {
+                            "name": "white",
+                            "rgb": [
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    }
+                },
+                "san_francisco_49ers": {
+                    "name": "San Francisco 49ers",
+                    "colors": {
+                        "primary": {
+                            "name": "niners_red",
+                            "rgb": [
+                                170,
+                                0,
+                                0
+                            ]
+                        },
+                        "secondary": {
+                            "name": "gold",
+                            "rgb": [
+                                173,
+                                153,
+                                93
+                            ]
+                        }
+                    }
+                },
+                "seattle_seahawks": {
+                    "name": "Seattle Seahawks",
+                    "colors": {
+                        "primary": {
+                            "name": "college_navy",
+                            "rgb": [
+                                0,
+                                34,
+                                68
+                            ]
+                        },
+                        "secondary": {
+                            "name": "action_green",
+                            "rgb": [
+                                105,
+                                190,
+                                40
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "wolf_gray",
+                            "rgb": [
+                                165,
+                                172,
+                                175
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -27,14 +27,13 @@ class GameHistory(StyledFrame):
         self.filtered_players = []
         
         # UI state
-        self.selected_position = "OFF"
+        self.selected_position = "ALL"
         self.selected_week = "ALL"
         self.sort_column = 'pts'  # Default sort by points
         self.sort_ascending = False  # Default descending
         self.search_var = tk.StringVar()
         self.view_mode = "detailed"  # "detailed" or "summarized"
         self.min_games_var = tk.IntVar(value=1)  # Minimum games filter
-        self.current_position_type = 'offensive'  # Track if showing offensive or defensive
         
         # Filter history for back button
         self.filter_history = []
@@ -49,7 +48,8 @@ class GameHistory(StyledFrame):
         self.last_clicked_item = None  # Track last clicked item for shift+click
         
         self.setup_ui()
-        # Column visibility is already set correctly in setup_ui
+        self.update_column_visibility()  # Set initial column visibility
+        self.update_sort_arrows()  # Show initial sort direction
         self.load_weekly_stats()
         
     def setup_ui(self):
@@ -105,7 +105,7 @@ class GameHistory(StyledFrame):
         )
         pos_label.pack(side='left', padx=(0, 5))
         
-        positions = ["OFF", "QB", "RB", "WR", "TE", "FLEX", "DB", "LB"]
+        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX"]
         self.position_buttons = {}
         
         # Create position buttons container (single row)
@@ -114,7 +114,7 @@ class GameHistory(StyledFrame):
         
         # Main positions only
         for pos in positions:
-            if pos == "OFF":
+            if pos == "ALL":
                 btn_bg = DARK_THEME['button_active'] if pos == self.selected_position else DARK_THEME['button_bg']
             elif pos == "FLEX":
                 btn_bg = DARK_THEME['button_active'] if pos == self.selected_position else DARK_THEME['button_bg']
@@ -203,27 +203,21 @@ class GameHistory(StyledFrame):
         self.venue_dropdown.pack(side='left')
         self.venue_dropdown.bind('<<ComboboxSelected>>', lambda e: self.apply_filters())
         
-        # ADP filter
-        adp_label = tk.Label(
+        # Show Available checkbox
+        self.show_available_var = tk.BooleanVar(value=False)
+        self.show_available_check = tk.Checkbutton(
             filter_frame,
-            text="ADP ≤",
+            text="Show Available",
+            variable=self.show_available_var,
             bg=DARK_THEME['bg_secondary'],
-            fg=DARK_THEME['text_secondary'],
-            font=(DARK_THEME['font_family'], 10)
-        )
-        adp_label.pack(side='left', padx=(20, 5))
-        
-        self.adp_var = tk.StringVar(value="")
-        self.adp_entry = tk.Entry(
-            filter_frame,
-            textvariable=self.adp_var,
-            bg=DARK_THEME['bg_tertiary'],
             fg=DARK_THEME['text_primary'],
+            selectcolor=DARK_THEME['bg_tertiary'],
+            activebackground=DARK_THEME['bg_secondary'],
+            activeforeground=DARK_THEME['text_primary'],
             font=(DARK_THEME['font_family'], 10),
-            width=5
+            command=self.apply_filters
         )
-        self.adp_entry.pack(side='left')
-        self.adp_var.trace('w', lambda *args: self.on_adp_changed())
+        self.show_available_check.pack(side='left', padx=(20, 0))
         
         # Clear filter button
         self.clear_button = tk.Button(
@@ -342,8 +336,8 @@ class GameHistory(StyledFrame):
         paned_window.pack(fill='both', expand=True)
         
         # Table container (left side)
-        self.table_container = StyledFrame(paned_window, bg_type='secondary')
-        paned_window.add(self.table_container, minsize=600)
+        table_container = StyledFrame(paned_window, bg_type='secondary')
+        paned_window.add(table_container, minsize=600)
         
         # Graph container (right side)
         graph_container = StyledFrame(paned_window, bg_type='secondary')
@@ -351,10 +345,10 @@ class GameHistory(StyledFrame):
         
         # Create treeview for table
         columns = ('player', 'pos', 'rank', 'team', 'week', 'opp', 'pts', 'median', 'avg', 'snaps', 'pts_per_snap', 'comp', 'pass_yd', 'pass_td', 
-                  'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td')
+                  'rush_yd', 'rush_td', 'tgt', 'rec', 'rec_yd', 'rec_td')
         
         self.tree = ttk.Treeview(
-            self.table_container,
+            table_container,
             columns=columns,
             show='tree headings',
             height=20
@@ -378,6 +372,7 @@ class GameHistory(StyledFrame):
         self.tree.column('pass_td', width=65, anchor='center', stretch=False)
         self.tree.column('rush_yd', width=70, anchor='center', stretch=False)
         self.tree.column('rush_td', width=65, anchor='center', stretch=False)
+        self.tree.column('tgt', width=40, anchor='center', stretch=False)
         self.tree.column('rec', width=45, anchor='center', stretch=False)
         self.tree.column('rec_yd', width=65, anchor='center', stretch=False)
         self.tree.column('rec_td', width=60, anchor='center', stretch=False)
@@ -399,6 +394,7 @@ class GameHistory(StyledFrame):
         self.tree.heading('pass_td', text='Pass TD', command=lambda: self.sort_by('pass_td'))
         self.tree.heading('rush_yd', text='Rush Yds', command=lambda: self.sort_by('rush_yd'))
         self.tree.heading('rush_td', text='Rush TD', command=lambda: self.sort_by('rush_td'))
+        self.tree.heading('tgt', text='Tgt', command=lambda: self.sort_by('tgt'))
         self.tree.heading('rec', text='Rec', command=lambda: self.sort_by('rec'))
         self.tree.heading('rec_yd', text='Rec Yds', command=lambda: self.sort_by('rec_yd'))
         self.tree.heading('rec_td', text='Rec TD', command=lambda: self.sort_by('rec_td'))
@@ -420,18 +416,18 @@ class GameHistory(StyledFrame):
                  foreground=[('selected', 'white')])
         
         # Scrollbars
-        self.v_scroll = ttk.Scrollbar(self.table_container, orient='vertical', command=self.tree.yview)
-        self.h_scroll = ttk.Scrollbar(self.table_container, orient='horizontal', command=self.tree.xview)
+        v_scroll = ttk.Scrollbar(table_container, orient='vertical', command=self.tree.yview)
+        h_scroll = ttk.Scrollbar(table_container, orient='horizontal', command=self.tree.xview)
         
-        self.tree.configure(yscrollcommand=self.v_scroll.set, xscrollcommand=self.h_scroll.set)
+        self.tree.configure(yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set)
         
         # Pack everything
         self.tree.grid(row=0, column=0, sticky='nsew')
-        self.v_scroll.grid(row=0, column=1, sticky='ns')
-        self.h_scroll.grid(row=1, column=0, sticky='ew')
+        v_scroll.grid(row=0, column=1, sticky='ns')
+        h_scroll.grid(row=1, column=0, sticky='ew')
         
-        self.table_container.grid_rowconfigure(0, weight=1)
-        self.table_container.grid_columnconfigure(0, weight=1)
+        table_container.grid_rowconfigure(0, weight=1)
+        table_container.grid_columnconfigure(0, weight=1)
         
         # Bind right-click and left-click
         self.tree.bind('<Button-3>', self.on_right_click)
@@ -449,131 +445,6 @@ class GameHistory(StyledFrame):
             font=(DARK_THEME['font_family'], 9)
         )
         self.status_label.pack(pady=5)
-        
-    def rebuild_tree_for_position(self):
-        """Rebuild the tree with appropriate columns for offensive/defensive positions"""
-        # Save current sort settings
-        current_sort = self.sort_column
-        current_ascending = self.sort_ascending
-        
-        # Destroy current tree
-        self.tree.destroy()
-        
-        # Determine which columns to use
-        if self.selected_position in ['DB', 'LB']:
-            columns = ('player', 'pos', 'rank', 'team', 'week', 'opp', 'pts', 'median', 'avg', 'snaps', 'pts_per_snap',
-                      'tkl_solo', 'tkl_ast', 'tkl_total', 'sack', 'int', 'pd', 'ff', 'fr')
-        else:
-            columns = ('player', 'pos', 'rank', 'team', 'week', 'opp', 'pts', 'median', 'avg', 'snaps', 'pts_per_snap',
-                      'comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td')
-        
-        # Create new tree
-        self.tree = ttk.Treeview(
-            self.table_container,
-            columns=columns,
-            show='tree headings',
-            height=20
-        )
-        
-        # Configure base columns (same for all positions)
-        self.tree.column('#0', width=0, stretch=False)
-        self.tree.column('player', width=150, anchor='w', stretch=False)
-        self.tree.column('pos', width=40, anchor='center', stretch=False)
-        self.tree.column('rank', width=55, anchor='center', stretch=False)
-        self.tree.column('team', width=45, anchor='center', stretch=False)
-        self.tree.column('week', width=40, anchor='center', stretch=False)
-        self.tree.column('opp', width=65, anchor='center', stretch=False)
-        self.tree.column('pts', width=55, anchor='center', stretch=False)
-        self.tree.column('median', width=55, anchor='center', stretch=False)
-        self.tree.column('avg', width=55, anchor='center', stretch=False)
-        self.tree.column('snaps', width=55, anchor='center', stretch=False)
-        self.tree.column('pts_per_snap', width=65, anchor='center', stretch=False)
-        
-        # Configure base headings
-        self.tree.heading('player', text='Player', command=lambda: self.sort_by('player'))
-        self.tree.heading('pos', text='Pos', command=lambda: self.sort_by('pos'))
-        self.tree.heading('rank', text='Rank', command=lambda: self.sort_by('rank'))
-        self.tree.heading('team', text='Team', command=lambda: self.sort_by('team'))
-        self.tree.heading('week', text='Wk', command=lambda: self.sort_by('week'))
-        self.tree.heading('opp', text='Opp', command=lambda: self.sort_by('opp'))
-        self.tree.heading('pts', text='Pts', command=lambda: self.sort_by('pts'))
-        self.tree.heading('median', text='Med', command=lambda: self.sort_by('median'))
-        self.tree.heading('avg', text='Avg', command=lambda: self.sort_by('avg'))
-        self.tree.heading('snaps', text='Snaps', command=lambda: self.sort_by('snaps'))
-        self.tree.heading('pts_per_snap', text='Pts/Snap', command=lambda: self.sort_by('pts_per_snap'))
-        
-        # Configure position-specific columns
-        if self.selected_position in ['DB', 'LB']:
-            # IDP columns
-            self.tree.column('tkl_solo', width=60, anchor='center', stretch=False)
-            self.tree.column('tkl_ast', width=55, anchor='center', stretch=False)
-            self.tree.column('tkl_total', width=65, anchor='center', stretch=False)
-            self.tree.column('sack', width=45, anchor='center', stretch=False)
-            self.tree.column('int', width=40, anchor='center', stretch=False)
-            self.tree.column('pd', width=40, anchor='center', stretch=False)
-            self.tree.column('ff', width=40, anchor='center', stretch=False)
-            self.tree.column('fr', width=40, anchor='center', stretch=False)
-            
-            self.tree.heading('tkl_solo', text='Solo', command=lambda: self.sort_by('tkl_solo'))
-            self.tree.heading('tkl_ast', text='Ast', command=lambda: self.sort_by('tkl_ast'))
-            self.tree.heading('tkl_total', text='Total', command=lambda: self.sort_by('tkl_total'))
-            self.tree.heading('sack', text='Sack', command=lambda: self.sort_by('sack'))
-            self.tree.heading('int', text='INT', command=lambda: self.sort_by('int'))
-            self.tree.heading('pd', text='PD', command=lambda: self.sort_by('pd'))
-            self.tree.heading('ff', text='FF', command=lambda: self.sort_by('ff'))
-            self.tree.heading('fr', text='FR', command=lambda: self.sort_by('fr'))
-        else:
-            # Offensive columns
-            self.tree.column('comp', width=55, anchor='center', stretch=False)
-            self.tree.column('pass_yd', width=70, anchor='center', stretch=False)
-            self.tree.column('pass_td', width=65, anchor='center', stretch=False)
-            self.tree.column('rush_yd', width=70, anchor='center', stretch=False)
-            self.tree.column('rush_td', width=65, anchor='center', stretch=False)
-            self.tree.column('rec', width=45, anchor='center', stretch=False)
-            self.tree.column('rec_yd', width=65, anchor='center', stretch=False)
-            self.tree.column('rec_td', width=60, anchor='center', stretch=False)
-            
-            self.tree.heading('comp', text='Comp', command=lambda: self.sort_by('comp'))
-            self.tree.heading('pass_yd', text='Pass Yds', command=lambda: self.sort_by('pass_yd'))
-            self.tree.heading('pass_td', text='Pass TD', command=lambda: self.sort_by('pass_td'))
-            self.tree.heading('rush_yd', text='Rush Yds', command=lambda: self.sort_by('rush_yd'))
-            self.tree.heading('rush_td', text='Rush TD', command=lambda: self.sort_by('rush_td'))
-            self.tree.heading('rec', text='Rec', command=lambda: self.sort_by('rec'))
-            self.tree.heading('rec_yd', text='Rec Yds', command=lambda: self.sort_by('rec_yd'))
-            self.tree.heading('rec_td', text='Rec TD', command=lambda: self.sort_by('rec_td'))
-        
-        # Re-apply styling
-        style = ttk.Style()
-        style.configure('Treeview', 
-                       background=DARK_THEME['bg_secondary'],
-                       foreground=DARK_THEME['text_primary'],
-                       fieldbackground=DARK_THEME['bg_secondary'],
-                       borderwidth=0,
-                       font=(DARK_THEME['font_family'], 10))
-        style.configure('Treeview.Heading',
-                       background=DARK_THEME['bg_tertiary'],
-                       foreground=DARK_THEME['text_primary'],
-                       font=(DARK_THEME['font_family'], 10, 'bold'))
-        style.map('Treeview',
-                 background=[('selected', DARK_THEME['button_active'])],
-                 foreground=[('selected', 'white')])
-        
-        # Re-grid tree and configure scrollbars
-        self.tree.grid(row=0, column=0, sticky='nsew')
-        self.tree.configure(yscrollcommand=self.v_scroll.set, xscrollcommand=self.h_scroll.set)
-        self.v_scroll.config(command=self.tree.yview)
-        self.h_scroll.config(command=self.tree.xview)
-        
-        # Re-bind events
-        self.tree.bind('<Button-3>', self.on_right_click)
-        self.tree.bind('<Button-1>', self.on_left_click)
-        
-        # Restore sort settings
-        self.sort_column = current_sort
-        self.sort_ascending = current_ascending
-        
-        # Store current position type
-        self.current_position_type = 'defensive' if self.selected_position in ['DB', 'LB'] else 'offensive'
         
     def load_weekly_stats(self):
         """Load all weekly stats data from aggregated file"""
@@ -624,7 +495,7 @@ class GameHistory(StyledFrame):
         for week in range(1, 19):
             self.weekly_stats[week] = {}
             
-            for position in ['qb', 'rb', 'wr', 'te', 'db', 'lb']:
+            for position in ['qb', 'rb', 'wr', 'te']:
                 filename = f"2024_{week}_{position}.json"
                 filepath = os.path.join(stats_dir, filename)
                 
@@ -647,23 +518,6 @@ class GameHistory(StyledFrame):
     def calculate_custom_points(self, stats, position):
         """Calculate custom fantasy points based on our scoring rules"""
         points = 0.0
-        
-        # IDP scoring for DB and LB
-        if position in ['DB', 'LB']:
-            # Tackles
-            points += stats.get('idp_tkl_solo', 0) * SCORING_CONFIG['tackle_solo']
-            points += stats.get('idp_tkl_ast', 0) * SCORING_CONFIG['tackle_assist']
-            
-            # Big plays
-            points += stats.get('idp_sack', 0) * SCORING_CONFIG['sack']
-            points += stats.get('idp_int', 0) * SCORING_CONFIG['interception']
-            points += stats.get('idp_pass_def', 0) * SCORING_CONFIG['pass_defended']
-            points += stats.get('idp_ff', 0) * SCORING_CONFIG['forced_fumble']
-            points += stats.get('idp_fr', 0) * SCORING_CONFIG['fumble_recovery']
-            points += stats.get('idp_def_td', 0) * SCORING_CONFIG['defensive_touchdown']
-            points += stats.get('idp_safety', 0) * SCORING_CONFIG['safety']
-            
-            return points
         
         # Passing points
         if position == 'QB':
@@ -723,18 +577,9 @@ class GameHistory(StyledFrame):
         
         # Add to tree
         for row in rows:
-            # Build values based on position type
-            if self.selected_position in ['DB', 'LB']:
-                values = (row['player'], row['pos'], row.get('rank', '-'), row['team'], row['week'], row['opp'],
-                         row['pts'], row.get('median', '-'), row.get('avg', '-'), row['snaps'], row.get('pts_per_snap', '-'),
-                         row.get('tkl_solo', '-'), row.get('tkl_ast', '-'), row.get('tkl_total', '-'), 
-                         row.get('sack', '-'), row.get('int', '-'), row.get('pd', '-'), 
-                         row.get('ff', '-'), row.get('fr', '-'))
-            else:
-                values = (row['player'], row['pos'], row.get('rank', '-'), row['team'], row['week'], row['opp'],
-                         row['pts'], row.get('median', '-'), row.get('avg', '-'), row['snaps'], row.get('pts_per_snap', '-'), 
-                         row.get('comp', '-'), row.get('pass_yd', '-'), row.get('pass_td', '-'), row.get('rush_yd', '-'), 
-                         row.get('rush_td', '-'), row.get('rec', '-'), row.get('rec_yd', '-'), row.get('rec_td', '-'))
+            values = (row['player'], row['pos'], row.get('rank', '-'), row['team'], row['week'], row['opp'],
+                     row['pts'], row.get('median', '-'), row.get('avg', '-'), row['snaps'], row.get('pts_per_snap', '-'), row['comp'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
+                     row['rush_td'], row.get('tgt', '-'), row['rec'], row['rec_yd'], row['rec_td'])
             
             # Add row with alternating colors
             tags = ()
@@ -783,13 +628,7 @@ class GameHistory(StyledFrame):
                 for stat in stats_list:
                     stats = stat.get('stats', {})
                     # Only count if player actually played
-                    # Check defensive snaps for DB/LB, offensive snaps for others
-                    if position in ['DB', 'LB']:
-                        snaps = int(stats.get('def_snp', 0))
-                    else:
-                        snaps = int(stats.get('off_snp', 0))
-                    
-                    if snaps > 0:
+                    if int(stats.get('off_snp', 0)) > 0:
                         custom_pts = self.calculate_custom_points(stats, position)
                         
                         if position not in week_position_data[week]:
@@ -842,28 +681,13 @@ class GameHistory(StyledFrame):
                     if search_text and search_text not in player.name.lower():
                         continue
                     
-                    # ADP filter
-                    adp_value = self.adp_var.get().strip()
-                    if adp_value:
-                        try:
-                            max_adp = float(adp_value)
-                            if hasattr(player, 'adp') and player.adp > max_adp:
-                                continue
-                        except ValueError:
-                            pass  # Invalid number, ignore filter
-                    
                     # Process the game
                     for stat in stats_list:
                         stats = stat.get('stats', {})
                         
                         # Skip games where player didn't play (0 snaps)
-                        # Check defensive snaps for DB/LB, offensive snaps for others
-                        if player.position in ['DB', 'LB']:
-                            if int(stats.get('def_snp', 0)) == 0:
-                                continue
-                        else:
-                            if int(stats.get('off_snp', 0)) == 0:
-                                continue
+                        if int(stats.get('off_snp', 0)) == 0:
+                            continue
                         
                         opponent = stat.get('opponent', '')
                         player_team = stat.get('team', player.team)
@@ -905,11 +729,7 @@ class GameHistory(StyledFrame):
                         opponent_display = f"vs {opponent}" if is_home else f"@ {opponent}"
                         
                         # Calculate pts per snap
-                        # Use defensive snaps for DB/LB, offensive snaps for others
-                        if player.position in ['DB', 'LB']:
-                            snaps = int(stats.get('def_snp', 0))
-                        else:
-                            snaps = int(stats.get('off_snp', 0))
+                        snaps = int(stats.get('off_snp', 0))
                         pts_per_snap = custom_pts / snaps if snaps > 0 else 0
                         
                         # Find rank for this player
@@ -920,61 +740,30 @@ class GameHistory(StyledFrame):
                                     rank = f"{player.position}{idx + 1}"
                                     break
                         
-                        # Build row data based on position
-                        if player.position in ['DB', 'LB']:
-                            # IDP stats for DB/LB
-                            solo = int(stats.get('idp_tkl_solo', 0))
-                            ast = int(stats.get('idp_tkl_ast', 0))
-                            total = solo + ast
-                            
-                            row = {
-                                'player': format_name(player.name),
-                                'pos': player.position,
-                                'rank': rank,
-                                'team': player.team or '-',
-                                'week': week,
-                                'opp': opponent_display,
-                                'pts': f"{custom_pts:.1f}",
-                                'snaps': int(stats.get('def_snp', 0)),  # Defensive snaps
-                                'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
-                                'tkl_solo': solo,
-                                'tkl_ast': ast,
-                                'tkl_total': total,
-                                'sack': float(stats.get('idp_sack', 0)),
-                                'int': int(stats.get('idp_int', 0)),
-                                'pd': int(stats.get('idp_pass_def', 0)),
-                                'ff': int(stats.get('idp_ff', 0)),
-                                'fr': int(stats.get('idp_fum_rec', 0)),
-                                '_pts_float': custom_pts,  # For sorting
-                                '_week_int': week,  # For sorting
-                                '_pts_per_snap_float': pts_per_snap,  # For sorting
-                                '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
-                            }
-                        else:
-                            # Offensive stats for other positions
-                            row = {
-                                'player': format_name(player.name),
-                                'pos': player.position,
-                                'rank': rank,
-                                'team': player.team or '-',
-                                'week': week,
-                                'opp': opponent_display,
-                                'pts': f"{custom_pts:.1f}",
-                                'snaps': snaps,
-                                'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
-                                'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
-                                'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
-                                'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
-                                'rush_yd': int(stats.get('rush_yd', 0)),
-                                'rush_td': max(0, int(stats.get('rush_td', 0))),
-                                'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
-                                'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
-                                'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
-                                '_pts_float': custom_pts,  # For sorting
-                                '_week_int': week,  # For sorting
-                                '_pts_per_snap_float': pts_per_snap,  # For sorting
-                                '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
-                            }
+                        row = {
+                            'player': format_name(player.name),
+                            'pos': player.position,
+                            'rank': rank,
+                            'team': player.team or '-',
+                            'week': week,
+                            'opp': opponent_display,
+                            'pts': f"{custom_pts:.1f}",
+                            'snaps': snaps,
+                            'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
+                            'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
+                            'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
+                            'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
+                            'rush_yd': int(stats.get('rush_yd', 0)),
+                            'rush_td': max(0, int(stats.get('rush_td', 0))),
+                            'tgt': int(stats.get('rec_tgt', 0)) if player.position != 'QB' else '-',
+                            'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
+                            'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
+                            'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
+                            '_pts_float': custom_pts,  # For sorting
+                            '_week_int': week,  # For sorting
+                            '_pts_per_snap_float': pts_per_snap,  # For sorting
+                            '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
+                        }
                         rows.append(row)
         else:
             # Normal filtering without roster position
@@ -993,25 +782,16 @@ class GameHistory(StyledFrame):
                     if self.selected_position == "FLEX":
                         if player.position not in ["RB", "WR", "TE"]:
                             continue
-                    elif self.selected_position == "OFF":
-                        if player.position in ["DB", "LB"]:
-                            continue
-                    elif self.selected_position != "OFF" and player.position != self.selected_position:
+                    elif self.selected_position != "ALL" and player.position != self.selected_position:
                         continue
                     
                     # Search filter
                     if search_text and search_text not in player.name.lower():
                         continue
                     
-                    # ADP filter
-                    adp_value = self.adp_var.get().strip()
-                    if adp_value:
-                        try:
-                            max_adp = float(adp_value)
-                            if hasattr(player, 'adp') and player.adp > max_adp:
-                                continue
-                        except ValueError:
-                            pass  # Invalid number, ignore filter
+                    # Show Available filter (only undrafted players)
+                    if self.show_available_var.get() and hasattr(player, 'drafted') and player.drafted:
+                        continue
                     
                     # Handle both single stat object and list of stats
                     stats_list = stats_data if isinstance(stats_data, list) else [stats_data]
@@ -1021,13 +801,8 @@ class GameHistory(StyledFrame):
                         stats = stat.get('stats', {})
                         
                         # Skip games where player didn't play (0 snaps)
-                        # Check defensive snaps for DB/LB, offensive snaps for others
-                        if player.position in ['DB', 'LB']:
-                            if int(stats.get('def_snp', 0)) == 0:
-                                continue
-                        else:
-                            if int(stats.get('off_snp', 0)) == 0:
-                                continue
+                        if int(stats.get('off_snp', 0)) == 0:
+                            continue
                         
                         opponent = stat.get('opponent', '')
                         player_team = stat.get('team', player.team)
@@ -1069,11 +844,7 @@ class GameHistory(StyledFrame):
                         opponent_display = f"vs {opponent}" if is_home else f"@ {opponent}"
                         
                         # Calculate pts per snap
-                        # Use defensive snaps for DB/LB, offensive snaps for others
-                        if player.position in ['DB', 'LB']:
-                            snaps = int(stats.get('def_snp', 0))
-                        else:
-                            snaps = int(stats.get('off_snp', 0))
+                        snaps = int(stats.get('off_snp', 0))
                         pts_per_snap = custom_pts / snaps if snaps > 0 else 0
                         
                         # Find rank for this player
@@ -1084,61 +855,30 @@ class GameHistory(StyledFrame):
                                     rank = f"{player.position}{idx + 1}"
                                     break
                         
-                        # Build row data based on position
-                        if player.position in ['DB', 'LB']:
-                            # IDP stats for DB/LB
-                            solo = int(stats.get('idp_tkl_solo', 0))
-                            ast = int(stats.get('idp_tkl_ast', 0))
-                            total = solo + ast
-                            
-                            row = {
-                                'player': format_name(player.name),
-                                'pos': player.position,
-                                'rank': rank,
-                                'team': player.team or '-',
-                                'week': week,
-                                'opp': opponent_display,
-                                'pts': f"{custom_pts:.1f}",
-                                'snaps': int(stats.get('def_snp', 0)),  # Defensive snaps
-                                'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
-                                'tkl_solo': solo,
-                                'tkl_ast': ast,
-                                'tkl_total': total,
-                                'sack': float(stats.get('idp_sack', 0)),
-                                'int': int(stats.get('idp_int', 0)),
-                                'pd': int(stats.get('idp_pass_def', 0)),
-                                'ff': int(stats.get('idp_ff', 0)),
-                                'fr': int(stats.get('idp_fum_rec', 0)),
-                                '_pts_float': custom_pts,  # For sorting
-                                '_week_int': week,  # For sorting
-                                '_pts_per_snap_float': pts_per_snap,  # For sorting
-                                '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
-                            }
-                        else:
-                            # Offensive stats for other positions
-                            row = {
-                                'player': format_name(player.name),
-                                'pos': player.position,
-                                'rank': rank,
-                                'team': player.team or '-',
-                                'week': week,
-                                'opp': opponent_display,
-                                'pts': f"{custom_pts:.1f}",
-                                'snaps': snaps,
-                                'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
-                                'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
-                                'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
-                                'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
-                                'rush_yd': int(stats.get('rush_yd', 0)),
-                                'rush_td': max(0, int(stats.get('rush_td', 0))),
-                                'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
-                                'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
-                                'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
-                                '_pts_float': custom_pts,  # For sorting
-                                '_week_int': week,  # For sorting
-                                '_pts_per_snap_float': pts_per_snap,  # For sorting
-                                '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
-                            }
+                        row = {
+                            'player': format_name(player.name),
+                            'pos': player.position,
+                            'rank': rank,
+                            'team': player.team or '-',
+                            'week': week,
+                            'opp': opponent_display,
+                            'pts': f"{custom_pts:.1f}",
+                            'snaps': snaps,
+                            'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
+                            'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
+                            'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
+                            'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
+                            'rush_yd': int(stats.get('rush_yd', 0)),
+                            'rush_td': max(0, int(stats.get('rush_td', 0))),
+                            'tgt': int(stats.get('rec_tgt', 0)) if player.position != 'QB' else '-',
+                            'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
+                            'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
+                            'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
+                            '_pts_float': custom_pts,  # For sorting
+                            '_week_int': week,  # For sorting
+                            '_pts_per_snap_float': pts_per_snap,  # For sorting
+                            '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
+                        }
                         rows.append(row)
         
         return rows
@@ -1165,14 +905,15 @@ class GameHistory(StyledFrame):
                 if self.selected_position == "FLEX":
                     if player.position not in ["RB", "WR", "TE"]:
                         continue
-                elif self.selected_position == "OFF":
-                    if player.position in ["DB", "LB"]:
-                        continue
-                elif self.selected_position != "OFF" and player.position != self.selected_position:
+                elif self.selected_position != "ALL" and player.position != self.selected_position:
                     continue
                 
                 # Search filter
                 if search_text and search_text not in player.name.lower():
+                    continue
+                
+                # Show Available filter (only undrafted players)
+                if self.show_available_var.get() and hasattr(player, 'drafted') and player.drafted:
                     continue
                 
                 # Initialize player totals if needed
@@ -1189,6 +930,7 @@ class GameHistory(StyledFrame):
                         'pass_td': 0,
                         'rush_yd': 0,
                         'rush_td': 0,
+                        'tgt': 0,
                         'rec': 0,
                         'rec_yd': 0,
                         'rec_td': 0,
@@ -1226,6 +968,7 @@ class GameHistory(StyledFrame):
                     totals['rush_yd'] += int(stats.get('rush_yd', 0))
                     totals['rush_td'] += int(stats.get('rush_td', 0))
                     if player.position != 'QB':
+                        totals['tgt'] += int(stats.get('rec_tgt', 0))
                         totals['rec'] += int(stats.get('rec', 0))
                         totals['rec_yd'] += int(stats.get('rec_yd', 0))
                         totals['rec_td'] += int(stats.get('rec_td', 0))
@@ -1284,6 +1027,7 @@ class GameHistory(StyledFrame):
                 'pass_td': totals['pass_td'] if totals['pass_td'] > 0 else '-',
                 'rush_yd': totals['rush_yd'] if totals['rush_yd'] > 0 else '-',
                 'rush_td': totals['rush_td'] if totals['rush_td'] > 0 else '-',
+                'tgt': totals['tgt'] if totals['tgt'] > 0 else '-',
                 'rec': totals['rec'] if totals['rec'] > 0 else '-',
                 'rec_yd': totals['rec_yd'] if totals['rec_yd'] > 0 else '-',
                 'rec_td': totals['rec_td'] if totals['rec_td'] > 0 else '-',
@@ -1317,17 +1061,11 @@ class GameHistory(StyledFrame):
                 return row.get('_pts_per_snap_float', 0)
             elif self.sort_column == 'rank':
                 return row.get('_rank_int', 999)
-            elif self.sort_column in ['snaps', 'comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td',
-                                      'tkl_solo', 'tkl_ast', 'tkl_total', 'sack', 'int', 'pd', 'ff', 'fr']:
-                val = row.get(self.sort_column, '-')
-                if val == '-':
-                    return 0
-                try:
-                    return float(val)
-                except:
-                    return 0
+            elif self.sort_column in ['snaps', 'comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'tgt', 'rec', 'rec_yd', 'rec_td']:
+                val = row[self.sort_column]
+                return 0 if val == '-' else int(val)
             else:
-                return row.get(self.sort_column, '')
+                return row[self.sort_column]
         
         rows.sort(key=get_sort_key, reverse=not self.sort_ascending)
         
@@ -1338,18 +1076,55 @@ class GameHistory(StyledFrame):
         else:
             self.sort_column = column
             self.sort_ascending = False
-            
+        
+        # Update all column headers to show sort arrows
+        self.update_sort_arrows()
         self.apply_filters()
+    
+    def update_sort_arrows(self):
+        """Update column headers to show sort direction arrows"""
+        # Define column header text
+        headers = {
+            'player': 'Player',
+            'pos': 'Pos',
+            'rank': 'Rank',
+            'team': 'Team',
+            'week': 'Wk',
+            'opp': 'Opp',
+            'pts': 'Pts',
+            'median': 'Med',
+            'avg': 'Avg',
+            'snaps': 'Snaps',
+            'pts_per_snap': 'Pts/Snap',
+            'comp': 'Comp',
+            'pass_yd': 'Pass Yds',
+            'pass_td': 'Pass TD',
+            'rush_yd': 'Rush Yds',
+            'rush_td': 'Rush TD',
+            'tgt': 'Tgt',
+            'rec': 'Rec',
+            'rec_yd': 'Rec Yds',
+            'rec_td': 'Rec TD'
+        }
+        
+        # Update each column header
+        for col, text in headers.items():
+            if col == self.sort_column:
+                # Add arrow to sorted column
+                arrow = ' ↑' if self.sort_ascending else ' ↓'
+                self.tree.heading(col, text=text + arrow)
+            else:
+                # Remove arrow from other columns
+                self.tree.heading(col, text=text)
         
     def filter_by_position(self, position):
         """Filter by position"""
-        old_position = self.selected_position
         self.selected_position = position
         
         # Update button appearances
         for pos, btn in self.position_buttons.items():
             if pos == position:
-                if pos == "OFF":
+                if pos == "ALL":
                     btn.config(bg=DARK_THEME['button_active'])
                 elif pos == "FLEX":
                     btn.config(bg=DARK_THEME['button_active'])
@@ -1358,22 +1133,8 @@ class GameHistory(StyledFrame):
             else:
                 btn.config(bg=DARK_THEME['button_bg'])
         
-        # Check if we need to rebuild tree for defensive positions
-        need_rebuild = False
-        if position in ['DB', 'LB'] and old_position not in ['DB', 'LB']:
-            need_rebuild = True
-        elif position not in ['DB', 'LB'] and old_position in ['DB', 'LB']:
-            need_rebuild = True
-        
-        if need_rebuild:
-            # Reset sort column to default when switching between offensive/defensive
-            self.sort_column = 'pts'
-            self.sort_ascending = False
-            self.rebuild_tree_for_position()
-        else:
-            # Just update column visibility
-            self.update_column_visibility()
-        
+        # Update column visibility
+        self.update_column_visibility()
         self.apply_filters()
     
     def set_view_mode(self, mode):
@@ -1398,9 +1159,6 @@ class GameHistory(StyledFrame):
     
     def update_column_visibility(self):
         """Show/hide columns based on selected position"""
-        # Get current columns in the tree
-        columns = self.tree['columns']
-        
         # First, set base column widths that should always be consistent
         self.tree.column('player', width=150, stretch=False)
         self.tree.column('pos', width=40, stretch=False)
@@ -1420,43 +1178,45 @@ class GameHistory(StyledFrame):
             self.tree.column('median', width=0, stretch=False)
             self.tree.column('avg', width=0, stretch=False)
         
-        # Only update offensive columns if they exist in the tree
-        if 'comp' in columns:
-            if self.selected_position == "QB":
-                # Show QB columns, hide receiving columns
-                self.tree.column('comp', width=55, stretch=False)
-                self.tree.column('pass_yd', width=70, stretch=False)
-                self.tree.column('pass_td', width=65, stretch=False)
-                self.tree.column('rush_yd', width=70, stretch=False)
-                self.tree.column('rush_td', width=65, stretch=False)
-                # Hide receiving columns
-                self.tree.column('rec', width=0, stretch=False)
-                self.tree.column('rec_yd', width=0, stretch=False)
-                self.tree.column('rec_td', width=0, stretch=False)
-            elif self.selected_position in ["RB", "WR", "TE", "FLEX"]:
-                # Hide passing columns
-                self.tree.column('comp', width=0, stretch=False)
-                self.tree.column('pass_yd', width=0, stretch=False)
-                self.tree.column('pass_td', width=0, stretch=False)
-                # Show skill position columns
-                self.tree.column('rush_yd', width=70, stretch=False)
-                self.tree.column('rush_td', width=65, stretch=False)
-                self.tree.column('rec', width=45, stretch=False)
-                self.tree.column('rec_yd', width=65, stretch=False)
-                self.tree.column('rec_td', width=60, stretch=False)
-            else:  # OFF
-                # Show all columns with appropriate widths
-                self.tree.column('comp', width=55, stretch=False)
-                self.tree.column('pass_yd', width=70, stretch=False)
-                self.tree.column('pass_td', width=65, stretch=False)
-                self.tree.column('rush_yd', width=70, stretch=False)
-                self.tree.column('rush_td', width=65, stretch=False)
-                self.tree.column('rec', width=45, stretch=False)
-                self.tree.column('rec_yd', width=65, stretch=False)
-                self.tree.column('rec_td', width=60, stretch=False)
-        elif 'tkl_solo' in columns:
-            # Tree has IDP columns - no need to update offensive column visibility
-            pass
+        # Define which columns are relevant for each position
+        qb_columns = ['comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td']
+        skill_columns = ['rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']
+        
+        if self.selected_position == "QB":
+            # Show QB columns, hide receiving columns
+            self.tree.column('comp', width=55, stretch=False)
+            self.tree.column('pass_yd', width=70, stretch=False)
+            self.tree.column('pass_td', width=65, stretch=False)
+            self.tree.column('rush_yd', width=70, stretch=False)
+            self.tree.column('rush_td', width=65, stretch=False)
+            # Hide receiving columns
+            self.tree.column('tgt', width=0, stretch=False)
+            self.tree.column('rec', width=0, stretch=False)
+            self.tree.column('rec_yd', width=0, stretch=False)
+            self.tree.column('rec_td', width=0, stretch=False)
+        elif self.selected_position in ["RB", "WR", "TE", "FLEX"]:
+            # Hide passing columns
+            self.tree.column('comp', width=0, stretch=False)
+            self.tree.column('pass_yd', width=0, stretch=False)
+            self.tree.column('pass_td', width=0, stretch=False)
+            # Show skill position columns
+            self.tree.column('rush_yd', width=70, stretch=False)
+            self.tree.column('rush_td', width=65, stretch=False)
+            self.tree.column('tgt', width=40, stretch=False)
+            self.tree.column('rec', width=45, stretch=False)
+            self.tree.column('rec_yd', width=65, stretch=False)
+            self.tree.column('rec_td', width=60, stretch=False)
+        else:  # ALL
+            # Show all columns with appropriate widths
+            self.tree.column('comp', width=55, stretch=False)
+            self.tree.column('pass_yd', width=70, stretch=False)
+            self.tree.column('pass_td', width=65, stretch=False)
+            self.tree.column('rush_yd', width=70, stretch=False)
+            self.tree.column('rush_td', width=65, stretch=False)
+            self.tree.column('tgt', width=40, stretch=False)
+            self.tree.column('rec', width=45, stretch=False)
+            self.tree.column('rec_yd', width=65, stretch=False)
+            self.tree.column('rec_td', width=60, stretch=False)
     
     def save_filter_state(self):
         """Save current filter state to history"""
@@ -1480,15 +1240,15 @@ class GameHistory(StyledFrame):
         self.save_filter_state()
         
         self.search_var.set('')
-        self.selected_position = "OFF"
+        self.selected_position = "ALL"
         self.week_var.set("ALL")
         self.location_var.set("ALL")
         self.venue_var.set("ALL")
-        self.adp_var.set("")
+        self.show_available_var.set(False)
         
         # Update button appearances
         for pos, btn in self.position_buttons.items():
-            if pos == "OFF":
+            if pos == "ALL":
                 btn.config(bg=DARK_THEME['button_active'])
             else:
                 btn.config(bg=DARK_THEME['button_bg'])
@@ -1509,7 +1269,7 @@ class GameHistory(StyledFrame):
             # Update UI
             for pos, btn in self.position_buttons.items():
                 if pos == self.selected_position:
-                    if pos == "OFF":
+                    if pos == "ALL":
                         btn.config(bg=DARK_THEME['button_active'])
                     else:
                         btn.config(bg=get_position_color(pos))
@@ -1529,15 +1289,6 @@ class GameHistory(StyledFrame):
         
         # Schedule new search after 300ms
         self._search_after_id = self.after(300, self.apply_filters)
-    
-    def on_adp_changed(self):
-        """Handle ADP filter changes with debouncing"""
-        # Cancel any pending filter
-        if hasattr(self, '_adp_after_id'):
-            self.after_cancel(self._adp_after_id)
-        
-        # Schedule new filter after 300ms
-        self._adp_after_id = self.after(300, self.apply_filters)
     
     def on_right_click(self, event):
         """Handle right-click on tree item"""
@@ -1608,6 +1359,7 @@ class GameHistory(StyledFrame):
             'pass_td': 0,
             'rush_yd': 0,
             'rush_td': 0,
+            'tgt': 0,
             'rec': 0,
             'rec_yd': 0,
             'rec_td': 0,
@@ -1625,7 +1377,7 @@ class GameHistory(StyledFrame):
                 pass
                 
             # Integer stats
-            for stat in ['snaps', 'comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'rec', 'rec_yd', 'rec_td']:
+            for stat in ['snaps', 'comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'tgt', 'rec', 'rec_yd', 'rec_td']:
                 val = row.get(stat, '-')
                 if isinstance(val, (int, float)):
                     totals[stat] += int(val)
@@ -1667,13 +1419,14 @@ class GameHistory(StyledFrame):
             format_stat(totals['pass_td']) if position == 'QB' else '-',  # Pass TD
             format_stat(totals['rush_yd']),  # Rush Yd
             format_stat(totals['rush_td']),  # Rush TD
+            format_stat(totals['tgt']) if position != 'QB' else '-',  # Tgt
             format_stat(totals['rec']) if position != 'QB' else '-',  # Rec
             format_stat(totals['rec_yd']) if position != 'QB' else '-',  # Rec Yd
             format_stat(totals['rec_td']) if position != 'QB' else '-'  # Rec TD
         )
         
         # Add separator row
-        self.tree.insert('', 'end', values=('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''), tags=('separator',))
+        self.tree.insert('', 'end', values=('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''), tags=('separator',))
         
         # Add totals row
         self.tree.insert('', 'end', values=values, tags=('totals',))
@@ -1683,58 +1436,29 @@ class GameHistory(StyledFrame):
     
     def setup_graph(self, container):
         """Setup the matplotlib graph"""
-        # Title frame
-        title_frame = StyledFrame(container, bg_type='secondary')
-        title_frame.pack(fill='x', padx=10, pady=(10, 5))
-        
+        # Graph title
         title_label = tk.Label(
-            title_frame,
+            container,
             text="POINTS BY WEEK",
             bg=DARK_THEME['bg_secondary'],
             fg=DARK_THEME['text_primary'],
             font=(DARK_THEME['font_family'], 12, 'bold')
         )
-        title_label.pack(side='left')
+        title_label.pack(pady=(10, 5))
         
-        # Instructions frame
-        info_frame = StyledFrame(container, bg_type='secondary')
-        info_frame.pack(fill='x', padx=10, pady=(0, 10))
-        
+        # Instructions
         info_label = tk.Label(
-            info_frame,
+            container,
             text="Click player to graph • Ctrl+Click to add/remove • Shift+Click to select range",
             bg=DARK_THEME['bg_secondary'],
             fg=DARK_THEME['text_secondary'],
             font=(DARK_THEME['font_family'], 9)
         )
-        info_label.pack(side='left')
+        info_label.pack(pady=(0, 5))
         
-        # Create matplotlib figure
-        self.figure = Figure(figsize=(6, 4), dpi=100, facecolor=DARK_THEME['bg_secondary'])
-        self.ax = self.figure.add_subplot(111)
-        
-        # Style the plot
-        self.ax.set_facecolor(DARK_THEME['bg_tertiary'])
-        self.ax.spines['bottom'].set_color(DARK_THEME['text_secondary'])
-        self.ax.spines['top'].set_color(DARK_THEME['text_secondary'])
-        self.ax.spines['left'].set_color(DARK_THEME['text_secondary'])
-        self.ax.spines['right'].set_color(DARK_THEME['text_secondary'])
-        self.ax.tick_params(colors=DARK_THEME['text_secondary'])
-        self.ax.xaxis.label.set_color(DARK_THEME['text_secondary'])
-        self.ax.yaxis.label.set_color(DARK_THEME['text_secondary'])
-        
-        # Create canvas
-        self.graph_canvas = FigureCanvasTkAgg(self.figure, master=container)
-        self.graph_canvas.draw()
-        self.graph_canvas.get_tk_widget().pack(fill='both', expand=True, padx=10, pady=(0, 10))
-        
-        # Setup hover annotation
-        self.hover_annotation = None
-        self.graph_canvas.mpl_connect('motion_notify_event', self.on_graph_hover)
-        
-        # Week range controls
+        # Week range controls (moved above graph)
         range_frame = StyledFrame(container, bg_type='secondary')
-        range_frame.pack(fill='x', padx=10, pady=(0, 10))
+        range_frame.pack(fill='x', padx=10, pady=(5, 5))
         
         # Range label
         range_label = tk.Label(
@@ -1823,12 +1547,9 @@ class GameHistory(StyledFrame):
         )
         self.end_spinbox.pack(side='left')
         
-        # Clear button frame
-        clear_frame = StyledFrame(container, bg_type='secondary')
-        clear_frame.pack(fill='x', padx=10, pady=(0, 10))
-        
+        # Clear button
         clear_btn = tk.Button(
-            clear_frame,
+            custom_frame,
             text="CLEAR GRAPH",
             bg=DARK_THEME['button_bg'],
             fg='white',
@@ -1840,7 +1561,26 @@ class GameHistory(StyledFrame):
             command=self.clear_graph,
             cursor='hand2'
         )
-        clear_btn.pack(side='left')
+        clear_btn.pack(side='left', padx=(20, 0))
+        
+        # Create matplotlib figure
+        self.figure = Figure(figsize=(6, 4), dpi=100, facecolor=DARK_THEME['bg_secondary'])
+        self.ax = self.figure.add_subplot(111)
+        
+        # Style the plot
+        self.ax.set_facecolor(DARK_THEME['bg_tertiary'])
+        self.ax.spines['bottom'].set_color(DARK_THEME['text_secondary'])
+        self.ax.spines['top'].set_color(DARK_THEME['text_secondary'])
+        self.ax.spines['left'].set_color(DARK_THEME['text_secondary'])
+        self.ax.spines['right'].set_color(DARK_THEME['text_secondary'])
+        self.ax.tick_params(colors=DARK_THEME['text_secondary'])
+        self.ax.xaxis.label.set_color(DARK_THEME['text_secondary'])
+        self.ax.yaxis.label.set_color(DARK_THEME['text_secondary'])
+        
+        # Create canvas
+        self.graph_canvas = FigureCanvasTkAgg(self.figure, master=container)
+        self.graph_canvas.draw()
+        self.graph_canvas.get_tk_widget().pack(fill='both', expand=True, padx=10, pady=(0, 10))
         
         # Initialize empty plot
         self.update_graph()
@@ -1918,15 +1658,11 @@ class GameHistory(StyledFrame):
                 
                 for stat in stats_list:
                     stats = stat.get('stats', {})
-                    player = self.player_lookup[player_id]
-                    # Use defensive snaps for DB/LB, offensive snaps for others
-                    if player.position in ['DB', 'LB']:
-                        week_snaps = int(stats.get('def_snp', 0))
-                    else:
-                        week_snaps = int(stats.get('off_snp', 0))
+                    week_snaps = int(stats.get('off_snp', 0))
                     # Only count if player actually played (had snaps)
                     if week_snaps > 0:
                         # Calculate custom points
+                        player = self.player_lookup[player_id]
                         week_points = self.calculate_custom_points(stats, player.position)
                         break  # Only one game per week
             
@@ -2117,131 +1853,4 @@ class GameHistory(StyledFrame):
             self.update_graph()
         except ValueError:
             pass  # Ignore invalid input
-    
-    def on_graph_hover(self, event):
-        """Handle mouse hover over graph points"""
-        if event.inaxes != self.ax or not self.graph_players:
-            # Remove annotation if mouse is outside axes
-            if self.hover_annotation:
-                self.hover_annotation.remove()
-                self.hover_annotation = None
-                self.graph_canvas.draw_idle()
-            return
-        
-        # Find closest point to mouse
-        closest_point = None
-        min_distance = float('inf')
-        
-        for player_id, data in self.graph_players.items():
-            # Only check points within the current week range
-            for i, week in enumerate(data['weeks']):
-                if self.week_range_start <= week <= self.week_range_end:
-                    # Calculate distance from mouse to point
-                    x_dist = (week - event.xdata) ** 2
-                    y_dist = (data['points'][i] - event.ydata) ** 2
-                    distance = (x_dist + y_dist) ** 0.5
-                    
-                    if distance < min_distance and distance < 0.5:  # Within 0.5 units
-                        min_distance = distance
-                        closest_point = {
-                            'player_id': player_id,
-                            'player_name': data['name'],
-                            'week': week,
-                            'points': data['points'][i],
-                            'snaps': data['snaps'][i],
-                            'position': data['position'],
-                            'team': data['team']
-                        }
-        
-        # Update or create annotation
-        if closest_point:
-            # Build tooltip text
-            tooltip_lines = [
-                f"{closest_point['player_name']} ({closest_point['position']})",
-                f"Week {closest_point['week']}",
-                f"Points: {closest_point['points']:.1f}",
-            ]
-            
-            # Add snaps if player played
-            if closest_point['snaps'] > 0:
-                tooltip_lines.append(f"Snaps: {closest_point['snaps']}")
-            else:
-                tooltip_lines.append("Did not play")
-            
-            # Get additional stats if available
-            if closest_point['week'] in self.weekly_stats and closest_point['player_id'] in self.weekly_stats[closest_point['week']]:
-                stats_data = self.weekly_stats[closest_point['week']][closest_point['player_id']]
-                stats_list = stats_data if isinstance(stats_data, list) else [stats_data]
-                
-                if stats_list:
-                    stats = stats_list[0].get('stats', {})
-                    opponent = stats_list[0].get('opponent', '')
-                    
-                    # Add opponent info
-                    if opponent:
-                        # Determine home/away
-                        is_home = (closest_point['week'] + hash(closest_point['team'])) % 2 == 0
-                        opp_display = f"vs {opponent}" if is_home else f"@ {opponent}"
-                        tooltip_lines.insert(2, opp_display)
-                    
-                    # Add key stats based on position
-                    if closest_point['position'] == 'QB':
-                        comp = int(stats.get('pass_cmp', 0))
-                        pass_yd = int(stats.get('pass_yd', 0))
-                        pass_td = int(stats.get('pass_td', 0))
-                        if comp or pass_yd or pass_td:
-                            tooltip_lines.append(f"Pass: {comp} cmp, {pass_yd} yd, {pass_td} TD")
-                    elif closest_point['position'] in ['RB', 'WR', 'TE']:
-                        rec = int(stats.get('rec', 0))
-                        rec_yd = int(stats.get('rec_yd', 0))
-                        rush_yd = int(stats.get('rush_yd', 0))
-                        total_td = int(stats.get('rec_td', 0)) + int(stats.get('rush_td', 0))
-                        if rec or rec_yd:
-                            tooltip_lines.append(f"Rec: {rec} rec, {rec_yd} yd")
-                        if rush_yd:
-                            tooltip_lines.append(f"Rush: {rush_yd} yd")
-                        if total_td:
-                            tooltip_lines.append(f"TD: {total_td}")
-                    elif closest_point['position'] in ['DB', 'LB']:
-                        solo = int(stats.get('idp_tkl_solo', 0))
-                        ast = int(stats.get('idp_tkl_ast', 0))
-                        total_tkl = solo + ast
-                        sacks = float(stats.get('idp_sack', 0))
-                        ints = int(stats.get('idp_int', 0))
-                        if total_tkl:
-                            tooltip_lines.append(f"Tackles: {total_tkl} ({solo} solo)")
-                        if sacks:
-                            tooltip_lines.append(f"Sacks: {sacks}")
-                        if ints:
-                            tooltip_lines.append(f"INT: {ints}")
-            
-            tooltip_text = '\n'.join(tooltip_lines)
-            
-            # Remove old annotation
-            if self.hover_annotation:
-                self.hover_annotation.remove()
-            
-            # Create new annotation
-            self.hover_annotation = self.ax.annotate(
-                tooltip_text,
-                xy=(closest_point['week'], closest_point['points']),
-                xytext=(20, 20),  # Offset from point
-                textcoords='offset points',
-                bbox=dict(boxstyle='round,pad=0.5', 
-                         facecolor=DARK_THEME['bg_tertiary'], 
-                         edgecolor=DARK_THEME['text_secondary'],
-                         alpha=0.95),
-                fontsize=9,
-                color=DARK_THEME['text_primary'],
-                arrowprops=dict(arrowstyle='->',
-                              connectionstyle='arc3,rad=0',
-                              color=DARK_THEME['text_secondary'])
-            )
-            self.graph_canvas.draw_idle()
-        else:
-            # Remove annotation if no point is close
-            if self.hover_annotation:
-                self.hover_annotation.remove()
-                self.hover_annotation = None
-                self.graph_canvas.draw_idle()
     

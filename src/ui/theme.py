@@ -20,8 +20,6 @@ DARK_THEME = {
     'pos_te': '#faae58',          # TE - Orange
     'pos_def': '#bd66ff',         # DEF - Purple
     'pos_k': '#bd66ff',           # K - Purple
-    'pos_db': '#9966ff',          # DB - Light Purple
-    'pos_lb': '#ff66cc',          # LB - Light Pink
     
     # UI elements
     'border': '#2d3139',          # Border color
