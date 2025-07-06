@@ -63,24 +63,24 @@ TEAM_COLORS = {
     'PIT': ['#FFB612', '#FFFFFF'],  # Steelers: Gold, White
     'BUF': ['#00338D', '#C60C30'],  # Bills: Blue, Red
     'MIA': ['#008E97', '#FC4C02'],  # Dolphins: Aqua, Orange
-    'NE': ['#002244', '#C60C30'],  # Patriots: Navy, Red
-    'NYJ': ['#125740', '#FFFFFF'],  # Jets: Green, White
-    'HOU': ['#03202F', '#A71930'],  # Texans: Navy, Red
-    'IND': ['#002C5F', '#A2AAAD'],  # Colts: Blue, Gray
+    'NE': ['#00157C', '#C60C30'],  # Patriots: Navy, Red
+    'NYJ': ['#006647', '#FFFFFF'],  # Jets: Green, White
+    'HOU': ['#002073', '#A71930'],  # Texans: Navy, Red
+    'IND': ['#002C8B', '#A2AAAD'],  # Colts: Blue, Gray
     'JAX': ['#101820', '#D7A22A'],  # Jaguars: Black, Gold
-    'TEN': ['#0C2340', '#4B92DB'],  # Titans: Navy, Light Blue
+    'TEN': ['#418FDE', '#4B92DB'],  # Titans: Navy, Light Blue
     'DEN': ['#FB4F14', '#002244'],  # Broncos: Orange, Navy
     'KC': ['#E31837', '#FFB81C'],  # Chiefs: Red, Yellow
     'LV': ['#A5ACAF', '#000000'],  # Raiders: Silver, Black (swapped for visibility)
     'LAC': ['#0080C6', '#FFC20E'],  # Chargers: Blue, Yellow
-    'CHI': ['#0B162A', '#C83803'],  # Bears: Navy, Orange
+    'CHI': ['#051C6B', '#C83803'],  # Bears: Navy, Orange
     'DET': ['#0076B6', '#B0B7BC'],  # Lions: Blue, Silver
-    'GB': ['#203731', '#FFB612'],  # Packers: Green, Gold
+    'GB': ['#203700', '#FFB612'],  # Packers: Green, Gold
     'MIN': ['#4F2683', '#FFC62F'],  # Vikings: Purple, Gold
     'DAL': ['#003594', '#869397'],  # Cowboys: Blue, Silver
-    'NYG': ['#0B2265', '#A71930'],  # Giants: Blue, Red
-    'PHI': ['#004C54', '#A5ACAF'],  # Eagles: Green, Silver
-    'WAS': ['#5A1414', '#FFB612'],  # Commanders: Burgundy, Gold
+    'NYG': ['#0038B8', '#A71930'],  # Giants: Blue, Red
+    'PHI': ['#004E37', '#A5ACAF'],  # Eagles: Green, Silver
+    'WAS': ['#9B2323', '#FFB612'],  # Commanders: Burgundy, Gold
     'ATL': ['#A71930', '#A5ACAF'],  # Falcons: Red, Silver
     'CAR': ['#0085CA', '#BFC0BF'],  # Panthers: Blue, Silver
     'NO': ['#D3BC8D', '#FFFFFF'],  # Saints: Gold, White
@@ -88,7 +88,7 @@ TEAM_COLORS = {
     'ARI': ['#97233F', '#FFB612'],  # Cardinals: Red, Yellow
     'LAR': ['#003594', '#FFD100'],  # Rams: Blue, Gold
     'SF': ['#AA0000', '#B3995D'],  # 49ers: Red, Gold
-    'SEA': ['#002244', '#69BE28'],  # Seahawks: Navy, Green
+    'SEA': ['#002277', '#69BE28'],  # Seahawks: Navy, Green
 }
 
 def get_team_color(team: str, secondary: bool = False) -> str:

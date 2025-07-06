@@ -433,6 +433,7 @@ class GameHistory(StyledFrame):
         # Bind right-click and left-click
         self.tree.bind('<Button-3>', self.on_right_click)
         self.tree.bind('<Button-1>', self.on_left_click)
+        self.tree.bind('<<TreeviewSelect>>', self.on_selection_change)
         
         # Setup graph
         self.setup_graph(graph_container)
@@ -1707,6 +1708,33 @@ class GameHistory(StyledFrame):
         # Remember this item for next shift+click
         self.last_clicked_item = item
     
+    def on_selection_change(self, event):
+        """Handle selection changes in the tree"""
+        # Only auto-manage graph if we have selections (selection-based mode)
+        if not self.tree.selection():
+            return
+            
+        # Get all unique player names from selected rows
+        selected_players = set()
+        for item in self.tree.selection():
+            values = self.tree.item(item, 'values')
+            if values and values[0] and values[0] != '' and 'TOTALS' not in str(values[0]):
+                selected_players.add(values[0])
+        
+        # Check each graphed player to see if they should be removed
+        players_to_remove = []
+        for player_id, player_data in self.graph_players.items():
+            player_name = player_data['name']
+            # If player is not in selected players, mark for removal
+            if player_name not in selected_players:
+                players_to_remove.append(player_id)
+        
+        # Remove players that are no longer selected
+        if players_to_remove:
+            for player_id in players_to_remove:
+                del self.graph_players[player_id]
+            self.update_graph()
+    
     def add_player_to_graph(self, player_name, add_to_selection=False):
         """Add a player to the graph"""
         # Find player ID
@@ -1723,13 +1751,28 @@ class GameHistory(StyledFrame):
         if not add_to_selection:
             self.graph_players.clear()
             
-        # Check if already in graph - toggle off if Ctrl+clicking
+        # Check if already in graph - handle toggle behavior for Ctrl+clicking
         if player_id in self.graph_players:
             if add_to_selection:
-                # Remove from graph (toggle off)
-                del self.graph_players[player_id]
-                self.update_graph()
-            return
+                # Check if this player has any selected rows in the table
+                has_selected_row = False
+                for item in self.tree.selection():
+                    values = self.tree.item(item, 'values')
+                    if values and values[0] == player_name:
+                        has_selected_row = True
+                        break
+                
+                # If no rows are selected, remove from graph (toggle off)
+                if not has_selected_row:
+                    del self.graph_players[player_id]
+                    self.update_graph()
+                    return
+                # If rows are selected, keep in graph but don't re-add
+                else:
+                    return
+            else:
+                # Non-Ctrl click on already graphed player - just return
+                return
             
         # Collect player's weekly data for ALL weeks (1-18)
         weeks = []

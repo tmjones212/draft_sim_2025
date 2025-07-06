@@ -182,11 +182,11 @@
                     "name": "New England Patriots",
                     "colors": {
                         "primary": {
-                            "name": "nautical_blue",
+                            "name": "patriots_blue",
                             "rgb": [
                                 0,
-                                34,
-                                68
+                                21,
+                                124
                             ]
                         },
                         "secondary": {
@@ -204,6 +204,14 @@
                                 183,
                                 188
                             ]
+                        },
+                        "quaternary": {
+                            "name": "nautical_blue",
+                            "rgb": [
+                                0,
+                                34,
+                                68
+                            ]
                         }
                     }
                 },
@@ -211,11 +219,11 @@
                     "name": "New York Jets",
                     "colors": {
                         "primary": {
-                            "name": "gotham_green",
+                            "name": "jets_green",
                             "rgb": [
-                                18,
-                                87,
-                                64
+                                0,
+                                102,
+                                71
                             ]
                         },
                         "secondary": {
@@ -233,6 +241,14 @@
                                 255,
                                 255
                             ]
+                        },
+                        "quaternary": {
+                            "name": "gotham_green",
+                            "rgb": [
+                                18,
+                                87,
+                                64
+                            ]
                         }
                     }
                 }
@@ -242,11 +258,11 @@
                     "name": "Houston Texans",
                     "colors": {
                         "primary": {
-                            "name": "deep_steel_blue",
+                            "name": "texans_blue",
                             "rgb": [
-                                3,
+                                0,
                                 32,
-                                47
+                                115
                             ]
                         },
                         "secondary": {
@@ -256,6 +272,14 @@
                                 25,
                                 48
                             ]
+                        },
+                        "tertiary": {
+                            "name": "deep_steel_blue",
+                            "rgb": [
+                                3,
+                                32,
+                                47
+                            ]
                         }
                     }
                 },
@@ -263,11 +287,11 @@
                     "name": "Indianapolis Colts",
                     "colors": {
                         "primary": {
-                            "name": "speed_blue",
+                            "name": "colts_blue",
                             "rgb": [
                                 0,
                                 44,
-                                95
+                                139
                             ]
                         },
                         "secondary": {
@@ -276,6 +300,14 @@
                                 162,
                                 170,
                                 173
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "speed_blue",
+                            "rgb": [
+                                0,
+                                44,
+                                95
                             ]
                         }
                     }
@@ -323,9 +355,9 @@
                         "primary": {
                             "name": "titans_navy",
                             "rgb": [
-                                12,
-                                35,
-                                64
+                                65,
+                                143,
+                                222
                             ]
                         },
                         "secondary": {
@@ -350,6 +382,14 @@
                                 138,
                                 141,
                                 143
+                            ]
+                        },
+                        "quinary": {
+                            "name": "old_titans_navy",
+                            "rgb": [
+                                12,
+                                35,
+                                64
                             ]
                         }
                     }
@@ -456,11 +496,11 @@
                     "name": "Chicago Bears",
                     "colors": {
                         "primary": {
-                            "name": "dark_navy",
+                            "name": "bears_navy",
                             "rgb": [
-                                11,
-                                22,
-                                42
+                                5,
+                                28,
+                                107
                             ]
                         },
                         "secondary": {
@@ -469,6 +509,14 @@
                                 200,
                                 56,
                                 3
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "dark_navy",
+                            "rgb": [
+                                11,
+                                22,
+                                42
                             ]
                         }
                     }
@@ -514,11 +562,11 @@
                     "name": "Green Bay Packers",
                     "colors": {
                         "primary": {
-                            "name": "dark_green",
+                            "name": "packers_green",
                             "rgb": [
-                                24,
-                                48,
-                                40
+                                32,
+                                55,
+                                0
                             ]
                         },
                         "secondary": {
@@ -527,6 +575,14 @@
                                 255,
                                 184,
                                 28
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "dark_green",
+                            "rgb": [
+                                24,
+                                48,
+                                40
                             ]
                         }
                     }
@@ -603,11 +659,11 @@
                     "name": "New York Giants",
                     "colors": {
                         "primary": {
-                            "name": "dark_blue",
+                            "name": "giants_blue",
                             "rgb": [
-                                1,
-                                35,
-                                82
+                                0,
+                                56,
+                                184
                             ]
                         },
                         "secondary": {
@@ -625,6 +681,14 @@
                                 161,
                                 162
                             ]
+                        },
+                        "quaternary": {
+                            "name": "dark_blue",
+                            "rgb": [
+                                1,
+                                35,
+                                82
+                            ]
                         }
                     }
                 },
@@ -632,11 +696,11 @@
                     "name": "Philadelphia Eagles",
                     "colors": {
                         "primary": {
-                            "name": "midnight_green",
+                            "name": "eagles_green",
                             "rgb": [
                                 0,
-                                76,
-                                84
+                                78,
+                                55
                             ]
                         },
                         "secondary": {
@@ -670,6 +734,14 @@
                                 96,
                                 98
                             ]
+                        },
+                        "senary": {
+                            "name": "midnight_green",
+                            "rgb": [
+                                0,
+                                76,
+                                84
+                            ]
                         }
                     }
                 },
@@ -679,9 +751,9 @@
                         "primary": {
                             "name": "burgundy",
                             "rgb": [
-                                90,
-                                20,
-                                20
+                                155,
+                                35,
+                                35
                             ]
                         },
                         "secondary": {
@@ -690,6 +762,14 @@
                                 255,
                                 182,
                                 18
+                            ]
+                        },
+                        "tertiary": {
+                            "name": "dark_burgundy",
+                            "rgb": [
+                                90,
+                                20,
+                                20
                             ]
                         }
                     }
@@ -921,11 +1001,11 @@
                     "name": "Seattle Seahawks",
                     "colors": {
                         "primary": {
-                            "name": "college_navy",
+                            "name": "seahawks_blue",
                             "rgb": [
                                 0,
                                 34,
-                                68
+                                119
                             ]
                         },
                         "secondary": {
@@ -942,6 +1022,14 @@
                                 165,
                                 172,
                                 175
+                            ]
+                        },
+                        "quaternary": {
+                            "name": "college_navy",
+                            "rgb": [
+                                0,
+                                34,
+                                68
                             ]
                         }
                     }
