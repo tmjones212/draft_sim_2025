@@ -1071,70 +1071,2108 @@
       "team": "BAL",
       "rank": 153,
       "name": "Kyle Hamilton",
-      "adp": 165.0
+      "adp": 165.0,
+      "player_id": "8339",
+      "games_2024": 17,
+      "points_2024": 193.8,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "BAL",
+          "opponent": "KC",
+          "stats": {
+            "def_snp": 51.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "BAL",
+          "opponent": "LV",
+          "stats": {
+            "def_snp": 63.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "BAL",
+          "opponent": "DAL",
+          "stats": {
+            "def_snp": 79.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 5.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "BAL",
+          "opponent": "BUF",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 54.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "BAL",
+          "opponent": "CIN",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 66.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "BAL",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 59.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "BAL",
+          "opponent": "TB",
+          "stats": {
+            "def_snp": 82.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 4.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "BAL",
+          "opponent": "CLE",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 69.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 9.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 2.0,
+            "idp_pass_def": 2.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "BAL",
+          "opponent": "DEN",
+          "stats": {
+            "def_snp": 65.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "BAL",
+          "opponent": "CIN",
+          "stats": {
+            "def_snp": 42.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "BAL",
+          "opponent": "PIT",
+          "stats": {
+            "def_snp": 77.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 9.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "BAL",
+          "opponent": "LAC",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "BAL",
+          "opponent": "PHI",
+          "stats": {
+            "def_snp": 56.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "BAL",
+          "opponent": "NYG",
+          "stats": {
+            "def_snp": 50.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "BAL",
+          "opponent": "PIT",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 60.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "BAL",
+          "opponent": "HOU",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 50.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 1.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "BAL",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 52.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "LAC",
       "rank": 154,
       "name": "Derwin James",
-      "adp": 167.5
+      "adp": 167.5,
+      "player_id": "4971",
+      "games_2024": 16,
+      "points_2024": 171.2,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "LAC",
+          "opponent": "LV",
+          "stats": {
+            "def_snp": 60.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "LAC",
+          "opponent": "CAR",
+          "stats": {
+            "def_snp": 44.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "LAC",
+          "opponent": "PIT",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 68.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 2.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "LAC",
+          "opponent": "DEN",
+          "stats": {
+            "def_snp": 55.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "LAC",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 57.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "LAC",
+          "opponent": "NO",
+          "stats": {
+            "def_snp": 73.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "LAC",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 67.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "LAC",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "LAC",
+          "opponent": "CIN",
+          "stats": {
+            "pts_ppr": 0.5,
+            "pts_std": 0.5,
+            "pts_half_ppr": 0.5,
+            "def_snp": 82.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 3.0,
+            "idp_sack": 0.5,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "LAC",
+          "opponent": "BAL",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 65.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 4.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "LAC",
+          "opponent": "ATL",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 80.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 2.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "LAC",
+          "opponent": "KC",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 69.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "LAC",
+          "opponent": "TB",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "LAC",
+          "opponent": "DEN",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "LAC",
+          "opponent": "NE",
+          "stats": {
+            "pts_ppr": 4.0,
+            "pts_std": 4.0,
+            "pts_half_ppr": 4.0,
+            "def_snp": 38.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_loss": 2.0,
+            "idp_sack": 2.0,
+            "idp_qb_hit": 2.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "LAC",
+          "opponent": "LV",
+          "stats": {
+            "def_snp": 39.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "ARI",
       "rank": 155,
       "name": "Budda Baker",
-      "adp": 170.0
+      "adp": 170.0,
+      "player_id": "4081",
+      "games_2024": 17,
+      "points_2024": 250.2,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "ARI",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 6.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "ARI",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 44.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_loss": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "ARI",
+          "opponent": "DET",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "ARI",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 72.0,
+            "idp_tkl": 15.0,
+            "idp_tkl_solo": 10.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "ARI",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "ARI",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 73.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "ARI",
+          "opponent": "LAC",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "ARI",
+          "opponent": "MIA",
+          "stats": {
+            "def_snp": 65.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 6.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "ARI",
+          "opponent": "CHI",
+          "stats": {
+            "def_snp": 68.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 10.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "ARI",
+          "opponent": "NYJ",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 58.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 3.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "ARI",
+          "opponent": "SEA",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 64.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "ARI",
+          "opponent": "MIN",
+          "stats": {
+            "def_snp": 52.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "ARI",
+          "opponent": "SEA",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 18.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 10.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "ARI",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 51.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "ARI",
+          "opponent": "CAR",
+          "stats": {
+            "def_snp": 68.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "ARI",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 57.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 6.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "ARI",
+          "opponent": "SF",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 73.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0,
+            "idp_ff": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "PIT",
       "rank": 156,
       "name": "Minkah Fitzpatrick",
-      "adp": 172.5
+      "adp": 172.5,
+      "player_id": "4963",
+      "games_2024": 17,
+      "points_2024": 153.5,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "PIT",
+          "opponent": "ATL",
+          "stats": {
+            "def_snp": 56.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "PIT",
+          "opponent": "DEN",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "PIT",
+          "opponent": "LAC",
+          "stats": {
+            "off_snp": 2.0,
+            "def_snp": 46.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "PIT",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "PIT",
+          "opponent": "DAL",
+          "stats": {
+            "def_snp": 74.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "PIT",
+          "opponent": "LV",
+          "stats": {
+            "off_snp": 2.0,
+            "def_snp": 57.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "PIT",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 56.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "PIT",
+          "opponent": "NYG",
+          "stats": {
+            "off_snp": 1.0,
+            "def_snp": 72.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "PIT",
+          "opponent": "WAS",
+          "stats": {
+            "off_snp": 3.0,
+            "def_snp": 64.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "PIT",
+          "opponent": "BAL",
+          "stats": {
+            "off_snp": 2.0,
+            "def_snp": 61.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "PIT",
+          "opponent": "CLE",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 58.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "PIT",
+          "opponent": "CIN",
+          "stats": {
+            "off_snp": 2.0,
+            "def_snp": 62.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "PIT",
+          "opponent": "CLE",
+          "stats": {
+            "off_snp": 2.0,
+            "def_snp": 72.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "PIT",
+          "opponent": "PHI",
+          "stats": {
+            "def_snp": 80.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 6.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "PIT",
+          "opponent": "BAL",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 62.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 4.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "PIT",
+          "opponent": "KC",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "PIT",
+          "opponent": "CIN",
+          "stats": {
+            "def_snp": 74.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "SF",
       "rank": 157,
       "name": "Talanoa Hufanga",
-      "adp": 175.0
+      "adp": 175.0,
+      "player_id": "7811",
+      "games_2024": 7,
+      "points_2024": 53.0,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "SF",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 53.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "SF",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 11.0,
+            "idp_tkl": 1.0,
+            "idp_tkl_solo": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "SF",
+          "opponent": "CHI",
+          "stats": {
+            "def_snp": 39.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "SF",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 6.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "SF",
+          "opponent": "MIA",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "SF",
+          "opponent": "DET",
+          "stats": {
+            "def_snp": 56.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "SF",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 25.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "IND",
       "rank": 158,
       "name": "Nick Cross",
-      "adp": 177.5
+      "adp": 177.5,
+      "player_id": "8392",
+      "games_2024": 17,
+      "points_2024": 233.0,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "IND",
+          "opponent": "HOU",
+          "stats": {
+            "def_snp": 79.0,
+            "idp_tkl": 14.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 6.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "IND",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 15.0,
+            "idp_tkl_solo": 10.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "IND",
+          "opponent": "CHI",
+          "stats": {
+            "def_snp": 90.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 4.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "IND",
+          "opponent": "PIT",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 70.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "IND",
+          "opponent": "JAX",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 58.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 3.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "IND",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "IND",
+          "opponent": "MIA",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "IND",
+          "opponent": "HOU",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "IND",
+          "opponent": "MIN",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 73.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 3.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "IND",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 74.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "IND",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 51.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "IND",
+          "opponent": "DET",
+          "stats": {
+            "def_snp": 72.0,
+            "idp_tkl": 14.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 8.0,
+            "idp_tkl_loss": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "IND",
+          "opponent": "NE",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 72.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "IND",
+          "opponent": "DEN",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 63.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "IND",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 1.0,
+            "idp_tkl_solo": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "IND",
+          "opponent": "NYG",
+          "stats": {
+            "def_snp": 56.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 6.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "IND",
+          "opponent": "JAX",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "MIA",
       "rank": 159,
       "name": "Jevon Holland",
-      "adp": 180.0
+      "adp": 180.0,
+      "player_id": "7666",
+      "games_2024": 15,
+      "points_2024": 104.0,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "MIA",
+          "opponent": "JAX",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 53.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "MIA",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 41.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "MIA",
+          "opponent": "SEA",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "MIA",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "MIA",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 44.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "MIA",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 17.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "MIA",
+          "opponent": "LAR",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 69.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "MIA",
+          "opponent": "LV",
+          "stats": {
+            "def_snp": 65.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "MIA",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "MIA",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "MIA",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 68.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "MIA",
+          "opponent": "HOU",
+          "stats": {
+            "def_snp": 50.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "MIA",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "MIA",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "MIA",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "BAL",
       "rank": 160,
       "name": "Marcus Williams",
-      "adp": 182.5
+      "adp": 182.5,
+      "player_id": "4091",
+      "games_2024": 11,
+      "points_2024": 57.5,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "BAL",
+          "opponent": "KC",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "BAL",
+          "opponent": "LV",
+          "stats": {
+            "def_snp": 63.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "BAL",
+          "opponent": "DAL",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 80.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "BAL",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "BAL",
+          "opponent": "CIN",
+          "stats": {
+            "def_snp": 63.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "BAL",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 59.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "BAL",
+          "opponent": "TB",
+          "stats": {
+            "def_snp": 82.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "BAL",
+          "opponent": "DEN",
+          "stats": {
+            "def_snp": 63.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "BAL",
+          "opponent": "CIN",
+          "stats": {
+            "def_snp": 81.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "BAL",
+          "opponent": "PIT",
+          "stats": {
+            "def_snp": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "BAL",
+          "opponent": "LAC",
+          "stats": {
+            "def_snp": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "MIA",
       "rank": 161,
       "name": "Jordan Poyer",
-      "adp": 185.0
+      "adp": 185.0,
+      "player_id": "1343",
+      "games_2024": 16,
+      "points_2024": 139.2,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "MIA",
+          "opponent": "JAX",
+          "stats": {
+            "def_snp": 53.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "MIA",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 41.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "MIA",
+          "opponent": "SEA",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "MIA",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 37.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "MIA",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "MIA",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 5.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "MIA",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "MIA",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "MIA",
+          "opponent": "LV",
+          "stats": {
+            "def_snp": 65.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "MIA",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 7.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "MIA",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 7.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "MIA",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 68.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "MIA",
+          "opponent": "HOU",
+          "stats": {
+            "def_snp": 50.0,
+            "idp_tkl": 1.0,
+            "idp_tkl_solo": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "MIA",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "MIA",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "MIA",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "CHI",
       "rank": 162,
       "name": "Kevin Byard",
-      "adp": 187.5
+      "adp": 187.5,
+      "player_id": "3233",
+      "games_2024": 17,
+      "points_2024": 217.0,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "CHI",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "CHI",
+          "opponent": "HOU",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 62.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "CHI",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 56.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "CHI",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "CHI",
+          "opponent": "CAR",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 51.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "CHI",
+          "opponent": "JAX",
+          "stats": {
+            "def_snp": 59.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "CHI",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 74.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "CHI",
+          "opponent": "ARI",
+          "stats": {
+            "pts_ppr": 3.0,
+            "pts_std": 3.0,
+            "pts_half_ppr": 3.0,
+            "def_snp": 58.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "CHI",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 6.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "CHI",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 46.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "CHI",
+          "opponent": "MIN",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 13.0,
+            "idp_tkl_solo": 11.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "CHI",
+          "opponent": "DET",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 5.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "CHI",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "CHI",
+          "opponent": "MIN",
+          "stats": {
+            "def_snp": 77.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "CHI",
+          "opponent": "DET",
+          "stats": {
+            "def_snp": 65.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "CHI",
+          "opponent": "SEA",
+          "stats": {
+            "def_snp": 52.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "CHI",
+          "opponent": "GB",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 65.0,
+            "idp_tkl": 14.0,
+            "idp_tkl_solo": 9.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_ff": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
@@ -1148,21 +3186,632 @@
       "team": "HOU",
       "rank": 164,
       "name": "Jalen Pitre",
-      "adp": 192.5
+      "adp": 192.5,
+      "player_id": "8314",
+      "games_2024": 12,
+      "points_2024": 113.0,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "HOU",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 45.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "HOU",
+          "opponent": "CHI",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "HOU",
+          "opponent": "MIN",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "HOU",
+          "opponent": "JAX",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 4.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "HOU",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "HOU",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 55.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "HOU",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "HOU",
+          "opponent": "IND",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 64.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "HOU",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 48.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "HOU",
+          "opponent": "DET",
+          "stats": {
+            "def_snp": 51.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 4.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "HOU",
+          "opponent": "DAL",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 70.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 5.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "HOU",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 21.0,
+            "idp_tkl": 1.0,
+            "idp_tkl_solo": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "SEA",
       "rank": 165,
       "name": "Julian Love",
-      "adp": 195.0
+      "adp": 195.0,
+      "player_id": "5876",
+      "games_2024": 17,
+      "points_2024": 196.0,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "SEA",
+          "opponent": "DEN",
+          "stats": {
+            "pts_ppr": 3.0,
+            "pts_std": 3.0,
+            "pts_half_ppr": 3.0,
+            "def_snp": 69.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 10.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "SEA",
+          "opponent": "NE",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 68.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 6.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "SEA",
+          "opponent": "MIA",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "SEA",
+          "opponent": "DET",
+          "stats": {
+            "def_snp": 29.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "SEA",
+          "opponent": "NYG",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "SEA",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "SEA",
+          "opponent": "ATL",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 66.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 5.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "SEA",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "SEA",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 77.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "SEA",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 63.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "SEA",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 2.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "SEA",
+          "opponent": "NYJ",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 68.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 6.0,
+            "idp_pass_def": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "SEA",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "SEA",
+          "opponent": "GB",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 61.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 3.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "SEA",
+          "opponent": "MIN",
+          "stats": {
+            "pts_ppr": 0.2,
+            "pts_std": 0.2,
+            "pts_half_ppr": 0.2,
+            "rush_att": 1.0,
+            "rush_yd": 2.0,
+            "rush_fd": 1.0,
+            "def_snp": 64.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "SEA",
+          "opponent": "CHI",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "SEA",
+          "opponent": "LAR",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 66.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 3.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "NYJ",
       "rank": 166,
       "name": "Sauce Gardner",
-      "adp": 197.5
+      "adp": 197.5,
+      "player_id": "8290",
+      "games_2024": 15,
+      "points_2024": 92.5,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "NYJ",
+          "opponent": "SF",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 63.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "NYJ",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "NYJ",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 52.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "NYJ",
+          "opponent": "DEN",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "NYJ",
+          "opponent": "MIN",
+          "stats": {
+            "def_snp": 59.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "NYJ",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "NYJ",
+          "opponent": "PIT",
+          "stats": {
+            "def_snp": 63.0,
+            "idp_tkl": 1.0,
+            "idp_tkl_solo": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "NYJ",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "NYJ",
+          "opponent": "HOU",
+          "stats": {
+            "def_snp": 76.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "NYJ",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 57.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "NYJ",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "NYJ",
+          "opponent": "SEA",
+          "stats": {
+            "def_snp": 44.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "NYJ",
+          "opponent": "JAX",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 84.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 3.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "NYJ",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 23.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "NYJ",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 28.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0,
+            "idp_pass_def": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
@@ -1176,161 +3825,4544 @@
       "team": "MIA",
       "rank": 168,
       "name": "Jalen Ramsey",
-      "adp": 202.5
+      "adp": 202.5,
+      "player_id": "3160",
+      "games_2024": 17,
+      "points_2024": 111.8,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "MIA",
+          "opponent": "JAX",
+          "stats": {
+            "def_snp": 41.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "MIA",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 41.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "MIA",
+          "opponent": "SEA",
+          "stats": {
+            "def_snp": 59.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "MIA",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "MIA",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 60.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "MIA",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 2.0,
+            "idp_qb_hit": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "MIA",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "MIA",
+          "opponent": "BUF",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 66.0,
+            "idp_tkl": 1.0,
+            "idp_tkl_solo": 1.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "MIA",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "MIA",
+          "opponent": "LV",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 65.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 5.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "MIA",
+          "opponent": "NE",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 69.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "MIA",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 1.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "MIA",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 68.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 4.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "MIA",
+          "opponent": "HOU",
+          "stats": {
+            "def_snp": 50.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "MIA",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "MIA",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 67.0,
+            "idp_tkl": 1.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "MIA",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "KC",
       "rank": 169,
       "name": "L'Jarius Sneed",
-      "adp": 205.0
+      "adp": 205.0,
+      "player_id": "7117",
+      "games_2024": 5,
+      "points_2024": 37.2,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "TEN",
+          "opponent": "CHI",
+          "stats": {
+            "def_snp": 53.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "TEN",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 57.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "TEN",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "TEN",
+          "opponent": "MIA",
+          "stats": {
+            "def_snp": 60.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "TEN",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "DB",
       "team": "DAL",
       "rank": 170,
       "name": "DaRon Bland",
-      "adp": 207.5
+      "adp": 207.5,
+      "player_id": "8476",
+      "games_2024": 7,
+      "points_2024": 73.8,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "DAL",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "DAL",
+          "opponent": "NYG",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "DAL",
+          "opponent": "CIN",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "DAL",
+          "opponent": "CAR",
+          "stats": {
+            "def_snp": 55.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "DAL",
+          "opponent": "TB",
+          "stats": {
+            "pts_ppr": 3.0,
+            "pts_std": 3.0,
+            "pts_half_ppr": 3.0,
+            "def_snp": 72.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0,
+            "idp_ff": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "DAL",
+          "opponent": "PHI",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "DAL",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 7.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "BAL",
       "rank": 171,
       "name": "Roquan Smith",
-      "adp": 165.0
+      "adp": 165.0,
+      "player_id": "4960",
+      "games_2024": 16,
+      "points_2024": 234.0,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "BAL",
+          "opponent": "KC",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 54.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "BAL",
+          "opponent": "LV",
+          "stats": {
+            "def_snp": 63.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 7.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "BAL",
+          "opponent": "DAL",
+          "stats": {
+            "def_snp": 80.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 4.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "BAL",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "BAL",
+          "opponent": "CIN",
+          "stats": {
+            "def_snp": 67.0,
+            "idp_tkl": 14.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 7.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "BAL",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 59.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "BAL",
+          "opponent": "TB",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 82.0,
+            "idp_tkl": 18.0,
+            "idp_tkl_solo": 11.0,
+            "idp_tkl_ast": 7.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "BAL",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "BAL",
+          "opponent": "DEN",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "BAL",
+          "opponent": "CIN",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 82.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 6.0,
+            "idp_qb_hit": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "BAL",
+          "opponent": "PIT",
+          "stats": {
+            "def_snp": 55.0,
+            "idp_tkl": 13.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "BAL",
+          "opponent": "PHI",
+          "stats": {
+            "pts_ppr": 0.5,
+            "pts_std": 0.5,
+            "pts_half_ppr": 0.5,
+            "def_snp": 56.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 9.0,
+            "idp_sack": 0.5,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "BAL",
+          "opponent": "NYG",
+          "stats": {
+            "def_snp": 52.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "BAL",
+          "opponent": "PIT",
+          "stats": {
+            "def_snp": 60.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "BAL",
+          "opponent": "HOU",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 50.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "BAL",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 55.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 7.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "SF",
       "rank": 172,
       "name": "Fred Warner",
-      "adp": 167.5
+      "adp": 167.5,
+      "player_id": "5041",
+      "games_2024": 17,
+      "points_2024": 224.5,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "SF",
+          "opponent": "NYJ",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 51.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "SF",
+          "opponent": "MIN",
+          "stats": {
+            "pts_ppr": 5.0,
+            "pts_std": 5.0,
+            "pts_half_ppr": 5.0,
+            "def_snp": 54.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 2.0,
+            "idp_ff": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "SF",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 57.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "SF",
+          "opponent": "NE",
+          "stats": {
+            "pts_ppr": 8.0,
+            "pts_std": 8.0,
+            "pts_half_ppr": 8.0,
+            "def_snp": 28.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0,
+            "idp_def_td": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "SF",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "SF",
+          "opponent": "SEA",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 78.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 5.0,
+            "idp_pass_def": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "SF",
+          "opponent": "KC",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "SF",
+          "opponent": "DAL",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "SF",
+          "opponent": "TB",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "SF",
+          "opponent": "SEA",
+          "stats": {
+            "def_snp": 60.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "SF",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 72.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "SF",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 45.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "SF",
+          "opponent": "CHI",
+          "stats": {
+            "def_snp": 46.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "SF",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 15.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 7.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "SF",
+          "opponent": "MIA",
+          "stats": {
+            "def_snp": 67.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "SF",
+          "opponent": "DET",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "SF",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "JAX",
       "rank": 173,
       "name": "Foyesade Oluokun",
-      "adp": 170.0
+      "adp": 170.0,
+      "player_id": "5332",
+      "games_2024": 13,
+      "points_2024": 167.5,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "JAX",
+          "opponent": "MIA",
+          "stats": {
+            "def_snp": 60.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 9.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "JAX",
+          "opponent": "CLE",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 59.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 6.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "JAX",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 27.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "JAX",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "JAX",
+          "opponent": "PHI",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "JAX",
+          "opponent": "MIN",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 84.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 5.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "JAX",
+          "opponent": "DET",
+          "stats": {
+            "def_snp": 65.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "JAX",
+          "opponent": "HOU",
+          "stats": {
+            "def_snp": 57.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "JAX",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "JAX",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "JAX",
+          "opponent": "LV",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "JAX",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 69.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 8.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "JAX",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 68.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 7.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "PIT",
       "rank": 174,
       "name": "T.J. Watt",
-      "adp": 172.5
+      "adp": 172.5,
+      "player_id": "4070",
+      "games_2024": 17,
+      "points_2024": 159.2,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "PIT",
+          "opponent": "ATL",
+          "stats": {
+            "pts_ppr": 3.0,
+            "pts_std": 3.0,
+            "pts_half_ppr": 3.0,
+            "def_snp": 50.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 2.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 3.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "PIT",
+          "opponent": "DEN",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 55.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 2.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "PIT",
+          "opponent": "LAC",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 44.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "PIT",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "PIT",
+          "opponent": "DAL",
+          "stats": {
+            "pts_ppr": 2.5,
+            "pts_std": 2.5,
+            "pts_half_ppr": 2.5,
+            "def_snp": 70.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.5,
+            "idp_qb_hit": 3.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "PIT",
+          "opponent": "LV",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 52.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_loss": 2.0,
+            "idp_ff": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "PIT",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 53.0,
+            "idp_tkl": 1.0,
+            "idp_tkl_ast": 1.0,
+            "idp_qb_hit": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "PIT",
+          "opponent": "NYG",
+          "stats": {
+            "pts_ppr": 5.0,
+            "pts_std": 5.0,
+            "pts_half_ppr": 5.0,
+            "def_snp": 69.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 2.0,
+            "idp_sack": 2.0,
+            "idp_qb_hit": 2.0,
+            "idp_ff": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "PIT",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 56.0,
+            "idp_qb_hit": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "PIT",
+          "opponent": "BAL",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 52.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_loss": 2.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "PIT",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 55.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "PIT",
+          "opponent": "CIN",
+          "stats": {
+            "pts_ppr": 3.0,
+            "pts_std": 3.0,
+            "pts_half_ppr": 3.0,
+            "def_snp": 47.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_loss": 3.0,
+            "idp_sack": 2.0,
+            "idp_qb_hit": 5.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "PIT",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_qb_hit": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "PIT",
+          "opponent": "PHI",
+          "stats": {
+            "pts_ppr": 3.0,
+            "pts_std": 3.0,
+            "pts_half_ppr": 3.0,
+            "def_snp": 53.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 2.0,
+            "idp_qb_hit": 2.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "PIT",
+          "opponent": "BAL",
+          "stats": {
+            "def_snp": 48.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "PIT",
+          "opponent": "KC",
+          "stats": {
+            "def_snp": 49.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "PIT",
+          "opponent": "CIN",
+          "stats": {
+            "def_snp": 59.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "KC",
       "rank": 175,
       "name": "Nick Bolton",
-      "adp": 175.0
+      "adp": 175.0,
+      "player_id": "7648",
+      "games_2024": 16,
+      "points_2024": 190.2,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "KC",
+          "opponent": "BAL",
+          "stats": {
+            "def_snp": 80.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 4.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "KC",
+          "opponent": "CIN",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "KC",
+          "opponent": "ATL",
+          "stats": {
+            "def_snp": 48.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "KC",
+          "opponent": "LAC",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "KC",
+          "opponent": "NO",
+          "stats": {
+            "def_snp": 49.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 2.0,
+            "idp_qb_hit": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "KC",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 59.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "KC",
+          "opponent": "LV",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "KC",
+          "opponent": "TB",
+          "stats": {
+            "def_snp": 51.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "KC",
+          "opponent": "DEN",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 54.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "KC",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 73.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "KC",
+          "opponent": "CAR",
+          "stats": {
+            "pts_ppr": 0.5,
+            "pts_std": 0.5,
+            "pts_half_ppr": 0.5,
+            "def_snp": 62.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 3.0,
+            "idp_sack": 0.5,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "KC",
+          "opponent": "LV",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 65.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 10.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "KC",
+          "opponent": "LAC",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 55.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "KC",
+          "opponent": "CLE",
+          "stats": {
+            "pts_ppr": 2.5,
+            "pts_std": 2.5,
+            "pts_half_ppr": 2.5,
+            "def_snp": 60.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_sack": 0.5,
+            "idp_qb_hit": 1.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "KC",
+          "opponent": "HOU",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 57.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_loss": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "KC",
+          "opponent": "PIT",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 59.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 5.0,
+            "idp_pass_def": 2.0,
+            "idp_fum_rec": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "SF",
       "rank": 176,
       "name": "Dre Greenlaw",
-      "adp": 177.5
+      "adp": 177.5,
+      "player_id": "6056",
+      "games_2024": 2,
+      "points_2024": 11.2,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "SF",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 30.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "SF",
+          "opponent": "MIA",
+          "stats": {
+            "def_snp": 4.0,
+            "idp_tkl": 1.0,
+            "idp_tkl_ast": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "PIT",
       "rank": 177,
       "name": "Patrick Queen",
-      "adp": 180.0
+      "adp": 180.0,
+      "player_id": "6807",
+      "games_2024": 17,
+      "points_2024": 197.2,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "PIT",
+          "opponent": "ATL",
+          "stats": {
+            "def_snp": 56.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "PIT",
+          "opponent": "DEN",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "PIT",
+          "opponent": "LAC",
+          "stats": {
+            "def_snp": 46.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "PIT",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "PIT",
+          "opponent": "DAL",
+          "stats": {
+            "def_snp": 76.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "PIT",
+          "opponent": "LV",
+          "stats": {
+            "def_snp": 63.0,
+            "idp_tkl": 13.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 7.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "PIT",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 56.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "PIT",
+          "opponent": "NYG",
+          "stats": {
+            "def_snp": 72.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "PIT",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "PIT",
+          "opponent": "BAL",
+          "stats": {
+            "pts_ppr": 3.0,
+            "pts_std": 3.0,
+            "pts_half_ppr": 3.0,
+            "def_snp": 61.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 7.0,
+            "idp_tkl_loss": 1.0,
+            "idp_ff": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "PIT",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 57.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 5.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "PIT",
+          "opponent": "CIN",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "PIT",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 72.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 5.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "PIT",
+          "opponent": "PHI",
+          "stats": {
+            "def_snp": 80.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 5.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "PIT",
+          "opponent": "BAL",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "PIT",
+          "opponent": "KC",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "PIT",
+          "opponent": "CIN",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 74.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 2.0,
+            "idp_pass_def": 1.0,
+            "idp_ff": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "IND",
       "rank": 178,
       "name": "Zaire Franklin",
-      "adp": 182.5
+      "adp": 182.5,
+      "player_id": "5346",
+      "games_2024": 17,
+      "points_2024": 284.0,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "IND",
+          "opponent": "HOU",
+          "stats": {
+            "def_snp": 79.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "IND",
+          "opponent": "GB",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 70.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 5.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "IND",
+          "opponent": "CHI",
+          "stats": {
+            "def_snp": 90.0,
+            "idp_tkl": 14.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 9.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "IND",
+          "opponent": "PIT",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "IND",
+          "opponent": "JAX",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 8.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "IND",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "IND",
+          "opponent": "MIA",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 69.0,
+            "idp_tkl": 16.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 11.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "IND",
+          "opponent": "HOU",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "IND",
+          "opponent": "MIN",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 73.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 2.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "IND",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 74.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 5.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "IND",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 51.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "IND",
+          "opponent": "DET",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 72.0,
+            "idp_tkl": 13.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "IND",
+          "opponent": "NE",
+          "stats": {
+            "pts_ppr": 2.5,
+            "pts_std": 2.5,
+            "pts_half_ppr": 2.5,
+            "def_snp": 72.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 10.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.5,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "IND",
+          "opponent": "DEN",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 63.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 2.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "IND",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "IND",
+          "opponent": "NYG",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 56.0,
+            "idp_tkl": 14.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 7.0,
+            "idp_tkl_loss": 4.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "IND",
+          "opponent": "JAX",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 69.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0,
+            "idp_ff": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "WAS",
       "rank": 179,
       "name": "Bobby Wagner",
-      "adp": 185.0
+      "adp": 185.0,
+      "player_id": "1233",
+      "games_2024": 17,
+      "points_2024": 208.2,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "WAS",
+          "opponent": "TB",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "WAS",
+          "opponent": "NYG",
+          "stats": {
+            "def_snp": 56.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "WAS",
+          "opponent": "CIN",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "WAS",
+          "opponent": "ARI",
+          "stats": {
+            "pts_ppr": 0.5,
+            "pts_std": 0.5,
+            "pts_half_ppr": 0.5,
+            "def_snp": 55.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 0.5,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "WAS",
+          "opponent": "CLE",
+          "stats": {
+            "pts_ppr": 2.5,
+            "pts_std": 2.5,
+            "pts_half_ppr": 2.5,
+            "def_snp": 58.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.5,
+            "idp_qb_hit": 2.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "WAS",
+          "opponent": "BAL",
+          "stats": {
+            "def_snp": 68.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 6.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "WAS",
+          "opponent": "CAR",
+          "stats": {
+            "def_snp": 40.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "WAS",
+          "opponent": "CHI",
+          "stats": {
+            "def_snp": 63.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "WAS",
+          "opponent": "NYG",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 65.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 4.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "WAS",
+          "opponent": "PIT",
+          "stats": {
+            "def_snp": 78.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "WAS",
+          "opponent": "PHI",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "WAS",
+          "opponent": "DAL",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 66.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "WAS",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 55.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "WAS",
+          "opponent": "NO",
+          "stats": {
+            "def_snp": 55.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "WAS",
+          "opponent": "PHI",
+          "stats": {
+            "def_snp": 74.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "WAS",
+          "opponent": "ATL",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_ast": 6.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "WAS",
+          "opponent": "DAL",
+          "stats": {
+            "def_snp": 78.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 2.0,
+            "idp_pass_def": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "TB",
       "rank": 180,
       "name": "Lavonte David",
-      "adp": 187.5
+      "adp": 187.5,
+      "player_id": "1192",
+      "games_2024": 17,
+      "points_2024": 220.2,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "TB",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "TB",
+          "opponent": "DET",
+          "stats": {
+            "def_snp": 85.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "TB",
+          "opponent": "DEN",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 68.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 5.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "TB",
+          "opponent": "PHI",
+          "stats": {
+            "pts_ppr": 3.0,
+            "pts_std": 3.0,
+            "pts_half_ppr": 3.0,
+            "def_snp": 57.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 2.0,
+            "idp_sack": 2.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "TB",
+          "opponent": "ATL",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 86.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 2.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "TB",
+          "opponent": "NO",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 61.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "TB",
+          "opponent": "BAL",
+          "stats": {
+            "def_snp": 59.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "TB",
+          "opponent": "ATL",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "TB",
+          "opponent": "KC",
+          "stats": {
+            "def_snp": 85.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "TB",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "TB",
+          "opponent": "NYG",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 51.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "TB",
+          "opponent": "CAR",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "TB",
+          "opponent": "LV",
+          "stats": {
+            "pts_ppr": 3.0,
+            "pts_std": 3.0,
+            "pts_half_ppr": 3.0,
+            "def_snp": 67.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "TB",
+          "opponent": "LAC",
+          "stats": {
+            "pts_ppr": 1.5,
+            "pts_std": 1.5,
+            "pts_half_ppr": 1.5,
+            "def_snp": 51.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.5,
+            "idp_qb_hit": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "TB",
+          "opponent": "DAL",
+          "stats": {
+            "def_snp": 60.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "TB",
+          "opponent": "CAR",
+          "stats": {
+            "def_snp": 36.0,
+            "idp_tkl": 1.0,
+            "idp_tkl_solo": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "TB",
+          "opponent": "NO",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 5.0,
+            "idp_pass_def": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "SEA",
       "rank": 181,
       "name": "Ernest Jones",
-      "adp": 190.0
+      "adp": 190.0,
+      "player_id": "7672",
+      "games_2024": 16,
+      "points_2024": 208.5,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "TEN",
+          "opponent": "CHI",
+          "stats": {
+            "def_snp": 26.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "TEN",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 57.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "TEN",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 63.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 10.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "TEN",
+          "opponent": "MIA",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "TEN",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 6.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "TEN",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 54.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 5.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "SEA",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 76.0,
+            "idp_tkl": 15.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 8.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "SEA",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 77.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "SEA",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 63.0,
+            "idp_tkl": 13.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 7.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "SEA",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "SEA",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 68.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "SEA",
+          "opponent": "ARI",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 71.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 2.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "SEA",
+          "opponent": "GB",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 61.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 6.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "SEA",
+          "opponent": "MIN",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "SEA",
+          "opponent": "CHI",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "SEA",
+          "opponent": "LAR",
+          "stats": {
+            "pts_ppr": 0.5,
+            "pts_std": 0.5,
+            "pts_half_ppr": 0.5,
+            "def_snp": 66.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 6.0,
+            "idp_sack": 0.5,
+            "idp_qb_hit": 2.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "NYJ",
       "rank": 182,
       "name": "Quincy Williams",
-      "adp": 192.5
+      "adp": 192.5,
+      "player_id": "6214",
+      "games_2024": 17,
+      "points_2024": 203.5,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "NYJ",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 72.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "NYJ",
+          "opponent": "TEN",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 66.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 2.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "NYJ",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 52.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "NYJ",
+          "opponent": "DEN",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 60.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 2.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "NYJ",
+          "opponent": "MIN",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 73.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "NYJ",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 68.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "NYJ",
+          "opponent": "PIT",
+          "stats": {
+            "def_snp": 67.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "NYJ",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 67.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "NYJ",
+          "opponent": "HOU",
+          "stats": {
+            "def_snp": 79.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 7.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "NYJ",
+          "opponent": "ARI",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 59.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 7.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "NYJ",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "NYJ",
+          "opponent": "SEA",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 64.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 2.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "NYJ",
+          "opponent": "MIA",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "NYJ",
+          "opponent": "JAX",
+          "stats": {
+            "def_snp": 81.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "NYJ",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 51.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "NYJ",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "NYJ",
+          "opponent": "MIA",
+          "stats": {
+            "pts_ppr": 3.0,
+            "pts_std": 3.0,
+            "pts_half_ppr": 3.0,
+            "def_snp": 68.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 5.0,
+            "idp_pass_def": 1.0,
+            "idp_ff": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "MIA",
       "rank": 183,
       "name": "Jordyn Brooks",
-      "adp": 195.0
+      "adp": 195.0,
+      "player_id": "6949",
+      "games_2024": 17,
+      "points_2024": 230.0,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "MIA",
+          "opponent": "JAX",
+          "stats": {
+            "def_snp": 53.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "MIA",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 45.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "MIA",
+          "opponent": "SEA",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 6.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "MIA",
+          "opponent": "TEN",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 65.0,
+            "idp_tkl": 13.0,
+            "idp_tkl_solo": 9.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 2.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "MIA",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 60.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "MIA",
+          "opponent": "IND",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "MIA",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 4.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "MIA",
+          "opponent": "BUF",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "MIA",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "MIA",
+          "opponent": "LV",
+          "stats": {
+            "def_snp": 65.0,
+            "idp_tkl": 13.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "MIA",
+          "opponent": "NE",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 69.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "MIA",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 51.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 4.0,
+            "idp_tkl_loss": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "MIA",
+          "opponent": "NYJ",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 68.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "MIA",
+          "opponent": "HOU",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 50.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "MIA",
+          "opponent": "SF",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 50.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "MIA",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "MIA",
+          "opponent": "NYJ",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 3.0,
+            "idp_pass_def": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "DEN",
       "rank": 184,
       "name": "Alex Singleton",
-      "adp": 197.5
+      "adp": 197.5,
+      "player_id": "2617",
+      "games_2024": 3,
+      "points_2024": 47.8,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "DEN",
+          "opponent": "SEA",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 67.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "DEN",
+          "opponent": "PIT",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 4.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "DEN",
+          "opponent": "TB",
+          "stats": {
+            "def_snp": 57.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 6.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "LV",
       "rank": 185,
       "name": "Divine Deablo",
-      "adp": 200.0
+      "adp": 200.0,
+      "player_id": "7677",
+      "games_2024": 14,
+      "points_2024": 94.8,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "LV",
+          "opponent": "LAC",
+          "stats": {
+            "def_snp": 42.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "LV",
+          "opponent": "BAL",
+          "stats": {
+            "def_snp": 43.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "LV",
+          "opponent": "PIT",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 62.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 2.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "LV",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 51.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "LV",
+          "opponent": "KC",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "LV",
+          "opponent": "CIN",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "LV",
+          "opponent": "MIA",
+          "stats": {
+            "def_snp": 46.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "LV",
+          "opponent": "DEN",
+          "stats": {
+            "pts_ppr": 4.4,
+            "pts_std": 3.4,
+            "pts_half_ppr": 3.9,
+            "rec": 1.0,
+            "rec_yd": 34.0,
+            "rec_fd": 1.0,
+            "rec_tgt": 1.0,
+            "def_snp": 55.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "LV",
+          "opponent": "KC",
+          "stats": {
+            "def_snp": 51.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 1.0,
+            "idp_qb_hit": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "LV",
+          "opponent": "TB",
+          "stats": {
+            "def_snp": 38.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "LV",
+          "opponent": "ATL",
+          "stats": {
+            "def_snp": 38.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "LV",
+          "opponent": "JAX",
+          "stats": {
+            "def_snp": 44.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "LV",
+          "opponent": "NO",
+          "stats": {
+            "def_snp": 32.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 3.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "LV",
+          "opponent": "LAC",
+          "stats": {
+            "def_snp": 56.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "ATL",
       "rank": 186,
       "name": "Kaden Elliss",
-      "adp": 202.5
+      "adp": 202.5,
+      "player_id": "6302",
+      "games_2024": 17,
+      "points_2024": 243.5,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "ATL",
+          "opponent": "PIT",
+          "stats": {
+            "def_snp": 68.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "ATL",
+          "opponent": "PHI",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 5.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "ATL",
+          "opponent": "KC",
+          "stats": {
+            "def_snp": 74.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 2.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "ATL",
+          "opponent": "NO",
+          "stats": {
+            "def_snp": 74.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "ATL",
+          "opponent": "TB",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 53.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "ATL",
+          "opponent": "CAR",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "ATL",
+          "opponent": "SEA",
+          "stats": {
+            "def_snp": 60.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 7.0,
+            "idp_qb_hit": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "ATL",
+          "opponent": "TB",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "ATL",
+          "opponent": "DAL",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 76.0,
+            "idp_tkl": 13.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 2.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "ATL",
+          "opponent": "NO",
+          "stats": {
+            "def_snp": 53.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 6.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "ATL",
+          "opponent": "DEN",
+          "stats": {
+            "def_snp": 62.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "ATL",
+          "opponent": "LAC",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 46.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "ATL",
+          "opponent": "MIN",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 60.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "ATL",
+          "opponent": "LV",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 67.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "ATL",
+          "opponent": "NYG",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 45.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 5.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 2.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "ATL",
+          "opponent": "WAS",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 83.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 3.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "ATL",
+          "opponent": "CAR",
+          "stats": {
+            "def_snp": 67.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 7.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "TEN",
       "rank": 187,
       "name": "Jerome Baker",
-      "adp": 205.0
+      "adp": 205.0,
+      "player_id": "5056",
+      "games_2024": 11,
+      "points_2024": 103.5,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "SEA",
+          "opponent": "DEN",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 68.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_tkl_loss": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "SEA",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 21.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "SEA",
+          "opponent": "NYG",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 72.0,
+            "idp_tkl": 14.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 6.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "SEA",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "SEA",
+          "opponent": "ATL",
+          "stats": {
+            "def_snp": 66.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "TEN",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 69.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "TEN",
+          "opponent": "MIN",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "TEN",
+          "opponent": "HOU",
+          "stats": {
+            "def_snp": 56.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "TEN",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 75.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "TEN",
+          "opponent": "JAX",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 55.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 3.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "TEN",
+          "opponent": "HOU",
+          "stats": {
+            "def_snp": 28.0,
+            "idp_tkl": 1.0,
+            "idp_tkl_solo": 1.0,
+            "idp_pass_def": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "CIN",
       "rank": 188,
       "name": "Logan Wilson",
-      "adp": 207.5
+      "adp": 207.5,
+      "player_id": "6880",
+      "games_2024": 11,
+      "points_2024": 158.2,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "CIN",
+          "opponent": "NE",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 65.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 6.0,
+            "idp_tkl_loss": 1.0,
+            "idp_qb_hit": 3.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "CIN",
+          "opponent": "KC",
+          "stats": {
+            "def_snp": 65.0,
+            "idp_tkl": 12.0,
+            "idp_tkl_solo": 7.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "CIN",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 59.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 3.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "CIN",
+          "opponent": "CAR",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 5.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "CIN",
+          "opponent": "BAL",
+          "stats": {
+            "def_snp": 78.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "CIN",
+          "opponent": "NYG",
+          "stats": {
+            "def_snp": 79.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 7,
+          "team": "CIN",
+          "opponent": "CLE",
+          "stats": {
+            "def_snp": 84.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 4.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "CIN",
+          "opponent": "PHI",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 7.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "CIN",
+          "opponent": "LV",
+          "stats": {
+            "pts_ppr": 4.0,
+            "pts_std": 4.0,
+            "pts_half_ppr": 4.0,
+            "def_snp": 54.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 4.0,
+            "idp_fum_rec": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "CIN",
+          "opponent": "BAL",
+          "stats": {
+            "def_snp": 63.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "CIN",
+          "opponent": "LAC",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 67.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 4.0,
+            "idp_ff": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "BUF",
       "rank": 189,
       "name": "Matt Milano",
-      "adp": 210.0
+      "adp": 210.0,
+      "player_id": "4191",
+      "games_2024": 4,
+      "points_2024": 27.2,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "BUF",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 37.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "BUF",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 65.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "BUF",
+          "opponent": "DET",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 46.0,
+            "idp_tkl": 3.0,
+            "idp_tkl_ast": 3.0,
+            "idp_qb_hit": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "BUF",
+          "opponent": "NYJ",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 35.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 3.0,
+            "idp_qb_hit": 1.0,
+            "idp_fum_rec": 1.0
+          }
+        }
+      ]
     },
     {
       "position": "LB",
       "team": "CHI",
       "rank": 190,
       "name": "Tremaine Edmunds",
-      "adp": 212.5
+      "adp": 212.5,
+      "player_id": "4968",
+      "games_2024": 17,
+      "points_2024": 173.5,
+      "weekly_stats_2024": [
+        {
+          "year": 2024,
+          "week": 1,
+          "team": "CHI",
+          "opponent": "TEN",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 2,
+          "team": "CHI",
+          "opponent": "HOU",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 62.0,
+            "idp_tkl": 11.0,
+            "idp_tkl_solo": 8.0,
+            "idp_tkl_ast": 3.0,
+            "idp_tkl_loss": 1.0,
+            "idp_sack": 1.0,
+            "idp_qb_hit": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 3,
+          "team": "CHI",
+          "opponent": "IND",
+          "stats": {
+            "pts_ppr": 2.0,
+            "pts_std": 2.0,
+            "pts_half_ppr": 2.0,
+            "def_snp": 56.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0,
+            "idp_qb_hit": 1.0,
+            "idp_int": 1.0,
+            "idp_pass_def": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 4,
+          "team": "CHI",
+          "opponent": "LAR",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 2.0,
+            "idp_tkl_solo": 2.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 5,
+          "team": "CHI",
+          "opponent": "CAR",
+          "stats": {
+            "pts_ppr": 1.0,
+            "pts_std": 1.0,
+            "pts_half_ppr": 1.0,
+            "def_snp": 51.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0,
+            "idp_ff": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 6,
+          "team": "CHI",
+          "opponent": "JAX",
+          "stats": {
+            "def_snp": 59.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 8,
+          "team": "CHI",
+          "opponent": "WAS",
+          "stats": {
+            "def_snp": 74.0,
+            "idp_tkl": 10.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 6.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 9,
+          "team": "CHI",
+          "opponent": "ARI",
+          "stats": {
+            "def_snp": 58.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 10,
+          "team": "CHI",
+          "opponent": "NE",
+          "stats": {
+            "def_snp": 64.0,
+            "idp_tkl": 4.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 3.0,
+            "idp_qb_hit": 1.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 11,
+          "team": "CHI",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 46.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 6.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 12,
+          "team": "CHI",
+          "opponent": "MIN",
+          "stats": {
+            "def_snp": 71.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 5.0,
+            "idp_tkl_ast": 4.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 13,
+          "team": "CHI",
+          "opponent": "DET",
+          "stats": {
+            "def_snp": 70.0,
+            "idp_tkl": 5.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 2.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 14,
+          "team": "CHI",
+          "opponent": "SF",
+          "stats": {
+            "def_snp": 61.0,
+            "idp_tkl": 8.0,
+            "idp_tkl_solo": 3.0,
+            "idp_tkl_ast": 5.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 15,
+          "team": "CHI",
+          "opponent": "MIN",
+          "stats": {
+            "def_snp": 77.0,
+            "idp_tkl": 7.0,
+            "idp_tkl_solo": 6.0,
+            "idp_tkl_ast": 1.0,
+            "idp_tkl_loss": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 16,
+          "team": "CHI",
+          "opponent": "DET",
+          "stats": {
+            "def_snp": 65.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 1.0,
+            "idp_tkl_ast": 5.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 17,
+          "team": "CHI",
+          "opponent": "SEA",
+          "stats": {
+            "def_snp": 52.0,
+            "idp_tkl": 6.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 2.0,
+            "idp_pass_def": 1.0
+          }
+        },
+        {
+          "year": 2024,
+          "week": 18,
+          "team": "CHI",
+          "opponent": "GB",
+          "stats": {
+            "def_snp": 65.0,
+            "idp_tkl": 9.0,
+            "idp_tkl_solo": 4.0,
+            "idp_tkl_ast": 5.0,
+            "idp_pass_def": 1.0
+          }
+        }
+      ]
     }
   ]
 }

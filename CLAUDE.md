@@ -133,12 +133,12 @@ When you learn useful things that would be helpful in the future, memorialize th
 - DB and LB are treated as late-round positions (after round 10)
 - Added to position counts tracking for draft strategy
 
-### Scoring Configuration for IDP
-- Tackle: 1.0 point
-- Tackle Assist: 0.5 points
-- Sack: 2.0 points
-- Interception: 6.0 points
-- Pass Deflection: 1.0 point
+### Scoring Configuration for IDP (Updated)
+- Solo Tackle: 1.75 points
+- Tackle Assist: 1.0 points
+- Sack: 3.5 points
+- Interception: 4.0 points
+- Pass Defended: 1.0 point
 - Forced Fumble: 3.0 points
 - Fumble Recovery: 3.0 points
 - Defensive TD: 6.0 points
@@ -151,5 +151,10 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Fixed DB/LB players not showing in game history
   - Added 'db' and 'lb' to positions loaded in game_history.py
   - Added IDP scoring calculation for DB/LB players
-  - Updated table rows to show defensive stats (tackles, sacks, ints) for DB/LB
   - Use defensive snaps (def_snp) instead of offensive snaps for DB/LB players
+  - Fixed snap filtering to check def_snp > 0 for DB/LB (not off_snp)
+- Implemented dynamic column headers in game history
+  - When DB or LB position is selected, columns switch to show defensive stats
+  - IDP columns: Solo, Ast, Total, Sack, INT, PD, FF, FR
+  - Tree is rebuilt when switching between offensive and defensive positions
+  - DB/LB players only appear when ALL or their specific position is selected
