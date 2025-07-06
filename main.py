@@ -18,6 +18,7 @@ from src.ui.cheat_sheet import CheatSheet
 from src.ui.theme import DARK_THEME
 from src.ui.styled_widgets import StyledFrame, StyledButton
 from src.utils import generate_mock_players
+from src.services.player_pool_service import PlayerPoolService
 
 
 class MockDraftApp:
@@ -47,6 +48,9 @@ class MockDraftApp:
         self.all_players = []
         self.available_players = []
         self.players_loaded = False
+        
+        # Initialize player pool service (will be populated when players load)
+        self.player_pool = None
         
         # Defer image service initialization
         self.image_service = None
@@ -488,6 +492,10 @@ class MockDraftApp:
             if player in self.available_players:
                 self.available_players.remove(player)
             
+            # Update player pool service
+            if self.player_pool:
+                self.player_pool.draft_player(player)
+            
             # Remove player from UI immediately
             print(f"[{time.time()-start_time:.3f}s] Removing from UI...")
             self._remove_drafted_player(player)
@@ -681,6 +689,11 @@ class MockDraftApp:
             players_to_remove = [player for _, _, player in picks_made]
             self.player_list.remove_players(players_to_remove)
             
+            # Update player pool service
+            if self.player_pool:
+                for player in players_to_remove:
+                    self.player_pool.draft_player(player)
+            
             # Also remove from watch list
             watch_list = self.roster_view.get_watch_list()
             if watch_list:
@@ -725,7 +738,7 @@ class MockDraftApp:
         if team.id in self._position_counts_cache:
             position_counts = self._position_counts_cache[team.id]
         else:
-            position_counts = {'QB': 0, 'RB': 0, 'WR': 0, 'TE': 0, 'DEF': 0, 'K': 0}
+            position_counts = {'QB': 0, 'RB': 0, 'WR': 0, 'TE': 0, 'DEF': 0, 'K': 0, 'LB': 0, 'DB': 0}
             for players in team.roster.values():
                 for player in players:
                     if player.position in position_counts:
@@ -776,9 +789,13 @@ class MockDraftApp:
                 continue  # Max 1 DEF
             elif pos == 'K' and position_counts.get('K', 0) >= 1:
                 continue  # Max 1 K
+            elif pos == 'LB' and position_counts.get('LB', 0) >= 4:
+                continue  # Max 4 LBs
+            elif pos == 'DB' and position_counts.get('DB', 0) >= 4:
+                continue  # Max 4 DBs
             
-            # Don't draft K/DEF before round 10
-            if pos in ['K', 'DEF'] and pick_num < (10 * config.num_teams):
+            # Don't draft K/DEF/LB/DB before round 10
+            if pos in ['K', 'DEF', 'LB', 'DB'] and pick_num < (10 * config.num_teams):
                 continue
             
             eligible_players.append(player)
@@ -1357,6 +1374,9 @@ class MockDraftApp:
         self.available_players = list(players)
         self.players_loaded = True
         
+        # Initialize player pool service
+        self.player_pool = PlayerPoolService(players)
+        
         # Remove loading label
         if hasattr(self, 'loading_label'):
             self.loading_label.destroy()
@@ -1395,7 +1415,8 @@ class MockDraftApp:
             if self.game_history is None and self.players_loaded:
                 self.game_history = GameHistory(
                     self.game_history_container,
-                    self.all_players
+                    self.all_players,
+                    player_pool_service=self.player_pool
                 )
                 self.game_history.pack(fill='both', expand=True)
             

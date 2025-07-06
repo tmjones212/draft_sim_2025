@@ -19,9 +19,10 @@ DOME_TEAMS = {'ATL', 'DET', 'MIN', 'NO', 'LV', 'ARI', 'AZ', 'DAL', 'HOU', 'IND'}
 
 
 class GameHistory(StyledFrame):
-    def __init__(self, parent, all_players, **kwargs):
+    def __init__(self, parent, all_players, player_pool_service=None, **kwargs):
         super().__init__(parent, bg_type='primary', **kwargs)
         self.all_players = all_players
+        self.player_pool_service = player_pool_service
         self.player_lookup = {p.player_id: p for p in all_players if hasattr(p, 'player_id')}
         self.weekly_stats = {}
         self.filtered_players = []
@@ -105,7 +106,7 @@ class GameHistory(StyledFrame):
         )
         pos_label.pack(side='left', padx=(0, 5))
         
-        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX"]
+        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX", "DB", "LB"]
         self.position_buttons = {}
         
         # Create position buttons container (single row)
@@ -495,7 +496,7 @@ class GameHistory(StyledFrame):
         for week in range(1, 19):
             self.weekly_stats[week] = {}
             
-            for position in ['qb', 'rb', 'wr', 'te']:
+            for position in ['qb', 'rb', 'wr', 'te', 'db', 'lb']:
                 filename = f"2024_{week}_{position}.json"
                 filepath = os.path.join(stats_dir, filename)
                 
@@ -518,6 +519,24 @@ class GameHistory(StyledFrame):
     def calculate_custom_points(self, stats, position):
         """Calculate custom fantasy points based on our scoring rules"""
         points = 0.0
+        
+        # Defensive scoring for LB and DB
+        if position in ['LB', 'DB']:
+            # IDP stats use different field names
+            solo_tackles = stats.get('idp_tkl_solo', 0)
+            total_tackles = stats.get('idp_tkl', 0)
+            assist_tackles = max(0, total_tackles - solo_tackles)  # Calculate assists
+            
+            points += solo_tackles * SCORING_CONFIG.get('tackle_solo', 1.75)
+            points += assist_tackles * SCORING_CONFIG.get('tackle_assist', 1.0)
+            points += stats.get('idp_sack', 0) * SCORING_CONFIG.get('sack', 4.0)
+            points += stats.get('idp_int', 0) * SCORING_CONFIG.get('int', 6.0)
+            points += stats.get('idp_ff', 0) * SCORING_CONFIG.get('ff', 4.0)
+            points += stats.get('idp_fr', 0) * SCORING_CONFIG.get('fr', 3.0)
+            points += stats.get('idp_def_td', 0) * SCORING_CONFIG.get('def_td', 6.0)
+            points += stats.get('idp_safety', 0) * SCORING_CONFIG.get('safety', 2.0)
+            points += stats.get('idp_pass_def', 0) * SCORING_CONFIG.get('pass_defended', 1.5)
+            return points
         
         # Passing points
         if position == 'QB':
@@ -686,8 +705,13 @@ class GameHistory(StyledFrame):
                         stats = stat.get('stats', {})
                         
                         # Skip games where player didn't play (0 snaps)
-                        if int(stats.get('off_snp', 0)) == 0:
-                            continue
+                        # Use defensive snaps for DB/LB, offensive snaps for others
+                        if player.position in ['DB', 'LB']:
+                            if int(stats.get('def_snp', 0)) == 0:
+                                continue
+                        else:
+                            if int(stats.get('off_snp', 0)) == 0:
+                                continue
                         
                         opponent = stat.get('opponent', '')
                         player_team = stat.get('team', player.team)
@@ -790,8 +814,9 @@ class GameHistory(StyledFrame):
                         continue
                     
                     # Show Available filter (only undrafted players)
-                    if self.show_available_var.get() and hasattr(player, 'drafted') and player.drafted:
-                        continue
+                    if self.show_available_var.get() and self.player_pool_service:
+                        if not self.player_pool_service.is_player_available(player):
+                            continue
                     
                     # Handle both single stat object and list of stats
                     stats_list = stats_data if isinstance(stats_data, list) else [stats_data]
@@ -801,8 +826,13 @@ class GameHistory(StyledFrame):
                         stats = stat.get('stats', {})
                         
                         # Skip games where player didn't play (0 snaps)
-                        if int(stats.get('off_snp', 0)) == 0:
-                            continue
+                        # Use defensive snaps for DB/LB, offensive snaps for others
+                        if player.position in ['DB', 'LB']:
+                            if int(stats.get('def_snp', 0)) == 0:
+                                continue
+                        else:
+                            if int(stats.get('off_snp', 0)) == 0:
+                                continue
                         
                         opponent = stat.get('opponent', '')
                         player_team = stat.get('team', player.team)
@@ -1060,7 +1090,14 @@ class GameHistory(StyledFrame):
             elif self.sort_column == 'pts_per_snap':
                 return row.get('_pts_per_snap_float', 0)
             elif self.sort_column == 'rank':
-                return row.get('_rank_int', 999)
+                # Sort by rank number first, then position
+                rank = row.get('rank', '-')
+                if rank == '-':
+                    return (999, 'ZZZ')
+                # Extract position (e.g., 'QB') and number (e.g., '1') from 'QB1'
+                pos = ''.join(c for c in rank if c.isalpha())
+                num = ''.join(c for c in rank if c.isdigit())
+                return (int(num) if num else 999, pos)
             elif self.sort_column in ['snaps', 'comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'tgt', 'rec', 'rec_yd', 'rec_td']:
                 val = row[self.sort_column]
                 return 0 if val == '-' else int(val)
@@ -1075,7 +1112,11 @@ class GameHistory(StyledFrame):
             self.sort_ascending = not self.sort_ascending
         else:
             self.sort_column = column
-            self.sort_ascending = False
+            # Rank column should sort ascending first
+            if column == 'rank':
+                self.sort_ascending = True
+            else:
+                self.sort_ascending = False
         
         # Update all column headers to show sort arrows
         self.update_sort_arrows()
@@ -1206,6 +1247,18 @@ class GameHistory(StyledFrame):
             self.tree.column('rec', width=45, stretch=False)
             self.tree.column('rec_yd', width=65, stretch=False)
             self.tree.column('rec_td', width=60, stretch=False)
+        elif self.selected_position in ["DB", "LB"]:
+            # For defensive positions, we would need to show defensive stats
+            # For now, hide all offensive columns
+            self.tree.column('comp', width=0, stretch=False)
+            self.tree.column('pass_yd', width=0, stretch=False)
+            self.tree.column('pass_td', width=0, stretch=False)
+            self.tree.column('rush_yd', width=0, stretch=False)
+            self.tree.column('rush_td', width=0, stretch=False)
+            self.tree.column('tgt', width=0, stretch=False)
+            self.tree.column('rec', width=0, stretch=False)
+            self.tree.column('rec_yd', width=0, stretch=False)
+            self.tree.column('rec_td', width=0, stretch=False)
         else:  # ALL
             # Show all columns with appropriate widths
             self.tree.column('comp', width=55, stretch=False)

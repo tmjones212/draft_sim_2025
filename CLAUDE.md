@@ -47,6 +47,8 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Right-click context menu for drafting
 - Removed draft buttons from rows
 - ADP header width increased to 55px
+- Updated default sort directions: ascending first for Rank, CR, Pos, Name, Team, ADP, Proj Rank
+- Proj Rank sorting now properly sorts by number first, then position (e.g., QB1, QB2, RB1)
 
 ### Draft Board
 - Default visible rounds reduced to 3
@@ -117,3 +119,16 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Y-axis always starts at 0 for consistent scale
 - Week range selector with presets: All, First Half, Last Half, Q1-Q4, Playoffs
 - Custom week range using spinboxes for any weeks 1-18
+- Rank column sorting improved to sort by number first, then position (e.g., QB1 < QB2 < RB1)
+
+- MAKE SURE YOU DON'T GET RID OF THE DB AND LB FILTER BUTTONS
+
+### Defensive Players (LB/DB) Support (2025-07-06)
+- LB and DB players are now loaded from data/players.json
+- Added to fantasy_positions filter in player_data_fetcher.py
+- Included in position rankings and VAR calculations
+- VAR replacement levels: LB = 30th, DB = 30th (3 per team in 10-team league)
+- Draft logic limits: Max 4 LBs and 4 DBs per team
+- LB/DB players restricted from being drafted before round 10
+- Position filters in UI already support LB/DB selection
+- Game History tab shows defensive snaps (def_snp) for LB/DB players

@@ -7,7 +7,7 @@ from .player_extensions import format_name
 def calculate_position_ranks(players: List[Player]):
     """Calculate position ranks based on 2024 stats and projections"""
     # Group players by position
-    position_groups = {'QB': [], 'RB': [], 'WR': [], 'TE': []}
+    position_groups = {'QB': [], 'RB': [], 'WR': [], 'TE': [], 'LB': [], 'DB': []}
     
     for player in players:
         if player.position in position_groups:
@@ -41,11 +41,13 @@ def calculate_var(players: List[Player], num_teams: int = 10):
         'QB': 20,    # 2 QBs per team = 20th QB
         'RB': 22,    # 2.2 RBs per team (with flex) = 22nd RB
         'WR': 38,    # 3.8 WRs per team (with flex) = 38th WR
-        'TE': 10     # 1 TE per team = 10th TE
+        'TE': 10,    # 1 TE per team = 10th TE
+        'LB': 30,    # 3 LBs per team = 30th LB
+        'DB': 30     # 3 DBs per team = 30th DB
     }
     
     # Group players by position
-    position_groups = {'QB': [], 'RB': [], 'WR': [], 'TE': []}
+    position_groups = {'QB': [], 'RB': [], 'WR': [], 'TE': [], 'LB': [], 'DB': []}
     
     for player in players:
         if player.position in position_groups and player.points_2025_proj is not None:
@@ -77,6 +79,13 @@ def generate_mock_players() -> List[Player]:
     # Get real player data
     player_data = get_players_with_fallback()
     
+    # Debug: Count positions in raw data
+    position_counts = {}
+    for p in player_data:
+        pos = p.get('position', 'UNKNOWN')
+        position_counts[pos] = position_counts.get(pos, 0) + 1
+    print(f"DEBUG: Position counts in raw player_data: {position_counts}")
+    
     players = []
     for data in player_data:
         player = Player(
@@ -103,8 +112,8 @@ def generate_mock_players() -> List[Player]:
     if len(players) < 50:
         # If we don't have enough players, add some generic ones
         # to ensure draft can complete
-        positions = ['QB', 'RB', 'WR', 'TE']
-        pos_counts = {'QB': 0, 'RB': 0, 'WR': 0, 'TE': 0}
+        positions = ['QB', 'RB', 'WR', 'TE', 'LB', 'DB']
+        pos_counts = {'QB': 0, 'RB': 0, 'WR': 0, 'TE': 0, 'LB': 0, 'DB': 0}
         
         for player in players:
             if player.position in pos_counts:
@@ -115,7 +124,9 @@ def generate_mock_players() -> List[Player]:
             'QB': 30,  # 3 per team
             'RB': 60,  # 6 per team
             'WR': 80,  # 8 per team
-            'TE': 30   # 3 per team
+            'TE': 30,  # 3 per team
+            'LB': 50,  # 5 per team
+            'DB': 50   # 5 per team
         }
         
         current_rank = len(players) + 1

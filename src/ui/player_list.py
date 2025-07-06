@@ -116,7 +116,7 @@ class PlayerList(StyledFrame):
         filter_frame.pack(side='left', padx=20)
         
         # Add position filter buttons
-        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX"]
+        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX", "LB", "DB"]
         self.position_buttons = {}
         
         for pos in positions:
@@ -125,7 +125,7 @@ class PlayerList(StyledFrame):
                 btn_bg = DARK_THEME['button_active']
             elif pos == "FLEX":
                 btn_bg = DARK_THEME['button_active'] if pos == self.selected_position else DARK_THEME['button_bg']
-            elif pos in ["QB", "RB", "WR", "TE"]:
+            elif pos in ["QB", "RB", "WR", "TE", "LB", "DB"]:
                 btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
             else:
                 btn_bg = DARK_THEME['button_bg']
@@ -171,10 +171,10 @@ class PlayerList(StyledFrame):
             ('Rank', 50, 'var'),  # Changed to sort by VAR when clicking Rank column
             ('CR', 35, 'custom_rank'),  # Custom Rank
             ('', 25, None),      # Star column
-            ('Pos', 45, None),
+            ('Pos', 45, 'position'),
             ('', 25, None),      # Info button column
-            ('Name', 155, None),
-            ('Team', 45, None),
+            ('Name', 155, 'name'),
+            ('Team', 45, 'team'),
             ('ADP', 55, 'adp'),  # Editable column
             ('GP', 40, 'games_2024'),  # Added 5px
             ('2024 Pts', 75, 'points_2024'),  # Added 10px
@@ -268,7 +268,9 @@ class PlayerList(StyledFrame):
                 'RB': [],
                 'WR': [],
                 'TE': [],
-                'FLEX': []
+                'FLEX': [],
+                'LB': [],
+                'DB': []
             }
             
             # Single pass through players to categorize
@@ -284,6 +286,10 @@ class PlayerList(StyledFrame):
                 elif p.position == 'TE':
                     self._position_cache['TE'].append(p)
                     self._position_cache['FLEX'].append(p)
+                elif p.position == 'LB':
+                    self._position_cache['LB'].append(p)
+                elif p.position == 'DB':
+                    self._position_cache['DB'].append(p)
         
         # Use pre-computed lists
         filtered_players = self._position_cache.get(self.selected_position, [])[:]
@@ -301,8 +307,27 @@ class PlayerList(StyledFrame):
             filtered_players.sort(key=lambda p: getattr(p, 'points_2024', 0) or 0, reverse=not self.sort_ascending)
         elif self.sort_by == "points_2025_proj":
             filtered_players.sort(key=lambda p: getattr(p, 'points_2025_proj', 0) or 0, reverse=not self.sort_ascending)
+        elif self.sort_by == "position_rank_proj":
+            # Sort by position rank (number first, then position)
+            def get_proj_rank_key(p):
+                proj_rank = getattr(p, 'position_rank_proj', '-')
+                if proj_rank == '-' or not proj_rank:
+                    return (999, 'ZZZ')
+                # Extract position and number from something like 'QB1' or 'RB12'
+                if isinstance(proj_rank, str):
+                    pos = ''.join(c for c in proj_rank if c.isalpha())
+                    num = ''.join(c for c in proj_rank if c.isdigit())
+                    return (int(num) if num else 999, pos)
+                return (999, 'ZZZ')
+            filtered_players.sort(key=get_proj_rank_key, reverse=not self.sort_ascending)
         elif self.sort_by == "var":
             filtered_players.sort(key=lambda p: getattr(p, 'var', -100) if getattr(p, 'var', None) is not None else -100, reverse=not self.sort_ascending)
+        elif self.sort_by == "position":
+            filtered_players.sort(key=lambda p: p.position if p.position else 'ZZZ', reverse=not self.sort_ascending)
+        elif self.sort_by == "name":
+            filtered_players.sort(key=lambda p: p.name if p.name else 'ZZZ', reverse=not self.sort_ascending)
+        elif self.sort_by == "team":
+            filtered_players.sort(key=lambda p: p.team if p.team else 'ZZZ', reverse=not self.sort_ascending)
         else:
             filtered_players.sort(key=lambda p: p.rank, reverse=not self.sort_ascending)
         
@@ -892,12 +917,14 @@ class PlayerList(StyledFrame):
         if self.sort_by == sort_by:
             self.sort_ascending = not self.sort_ascending
         else:
-            # New column - default to descending for stats, ascending for rank/adp
+            # New column - set default sort direction
             self.sort_by = sort_by
-            if sort_by in ['games_2024', 'points_2024', 'points_2025_proj']:
-                self.sort_ascending = False  # Descending by default for stats
+            # Ascending first for: Pos, Name, Team, ADP, Proj Rank, Custom Rank
+            if sort_by in ['position', 'name', 'team', 'adp', 'position_rank_proj', 'custom_rank']:
+                self.sort_ascending = True
             else:
-                self.sort_ascending = True  # Ascending by default for rank/adp
+                # Descending first for stats columns and VAR
+                self.sort_ascending = False
         
         # Update header indicators
         self.update_sort_indicators()

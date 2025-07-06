@@ -19,5 +19,16 @@ SCORING_CONFIG = {
     # Bonuses
     'bonus_pass_300_yards': 6.0,
     'bonus_rush_100_yards': 3.0,
-    'bonus_rec_100_yards': 3.0
+    'bonus_rec_100_yards': 3.0,
+    
+    # Defensive scoring (IDP) - User specified values
+    'tackle_solo': 1.75,
+    'tackle_assist': 1.0,
+    'sack': 4.0,
+    'int': 6.0,
+    'ff': 4.0,  # Forced fumble
+    'fr': 3.0,  # Fumble recovery
+    'def_td': 6.0,  # Defensive TD
+    'safety': 2.0,
+    'pass_defended': 1.5
 }

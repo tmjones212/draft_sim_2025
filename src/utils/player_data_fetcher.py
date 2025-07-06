@@ -85,7 +85,7 @@ def parse_player_data(raw_data: str) -> List[Dict]:
                 if filter_pos:
                     # Get first position (primary position)
                     pos = filter_pos.split(",")[0]
-                    if pos in ["QB", "RB", "WR", "TE"]:
+                    if pos in ["QB", "RB", "WR", "TE", "LB", "DB"]:
                         self.current_player["position"] = pos
                 # Extract team
                 filter_team = attrs_dict.get("filter-team", "")
@@ -199,7 +199,7 @@ def load_sleeper_players() -> Dict[str, Dict]:
                 sleeper_data = json.load(f)
                 # Create a name-to-player mapping for faster lookups
                 name_to_player = {}
-                fantasy_positions = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF']
+                fantasy_positions = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF', 'LB', 'DB']
                 for player_id, player_data in sleeper_data.items():
                     if 'name' in player_data and player_data.get('position') in fantasy_positions:
                         name = player_data['name']
@@ -396,7 +396,65 @@ def get_players_with_fallback() -> List[Dict]:
     players = load_local_player_data()
     if players:
         # Match with Sleeper data to get player IDs
-        return match_with_sleeper_data(players)
+        players = match_with_sleeper_data(players)
+        
+        # Add defensive players from Sleeper data
+        print("Adding defensive players from Sleeper data...")
+        sleeper_players = load_sleeper_players()
+        added_count = 0
+        
+        # Create a set of existing player names for quick lookup
+        existing_names = {p.get('name', '').upper() for p in players}
+        
+        # Add top 30 LBs and top 20 DBs from Sleeper with default ADP
+        lb_players = []
+        db_players = []
+        
+        for name, player_data in sleeper_players.items():
+            if name.upper() not in existing_names:
+                if player_data.get('position') == 'LB':
+                    lb_players.append({
+                        'name': name.upper(),
+                        'position': 'LB',
+                        'team': player_data.get('team', 'FA'),
+                        'rank': 999,  # Will be updated after sorting
+                        'adp': 999.0,  # Default ADP
+                        'player_id': player_data.get('player_id')
+                    })
+                elif player_data.get('position') == 'DB':
+                    db_players.append({
+                        'name': name.upper(),
+                        'position': 'DB',
+                        'team': player_data.get('team', 'FA'),
+                        'rank': 999,  # Will be updated after sorting
+                        'adp': 999.0,  # Default ADP
+                        'player_id': player_data.get('player_id')
+                    })
+        
+        # Match with stats and sort separately
+        defensive_players = []
+        
+        if lb_players:
+            lb_players = match_with_sleeper_data(lb_players)
+            lb_players.sort(key=lambda p: p.get('points_2024', 0) or 0, reverse=True)
+            top_lbs = lb_players[:30]  # Top 30 LBs
+            for i, player in enumerate(top_lbs):
+                player['rank'] = 999 + i
+            defensive_players.extend(top_lbs)
+            
+        if db_players:
+            db_players = match_with_sleeper_data(db_players)
+            db_players.sort(key=lambda p: p.get('points_2024', 0) or 0, reverse=True)
+            top_dbs = db_players[:20]  # Top 20 DBs
+            for i, player in enumerate(top_dbs):
+                player['rank'] = 999 + 30 + i  # Start after LBs
+            defensive_players.extend(top_dbs)
+        
+        players.extend(defensive_players)
+        added_count = len(defensive_players)
+        
+        print(f"Added top {added_count} defensive players (30 LB, 20 DB)")
+        return players
     
     # Try cache next
     players = load_player_cache()

@@ -295,6 +295,19 @@ class PlayerStatsPopup:
             self.header_cells.append(create_header_cell(header_row, 'Rec', col_widths['rec'], 'rec'))
             self.header_cells.append(create_header_cell(header_row, 'Rec Yds', col_widths['rec_yds'], 'rec_yd'))
             self.header_cells.append(create_header_cell(header_row, 'Rec TD', col_widths['rec_td'], 'rec_td'))
+        elif self.player.position in ['LB', 'DB']:
+            # Define defensive column widths
+            def_widths = {'tackle_solo': 45, 'tackle_assist': 45, 'sack': 45, 'int': 40, 'ff': 40, 'fr': 40, 'def_td': 50, 'pd': 40}
+            col_widths.update(def_widths)
+            
+            self.header_cells.append(create_header_cell(header_row, 'Solo', def_widths['tackle_solo'], 'tackle_solo'))
+            self.header_cells.append(create_header_cell(header_row, 'Ast', def_widths['tackle_assist'], 'tackle_assist'))
+            self.header_cells.append(create_header_cell(header_row, 'Sack', def_widths['sack'], 'sack'))
+            self.header_cells.append(create_header_cell(header_row, 'INT', def_widths['int'], 'int'))
+            self.header_cells.append(create_header_cell(header_row, 'FF', def_widths['ff'], 'ff'))
+            self.header_cells.append(create_header_cell(header_row, 'FR', def_widths['fr'], 'fr'))
+            self.header_cells.append(create_header_cell(header_row, 'TD', def_widths['def_td'], 'def_td'))
+            self.header_cells.append(create_header_cell(header_row, 'PD', def_widths['pd'], 'pass_defended'))
         
         # Create a helper to make data cells
         def create_data_cell(parent, text, width, bg, fg=None):
@@ -392,6 +405,23 @@ class PlayerStatsPopup:
                     week_entry['rec'] = stats.get('rec', 0)
                     week_entry['rec_yd'] = stats.get('rec_yd', 0)
                     week_entry['rec_td'] = stats.get('rec_td', 0)
+                elif self.player.position in ['LB', 'DB']:
+                    # Defensive stats - use IDP field names
+                    week_entry['snaps'] = stats.get('def_snp', 0)  # Use defensive snaps
+                    
+                    # Calculate solo and assist tackles
+                    solo_tackles = stats.get('idp_tkl_solo', 0)
+                    total_tackles = stats.get('idp_tkl', 0)
+                    assist_tackles = max(0, total_tackles - solo_tackles)
+                    
+                    week_entry['tackle_solo'] = solo_tackles
+                    week_entry['tackle_assist'] = assist_tackles
+                    week_entry['sack'] = stats.get('idp_sack', 0)
+                    week_entry['int'] = stats.get('idp_int', 0)
+                    week_entry['ff'] = stats.get('idp_ff', 0)
+                    week_entry['fr'] = stats.get('idp_fr', 0)
+                    week_entry['def_td'] = stats.get('idp_def_td', 0)
+                    week_entry['pass_defended'] = stats.get('idp_pass_def', 0)
                 
                 week_entry['played'] = True
             else:
@@ -519,6 +549,34 @@ class PlayerStatsPopup:
             elif stat_name == 'snaps':
                 if value >= 50:
                     return good_color
+                    
+        elif position in ['LB', 'DB']:
+            # Defensive thresholds
+            if stat_name == 'tackle_solo':
+                if value >= 6:
+                    return good_color
+                elif value <= 2:
+                    return bad_color
+            elif stat_name == 'tackle_assist':
+                if value >= 3:
+                    return good_color
+            elif stat_name == 'sack':
+                if value >= 1:
+                    return good_color
+            elif stat_name == 'int':
+                if value >= 1:
+                    return good_color
+            elif stat_name in ['ff', 'fr', 'def_td']:
+                if value >= 1:
+                    return good_color
+            elif stat_name == 'pass_defended':
+                if value >= 2:
+                    return good_color
+            elif stat_name == 'snaps':
+                if value >= 50:
+                    return good_color
+                elif value < 30:
+                    return bad_color
                     
         return normal_color
     
@@ -681,6 +739,39 @@ class PlayerStatsPopup:
                 rec_td_val = int(week_entry['rec_td'])
                 create_cell(f"{rec_td_val}", self.col_widths['rec_td'],
                            self.get_stat_color('rec_td', rec_td_val, self.player.position) if week_entry['played'] and rec_td_val > 0 else None)
+            elif self.player.position in ['LB', 'DB']:
+                # Defensive stats
+                tackle_solo = int(week_entry.get('tackle_solo', 0))
+                create_cell(f"{tackle_solo}", self.col_widths['tackle_solo'],
+                           self.get_stat_color('tackle_solo', tackle_solo, self.player.position) if week_entry['played'] else None)
+                
+                tackle_assist = int(week_entry.get('tackle_assist', 0))
+                create_cell(f"{tackle_assist}", self.col_widths['tackle_assist'],
+                           self.get_stat_color('tackle_assist', tackle_assist, self.player.position) if week_entry['played'] else None)
+                
+                sack = float(week_entry.get('sack', 0))
+                create_cell(f"{sack:.1f}" if sack > 0 else "0", self.col_widths['sack'],
+                           self.get_stat_color('sack', sack, self.player.position) if week_entry['played'] and sack > 0 else None)
+                
+                int_val = int(week_entry.get('int', 0))
+                create_cell(f"{int_val}", self.col_widths['int'],
+                           self.get_stat_color('int', int_val, self.player.position) if week_entry['played'] and int_val > 0 else None)
+                
+                ff = int(week_entry.get('ff', 0))
+                create_cell(f"{ff}", self.col_widths['ff'],
+                           self.get_stat_color('ff', ff, self.player.position) if week_entry['played'] and ff > 0 else None)
+                
+                fr = int(week_entry.get('fr', 0))
+                create_cell(f"{fr}", self.col_widths['fr'],
+                           self.get_stat_color('fr', fr, self.player.position) if week_entry['played'] and fr > 0 else None)
+                
+                def_td = int(week_entry.get('def_td', 0))
+                create_cell(f"{def_td}", self.col_widths['def_td'],
+                           self.get_stat_color('def_td', def_td, self.player.position) if week_entry['played'] and def_td > 0 else None)
+                
+                pd = int(week_entry.get('pass_defended', 0))
+                create_cell(f"{pd}", self.col_widths['pd'],
+                           self.get_stat_color('pass_defended', pd, self.player.position) if week_entry['played'] and pd > 0 else None)
     
     def sort_data(self, sort_key, arrow_label):
         """Sort the weekly data by the specified column"""
