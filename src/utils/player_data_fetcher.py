@@ -222,14 +222,16 @@ def load_2024_stats() -> Dict[str, Dict]:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
         stats_file = os.path.join(project_root, 'scripts', 'custom_scoring_player_stats_2024.json')
+        defensive_file = os.path.join(project_root, 'scripts', 'defensive_player_points_2024.json')
         
+        name_to_stats = {}
+        
+        # Load offensive stats first
         if os.path.exists(stats_file):
             with open(stats_file, 'r') as f:
                 stats_data = json.load(f)
-                # Create multiple mappings for name matching
-                name_to_stats = {}
                 for player_id, player_data in stats_data.items():
-                    if player_data.get('player_name'):
+                    if player_data.get('player_name') and player_data.get('position') not in ['LB', 'DB']:
                         name = player_data['player_name']
                         stats = {
                             'games_2024': player_data.get('games_played', 0),
@@ -242,9 +244,31 @@ def load_2024_stats() -> Dict[str, Dict]:
                         # Also store with formatted name for matching
                         formatted = format_name(name)
                         name_to_stats[formatted] = stats
+        
+        # Load defensive stats if available
+        if os.path.exists(defensive_file):
+            with open(defensive_file, 'r') as f:
+                defensive_data = json.load(f)
+                for player_id, player_data in defensive_data.items():
+                    if player_data.get('player_name'):
+                        name = player_data['player_name']
+                        stats = {
+                            'games_2024': player_data.get('games_played', 0),
+                            'points_2024': player_data.get('total_points', 0.0)
+                        }
                         
-                print(f"Loaded 2024 stats for {len(stats_data)} players")
+                        # Store with original name
+                        name_to_stats[name] = stats
+                        
+                        # Also store with formatted name for matching
+                        formatted = format_name(name)
+                        name_to_stats[formatted] = stats
+                        
+                print(f"Loaded 2024 stats for {len(name_to_stats)} players (including defensive)")
                 return name_to_stats
+        else:
+            print(f"Loaded 2024 stats for {len(name_to_stats)} offensive players only")
+            return name_to_stats
     except Exception as e:
         print(f"Error loading 2024 stats: {e}")
     return {}

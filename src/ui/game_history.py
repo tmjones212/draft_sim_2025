@@ -28,7 +28,7 @@ class GameHistory(StyledFrame):
         self.filtered_players = []
         
         # UI state
-        self.selected_position = "ALL"
+        self.selected_position = "OFF"
         self.selected_week = "ALL"
         self.sort_column = 'pts'  # Default sort by points
         self.sort_ascending = False  # Default descending
@@ -106,7 +106,7 @@ class GameHistory(StyledFrame):
         )
         pos_label.pack(side='left', padx=(0, 5))
         
-        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX", "DB", "LB"]
+        positions = ["ALL", "OFF", "QB", "RB", "WR", "TE", "FLEX", "IDP", "DB", "LB"]
         self.position_buttons = {}
         
         # Create position buttons container (single row)
@@ -117,7 +117,7 @@ class GameHistory(StyledFrame):
         for pos in positions:
             if pos == "ALL":
                 btn_bg = DARK_THEME['button_active'] if pos == self.selected_position else DARK_THEME['button_bg']
-            elif pos == "FLEX":
+            elif pos in ["OFF", "FLEX", "IDP"]:
                 btn_bg = DARK_THEME['button_active'] if pos == self.selected_position else DARK_THEME['button_bg']
             else:
                 btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
@@ -753,7 +753,11 @@ class GameHistory(StyledFrame):
                         opponent_display = f"vs {opponent}" if is_home else f"@ {opponent}"
                         
                         # Calculate pts per snap
-                        snaps = int(stats.get('off_snp', 0))
+                        # Use defensive snaps for LB/DB, offensive snaps for others
+                        if player.position in ['LB', 'DB']:
+                            snaps = int(stats.get('def_snp', 0))
+                        else:
+                            snaps = int(stats.get('off_snp', 0))
                         pts_per_snap = custom_pts / snaps if snaps > 0 else 0
                         
                         # Find rank for this player
@@ -805,6 +809,12 @@ class GameHistory(StyledFrame):
                     # Position filter
                     if self.selected_position == "FLEX":
                         if player.position not in ["RB", "WR", "TE"]:
+                            continue
+                    elif self.selected_position == "IDP":
+                        if player.position not in ["DB", "LB"]:
+                            continue
+                    elif self.selected_position == "OFF":
+                        if player.position not in ["QB", "RB", "WR", "TE"]:
                             continue
                     elif self.selected_position != "ALL" and player.position != self.selected_position:
                         continue
@@ -874,7 +884,11 @@ class GameHistory(StyledFrame):
                         opponent_display = f"vs {opponent}" if is_home else f"@ {opponent}"
                         
                         # Calculate pts per snap
-                        snaps = int(stats.get('off_snp', 0))
+                        # Use defensive snaps for LB/DB, offensive snaps for others
+                        if player.position in ['LB', 'DB']:
+                            snaps = int(stats.get('def_snp', 0))
+                        else:
+                            snaps = int(stats.get('off_snp', 0))
                         pts_per_snap = custom_pts / snaps if snaps > 0 else 0
                         
                         # Find rank for this player
@@ -935,6 +949,12 @@ class GameHistory(StyledFrame):
                 if self.selected_position == "FLEX":
                     if player.position not in ["RB", "WR", "TE"]:
                         continue
+                elif self.selected_position == "IDP":
+                    if player.position not in ["DB", "LB"]:
+                        continue
+                elif self.selected_position == "OFF":
+                    if player.position not in ["QB", "RB", "WR", "TE"]:
+                        continue
                 elif self.selected_position != "ALL" and player.position != self.selected_position:
                     continue
                 
@@ -976,7 +996,12 @@ class GameHistory(StyledFrame):
                     totals = player_totals[player_id]
                     
                     # Only count as a game if player actually played (had snaps)
-                    game_snaps = int(stats.get('off_snp', 0))
+                    # Use defensive snaps for LB/DB, offensive snaps for others
+                    if player.position in ['LB', 'DB']:
+                        game_snaps = int(stats.get('def_snp', 0))
+                    else:
+                        game_snaps = int(stats.get('off_snp', 0))
+                        
                     if game_snaps == 0:
                         continue
                     
@@ -1167,7 +1192,7 @@ class GameHistory(StyledFrame):
             if pos == position:
                 if pos == "ALL":
                     btn.config(bg=DARK_THEME['button_active'])
-                elif pos == "FLEX":
+                elif pos in ["OFF", "FLEX", "IDP"]:
                     btn.config(bg=DARK_THEME['button_active'])
                 else:
                     btn.config(bg=get_position_color(pos))
@@ -1247,7 +1272,18 @@ class GameHistory(StyledFrame):
             self.tree.column('rec', width=45, stretch=False)
             self.tree.column('rec_yd', width=65, stretch=False)
             self.tree.column('rec_td', width=60, stretch=False)
-        elif self.selected_position in ["DB", "LB"]:
+        elif self.selected_position == "OFF":
+            # Show all offensive columns
+            self.tree.column('comp', width=55, stretch=False)
+            self.tree.column('pass_yd', width=70, stretch=False)
+            self.tree.column('pass_td', width=65, stretch=False)
+            self.tree.column('rush_yd', width=70, stretch=False)
+            self.tree.column('rush_td', width=65, stretch=False)
+            self.tree.column('tgt', width=40, stretch=False)
+            self.tree.column('rec', width=45, stretch=False)
+            self.tree.column('rec_yd', width=65, stretch=False)
+            self.tree.column('rec_td', width=60, stretch=False)
+        elif self.selected_position in ["DB", "LB", "IDP"]:
             # For defensive positions, we would need to show defensive stats
             # For now, hide all offensive columns
             self.tree.column('comp', width=0, stretch=False)
@@ -1293,7 +1329,7 @@ class GameHistory(StyledFrame):
         self.save_filter_state()
         
         self.search_var.set('')
-        self.selected_position = "ALL"
+        self.selected_position = "OFF"
         self.week_var.set("ALL")
         self.location_var.set("ALL")
         self.venue_var.set("ALL")
@@ -1301,7 +1337,7 @@ class GameHistory(StyledFrame):
         
         # Update button appearances
         for pos, btn in self.position_buttons.items():
-            if pos == "ALL":
+            if pos == "OFF":
                 btn.config(bg=DARK_THEME['button_active'])
             else:
                 btn.config(bg=DARK_THEME['button_bg'])
@@ -1711,11 +1747,15 @@ class GameHistory(StyledFrame):
                 
                 for stat in stats_list:
                     stats = stat.get('stats', {})
-                    week_snaps = int(stats.get('off_snp', 0))
+                    # Check defensive snaps for DB/LB, offensive snaps for others
+                    player = self.player_lookup[player_id]
+                    if player.position in ['DB', 'LB']:
+                        week_snaps = int(stats.get('def_snp', 0))
+                    else:
+                        week_snaps = int(stats.get('off_snp', 0))
                     # Only count if player actually played (had snaps)
                     if week_snaps > 0:
                         # Calculate custom points
-                        player = self.player_lookup[player_id]
                         week_points = self.calculate_custom_points(stats, player.position)
                         break  # Only one game per week
             

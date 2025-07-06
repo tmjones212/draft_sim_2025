@@ -6,6 +6,7 @@ from PIL import Image, ImageTk
 from ..models import Player
 from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
+from ..config.scoring import SCORING_CONFIG
 
 
 class PlayerStatsPopup:
@@ -363,6 +364,27 @@ class PlayerStatsPopup:
         self.window.grab_release()
         self.window.destroy()
     
+    def calculate_defensive_points(self, stats):
+        """Calculate defensive fantasy points"""
+        points = 0.0
+        
+        # IDP stats use different field names
+        solo_tackles = stats.get('idp_tkl_solo', 0)
+        total_tackles = stats.get('idp_tkl', 0)
+        assist_tackles = max(0, total_tackles - solo_tackles)
+        
+        points += solo_tackles * SCORING_CONFIG.get('tackle_solo', 1.75)
+        points += assist_tackles * SCORING_CONFIG.get('tackle_assist', 1.0)
+        points += stats.get('idp_sack', 0) * SCORING_CONFIG.get('sack', 4.0)
+        points += stats.get('idp_int', 0) * SCORING_CONFIG.get('int', 6.0)
+        points += stats.get('idp_ff', 0) * SCORING_CONFIG.get('ff', 4.0)
+        points += stats.get('idp_fr', 0) * SCORING_CONFIG.get('fr', 3.0)
+        points += stats.get('idp_def_td', 0) * SCORING_CONFIG.get('def_td', 6.0)
+        points += stats.get('idp_safety', 0) * SCORING_CONFIG.get('safety', 2.0)
+        points += stats.get('idp_pass_def', 0) * SCORING_CONFIG.get('pass_defended', 1.5)
+        
+        return round(points, 1)
+    
     def build_weekly_data(self):
         """Build the weekly data structure for display and sorting"""
         self.weekly_data = []
@@ -387,7 +409,14 @@ class PlayerStatsPopup:
                 # Store all relevant data
                 week_entry['opponent'] = week_data['opponent']
                 week_entry['team'] = week_data.get('team', '')
-                week_entry['points'] = stats.get('pts_ppr', 0)
+                
+                # Calculate points based on position
+                if self.player.position in ['LB', 'DB']:
+                    # Calculate defensive points
+                    week_entry['points'] = self.calculate_defensive_points(stats)
+                else:
+                    week_entry['points'] = stats.get('pts_ppr', 0)
+                    
                 week_entry['snaps'] = stats.get('off_snp', 0)
                 
                 # Position-specific stats
