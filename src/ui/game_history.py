@@ -203,6 +203,28 @@ class GameHistory(StyledFrame):
         self.venue_dropdown.pack(side='left')
         self.venue_dropdown.bind('<<ComboboxSelected>>', lambda e: self.apply_filters())
         
+        # ADP filter
+        adp_label = tk.Label(
+            filter_frame,
+            text="ADP ≤",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        adp_label.pack(side='left', padx=(20, 5))
+        
+        self.adp_var = tk.StringVar(value="")
+        self.adp_entry = tk.Entry(
+            filter_frame,
+            textvariable=self.adp_var,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            width=5
+        )
+        self.adp_entry.pack(side='left')
+        self.adp_var.trace('w', lambda *args: self.on_adp_changed())
+        
         # Clear filter button
         self.clear_button = tk.Button(
             filter_frame,
@@ -820,6 +842,16 @@ class GameHistory(StyledFrame):
                     if search_text and search_text not in player.name.lower():
                         continue
                     
+                    # ADP filter
+                    adp_value = self.adp_var.get().strip()
+                    if adp_value:
+                        try:
+                            max_adp = float(adp_value)
+                            if hasattr(player, 'adp') and player.adp > max_adp:
+                                continue
+                        except ValueError:
+                            pass  # Invalid number, ignore filter
+                    
                     # Process the game
                     for stat in stats_list:
                         stats = stat.get('stats', {})
@@ -970,6 +1002,16 @@ class GameHistory(StyledFrame):
                     # Search filter
                     if search_text and search_text not in player.name.lower():
                         continue
+                    
+                    # ADP filter
+                    adp_value = self.adp_var.get().strip()
+                    if adp_value:
+                        try:
+                            max_adp = float(adp_value)
+                            if hasattr(player, 'adp') and player.adp > max_adp:
+                                continue
+                        except ValueError:
+                            pass  # Invalid number, ignore filter
                     
                     # Handle both single stat object and list of stats
                     stats_list = stats_data if isinstance(stats_data, list) else [stats_data]
@@ -1442,6 +1484,7 @@ class GameHistory(StyledFrame):
         self.week_var.set("ALL")
         self.location_var.set("ALL")
         self.venue_var.set("ALL")
+        self.adp_var.set("")
         
         # Update button appearances
         for pos, btn in self.position_buttons.items():
@@ -1486,6 +1529,15 @@ class GameHistory(StyledFrame):
         
         # Schedule new search after 300ms
         self._search_after_id = self.after(300, self.apply_filters)
+    
+    def on_adp_changed(self):
+        """Handle ADP filter changes with debouncing"""
+        # Cancel any pending filter
+        if hasattr(self, '_adp_after_id'):
+            self.after_cancel(self._adp_after_id)
+        
+        # Schedule new filter after 300ms
+        self._adp_after_id = self.after(300, self.apply_filters)
     
     def on_right_click(self, event):
         """Handle right-click on tree item"""
@@ -1631,25 +1683,31 @@ class GameHistory(StyledFrame):
     
     def setup_graph(self, container):
         """Setup the matplotlib graph"""
-        # Graph title
+        # Title frame
+        title_frame = StyledFrame(container, bg_type='secondary')
+        title_frame.pack(fill='x', padx=10, pady=(10, 5))
+        
         title_label = tk.Label(
-            container,
+            title_frame,
             text="POINTS BY WEEK",
             bg=DARK_THEME['bg_secondary'],
             fg=DARK_THEME['text_primary'],
             font=(DARK_THEME['font_family'], 12, 'bold')
         )
-        title_label.pack(pady=(10, 5))
+        title_label.pack(side='left')
         
-        # Instructions
+        # Instructions frame
+        info_frame = StyledFrame(container, bg_type='secondary')
+        info_frame.pack(fill='x', padx=10, pady=(0, 10))
+        
         info_label = tk.Label(
-            container,
+            info_frame,
             text="Click player to graph • Ctrl+Click to add/remove • Shift+Click to select range",
             bg=DARK_THEME['bg_secondary'],
             fg=DARK_THEME['text_secondary'],
             font=(DARK_THEME['font_family'], 9)
         )
-        info_label.pack(pady=(0, 10))
+        info_label.pack(side='left')
         
         # Create matplotlib figure
         self.figure = Figure(figsize=(6, 4), dpi=100, facecolor=DARK_THEME['bg_secondary'])
@@ -1669,6 +1727,10 @@ class GameHistory(StyledFrame):
         self.graph_canvas = FigureCanvasTkAgg(self.figure, master=container)
         self.graph_canvas.draw()
         self.graph_canvas.get_tk_widget().pack(fill='both', expand=True, padx=10, pady=(0, 10))
+        
+        # Setup hover annotation
+        self.hover_annotation = None
+        self.graph_canvas.mpl_connect('motion_notify_event', self.on_graph_hover)
         
         # Week range controls
         range_frame = StyledFrame(container, bg_type='secondary')
@@ -1761,9 +1823,12 @@ class GameHistory(StyledFrame):
         )
         self.end_spinbox.pack(side='left')
         
-        # Clear button
+        # Clear button frame
+        clear_frame = StyledFrame(container, bg_type='secondary')
+        clear_frame.pack(fill='x', padx=10, pady=(0, 10))
+        
         clear_btn = tk.Button(
-            container,
+            clear_frame,
             text="CLEAR GRAPH",
             bg=DARK_THEME['button_bg'],
             fg='white',
@@ -1775,7 +1840,7 @@ class GameHistory(StyledFrame):
             command=self.clear_graph,
             cursor='hand2'
         )
-        clear_btn.pack(pady=(0, 10))
+        clear_btn.pack(side='left')
         
         # Initialize empty plot
         self.update_graph()
@@ -1853,11 +1918,15 @@ class GameHistory(StyledFrame):
                 
                 for stat in stats_list:
                     stats = stat.get('stats', {})
-                    week_snaps = int(stats.get('off_snp', 0))
+                    player = self.player_lookup[player_id]
+                    # Use defensive snaps for DB/LB, offensive snaps for others
+                    if player.position in ['DB', 'LB']:
+                        week_snaps = int(stats.get('def_snp', 0))
+                    else:
+                        week_snaps = int(stats.get('off_snp', 0))
                     # Only count if player actually played (had snaps)
                     if week_snaps > 0:
                         # Calculate custom points
-                        player = self.player_lookup[player_id]
                         week_points = self.calculate_custom_points(stats, player.position)
                         break  # Only one game per week
             
@@ -2048,4 +2117,131 @@ class GameHistory(StyledFrame):
             self.update_graph()
         except ValueError:
             pass  # Ignore invalid input
+    
+    def on_graph_hover(self, event):
+        """Handle mouse hover over graph points"""
+        if event.inaxes != self.ax or not self.graph_players:
+            # Remove annotation if mouse is outside axes
+            if self.hover_annotation:
+                self.hover_annotation.remove()
+                self.hover_annotation = None
+                self.graph_canvas.draw_idle()
+            return
+        
+        # Find closest point to mouse
+        closest_point = None
+        min_distance = float('inf')
+        
+        for player_id, data in self.graph_players.items():
+            # Only check points within the current week range
+            for i, week in enumerate(data['weeks']):
+                if self.week_range_start <= week <= self.week_range_end:
+                    # Calculate distance from mouse to point
+                    x_dist = (week - event.xdata) ** 2
+                    y_dist = (data['points'][i] - event.ydata) ** 2
+                    distance = (x_dist + y_dist) ** 0.5
+                    
+                    if distance < min_distance and distance < 0.5:  # Within 0.5 units
+                        min_distance = distance
+                        closest_point = {
+                            'player_id': player_id,
+                            'player_name': data['name'],
+                            'week': week,
+                            'points': data['points'][i],
+                            'snaps': data['snaps'][i],
+                            'position': data['position'],
+                            'team': data['team']
+                        }
+        
+        # Update or create annotation
+        if closest_point:
+            # Build tooltip text
+            tooltip_lines = [
+                f"{closest_point['player_name']} ({closest_point['position']})",
+                f"Week {closest_point['week']}",
+                f"Points: {closest_point['points']:.1f}",
+            ]
+            
+            # Add snaps if player played
+            if closest_point['snaps'] > 0:
+                tooltip_lines.append(f"Snaps: {closest_point['snaps']}")
+            else:
+                tooltip_lines.append("Did not play")
+            
+            # Get additional stats if available
+            if closest_point['week'] in self.weekly_stats and closest_point['player_id'] in self.weekly_stats[closest_point['week']]:
+                stats_data = self.weekly_stats[closest_point['week']][closest_point['player_id']]
+                stats_list = stats_data if isinstance(stats_data, list) else [stats_data]
+                
+                if stats_list:
+                    stats = stats_list[0].get('stats', {})
+                    opponent = stats_list[0].get('opponent', '')
+                    
+                    # Add opponent info
+                    if opponent:
+                        # Determine home/away
+                        is_home = (closest_point['week'] + hash(closest_point['team'])) % 2 == 0
+                        opp_display = f"vs {opponent}" if is_home else f"@ {opponent}"
+                        tooltip_lines.insert(2, opp_display)
+                    
+                    # Add key stats based on position
+                    if closest_point['position'] == 'QB':
+                        comp = int(stats.get('pass_cmp', 0))
+                        pass_yd = int(stats.get('pass_yd', 0))
+                        pass_td = int(stats.get('pass_td', 0))
+                        if comp or pass_yd or pass_td:
+                            tooltip_lines.append(f"Pass: {comp} cmp, {pass_yd} yd, {pass_td} TD")
+                    elif closest_point['position'] in ['RB', 'WR', 'TE']:
+                        rec = int(stats.get('rec', 0))
+                        rec_yd = int(stats.get('rec_yd', 0))
+                        rush_yd = int(stats.get('rush_yd', 0))
+                        total_td = int(stats.get('rec_td', 0)) + int(stats.get('rush_td', 0))
+                        if rec or rec_yd:
+                            tooltip_lines.append(f"Rec: {rec} rec, {rec_yd} yd")
+                        if rush_yd:
+                            tooltip_lines.append(f"Rush: {rush_yd} yd")
+                        if total_td:
+                            tooltip_lines.append(f"TD: {total_td}")
+                    elif closest_point['position'] in ['DB', 'LB']:
+                        solo = int(stats.get('idp_tkl_solo', 0))
+                        ast = int(stats.get('idp_tkl_ast', 0))
+                        total_tkl = solo + ast
+                        sacks = float(stats.get('idp_sack', 0))
+                        ints = int(stats.get('idp_int', 0))
+                        if total_tkl:
+                            tooltip_lines.append(f"Tackles: {total_tkl} ({solo} solo)")
+                        if sacks:
+                            tooltip_lines.append(f"Sacks: {sacks}")
+                        if ints:
+                            tooltip_lines.append(f"INT: {ints}")
+            
+            tooltip_text = '\n'.join(tooltip_lines)
+            
+            # Remove old annotation
+            if self.hover_annotation:
+                self.hover_annotation.remove()
+            
+            # Create new annotation
+            self.hover_annotation = self.ax.annotate(
+                tooltip_text,
+                xy=(closest_point['week'], closest_point['points']),
+                xytext=(20, 20),  # Offset from point
+                textcoords='offset points',
+                bbox=dict(boxstyle='round,pad=0.5', 
+                         facecolor=DARK_THEME['bg_tertiary'], 
+                         edgecolor=DARK_THEME['text_secondary'],
+                         alpha=0.95),
+                fontsize=9,
+                color=DARK_THEME['text_primary'],
+                arrowprops=dict(arrowstyle='->',
+                              connectionstyle='arc3,rad=0',
+                              color=DARK_THEME['text_secondary'])
+            )
+            self.graph_canvas.draw_idle()
+        else:
+            # Remove annotation if no point is close
+            if self.hover_annotation:
+                self.hover_annotation.remove()
+                self.hover_annotation = None
+                self.graph_canvas.draw_idle()
     
