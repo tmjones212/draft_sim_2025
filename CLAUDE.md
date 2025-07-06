@@ -21,7 +21,7 @@ Also use the formatted player name (the format_name function in player_extension
 
 ### UI Requirements
 - Dark theme matching Sleeper's draft board style
-- Position colors: QB (pink), RB (teal), WR (blue), TE (orange)
+- Position colors: QB (pink), RB (teal), WR (blue), TE (orange), DB (light purple), LB (light pink)
 
 ### Running the App
 - Linux: `python3 main.py`
@@ -111,3 +111,45 @@ When you learn useful things that would be helpful in the future, memorialize th
 - Y-axis always starts at 0 for consistent scale
 - Week range selector with presets: All, First Half, Last Half, Q1-Q4, Playoffs
 - Custom week range using spinboxes for any weeks 1-18
+
+## DB and LB Positions Added (2025-07-05)
+
+### Draft Configuration
+- Added DB and LB roster spots (2 each) to config.py
+- Updated roster view to display DB and LB positions
+
+### UI Updates
+- Added DB and LB to position filters in Player List and Game History
+- Added position colors: DB (light purple #9966ff), LB (light pink #ff66cc)
+- Position buttons now include DB and LB options
+
+### Data Processing
+- Updated pull_stats.py and pull_projections.py to fetch DB and LB data
+- Added DB and LB to VAR calculations with replacement levels of 20 each
+- Added defensive scoring in scoring.py (tackles, sacks, interceptions, etc.)
+
+### Draft Logic
+- Computer teams draft DB and LB positions with max of 2 each
+- DB and LB are treated as late-round positions (after round 10)
+- Added to position counts tracking for draft strategy
+
+### Scoring Configuration for IDP
+- Tackle: 1.0 point
+- Tackle Assist: 0.5 points
+- Sack: 2.0 points
+- Interception: 6.0 points
+- Pass Deflection: 1.0 point
+- Forced Fumble: 3.0 points
+- Fumble Recovery: 3.0 points
+- Defensive TD: 6.0 points
+- Safety: 2.0 points
+
+### DB/LB Player Fixes (2025-07-06)
+- Fixed issue where clicking on one DB/LB player would highlight all DB/LB players
+  - Problem: DB/LB players in players_2025.json don't have player_id fields
+  - Solution: Updated player_list.py to use object identity comparison when player_id is missing
+- Fixed DB/LB players not showing in game history
+  - Added 'db' and 'lb' to positions loaded in game_history.py
+  - Added IDP scoring calculation for DB/LB players
+  - Updated table rows to show defensive stats (tackles, sacks, ints) for DB/LB
+  - Use defensive snaps (def_snp) instead of offensive snaps for DB/LB players

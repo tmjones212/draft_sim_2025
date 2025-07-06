@@ -23,7 +23,8 @@
       "Bash(cat:*)",
       "Bash(for week in {1..9})",
       "Bash(do echo \"Week $week:\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }

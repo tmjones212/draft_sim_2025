@@ -104,7 +104,7 @@ class GameHistory(StyledFrame):
         )
         pos_label.pack(side='left', padx=(0, 5))
         
-        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX"]
+        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX", "DB", "LB"]
         self.position_buttons = {}
         
         # Create position buttons container (single row)
@@ -476,7 +476,7 @@ class GameHistory(StyledFrame):
         for week in range(1, 19):
             self.weekly_stats[week] = {}
             
-            for position in ['qb', 'rb', 'wr', 'te']:
+            for position in ['qb', 'rb', 'wr', 'te', 'db', 'lb']:
                 filename = f"2024_{week}_{position}.json"
                 filepath = os.path.join(stats_dir, filename)
                 
@@ -499,6 +499,23 @@ class GameHistory(StyledFrame):
     def calculate_custom_points(self, stats, position):
         """Calculate custom fantasy points based on our scoring rules"""
         points = 0.0
+        
+        # IDP scoring for DB and LB
+        if position in ['DB', 'LB']:
+            # Tackles
+            points += stats.get('idp_tkl_solo', 0) * SCORING_CONFIG['tackle_solo']
+            points += stats.get('idp_tkl_ast', 0) * SCORING_CONFIG['tackle_assist']
+            
+            # Big plays
+            points += stats.get('idp_sack', 0) * SCORING_CONFIG['sack']
+            points += stats.get('idp_int', 0) * SCORING_CONFIG['interception']
+            points += stats.get('idp_pass_def', 0) * SCORING_CONFIG['pass_defended']
+            points += stats.get('idp_ff', 0) * SCORING_CONFIG['forced_fumble']
+            points += stats.get('idp_fr', 0) * SCORING_CONFIG['fumble_recovery']
+            points += stats.get('idp_def_td', 0) * SCORING_CONFIG['defensive_touchdown']
+            points += stats.get('idp_safety', 0) * SCORING_CONFIG['safety']
+            
+            return points
         
         # Passing points
         if position == 'QB':
@@ -710,7 +727,11 @@ class GameHistory(StyledFrame):
                         opponent_display = f"vs {opponent}" if is_home else f"@ {opponent}"
                         
                         # Calculate pts per snap
-                        snaps = int(stats.get('off_snp', 0))
+                        # Use defensive snaps for DB/LB, offensive snaps for others
+                        if player.position in ['DB', 'LB']:
+                            snaps = int(stats.get('def_snp', 0))
+                        else:
+                            snaps = int(stats.get('off_snp', 0))
                         pts_per_snap = custom_pts / snaps if snaps > 0 else 0
                         
                         # Find rank for this player
@@ -721,29 +742,61 @@ class GameHistory(StyledFrame):
                                     rank = f"{player.position}{idx + 1}"
                                     break
                         
-                        row = {
-                            'player': format_name(player.name),
-                            'pos': player.position,
-                            'rank': rank,
-                            'team': player.team or '-',
-                            'week': week,
-                            'opp': opponent_display,
-                            'pts': f"{custom_pts:.1f}",
-                            'snaps': snaps,
-                            'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
-                            'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
-                            'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
-                            'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
-                            'rush_yd': int(stats.get('rush_yd', 0)),
-                            'rush_td': max(0, int(stats.get('rush_td', 0))),
-                            'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
-                            'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
-                            'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
-                            '_pts_float': custom_pts,  # For sorting
-                            '_week_int': week,  # For sorting
-                            '_pts_per_snap_float': pts_per_snap,  # For sorting
-                            '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
-                        }
+                        # Build row data based on position
+                        if player.position in ['DB', 'LB']:
+                            # IDP stats for DB/LB
+                            row = {
+                                'player': format_name(player.name),
+                                'pos': player.position,
+                                'rank': rank,
+                                'team': player.team or '-',
+                                'week': week,
+                                'opp': opponent_display,
+                                'pts': f"{custom_pts:.1f}",
+                                'snaps': int(stats.get('def_snp', 0)),  # Defensive snaps
+                                'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
+                                'comp': '-',  # No completions for IDP
+                                'pass_yd': '-',
+                                'pass_td': '-',
+                                'rush_yd': '-',
+                                'rush_td': '-',
+                                'rec': '-',
+                                'rec_yd': '-',
+                                'rec_td': '-',
+                                # IDP specific stats (these could be shown in place of offensive stats)
+                                'tackles': int(stats.get('idp_tkl_solo', 0) + stats.get('idp_tkl_ast', 0)),
+                                'sacks': stats.get('idp_sack', 0),
+                                'ints': stats.get('idp_int', 0),
+                                '_pts_float': custom_pts,  # For sorting
+                                '_week_int': week,  # For sorting
+                                '_pts_per_snap_float': pts_per_snap,  # For sorting
+                                '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
+                            }
+                        else:
+                            # Offensive stats for other positions
+                            row = {
+                                'player': format_name(player.name),
+                                'pos': player.position,
+                                'rank': rank,
+                                'team': player.team or '-',
+                                'week': week,
+                                'opp': opponent_display,
+                                'pts': f"{custom_pts:.1f}",
+                                'snaps': snaps,
+                                'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
+                                'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
+                                'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
+                                'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
+                                'rush_yd': int(stats.get('rush_yd', 0)),
+                                'rush_td': max(0, int(stats.get('rush_td', 0))),
+                                'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
+                                'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
+                                'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
+                                '_pts_float': custom_pts,  # For sorting
+                                '_week_int': week,  # For sorting
+                                '_pts_per_snap_float': pts_per_snap,  # For sorting
+                                '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
+                            }
                         rows.append(row)
         else:
             # Normal filtering without roster position
@@ -820,7 +873,11 @@ class GameHistory(StyledFrame):
                         opponent_display = f"vs {opponent}" if is_home else f"@ {opponent}"
                         
                         # Calculate pts per snap
-                        snaps = int(stats.get('off_snp', 0))
+                        # Use defensive snaps for DB/LB, offensive snaps for others
+                        if player.position in ['DB', 'LB']:
+                            snaps = int(stats.get('def_snp', 0))
+                        else:
+                            snaps = int(stats.get('off_snp', 0))
                         pts_per_snap = custom_pts / snaps if snaps > 0 else 0
                         
                         # Find rank for this player
@@ -831,29 +888,61 @@ class GameHistory(StyledFrame):
                                     rank = f"{player.position}{idx + 1}"
                                     break
                         
-                        row = {
-                            'player': format_name(player.name),
-                            'pos': player.position,
-                            'rank': rank,
-                            'team': player.team or '-',
-                            'week': week,
-                            'opp': opponent_display,
-                            'pts': f"{custom_pts:.1f}",
-                            'snaps': snaps,
-                            'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
-                            'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
-                            'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
-                            'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
-                            'rush_yd': int(stats.get('rush_yd', 0)),
-                            'rush_td': max(0, int(stats.get('rush_td', 0))),
-                            'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
-                            'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
-                            'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
-                            '_pts_float': custom_pts,  # For sorting
-                            '_week_int': week,  # For sorting
-                            '_pts_per_snap_float': pts_per_snap,  # For sorting
-                            '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
-                        }
+                        # Build row data based on position
+                        if player.position in ['DB', 'LB']:
+                            # IDP stats for DB/LB
+                            row = {
+                                'player': format_name(player.name),
+                                'pos': player.position,
+                                'rank': rank,
+                                'team': player.team or '-',
+                                'week': week,
+                                'opp': opponent_display,
+                                'pts': f"{custom_pts:.1f}",
+                                'snaps': int(stats.get('def_snp', 0)),  # Defensive snaps
+                                'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
+                                'comp': '-',  # No completions for IDP
+                                'pass_yd': '-',
+                                'pass_td': '-',
+                                'rush_yd': '-',
+                                'rush_td': '-',
+                                'rec': '-',
+                                'rec_yd': '-',
+                                'rec_td': '-',
+                                # IDP specific stats (these could be shown in place of offensive stats)
+                                'tackles': int(stats.get('idp_tkl_solo', 0) + stats.get('idp_tkl_ast', 0)),
+                                'sacks': stats.get('idp_sack', 0),
+                                'ints': stats.get('idp_int', 0),
+                                '_pts_float': custom_pts,  # For sorting
+                                '_week_int': week,  # For sorting
+                                '_pts_per_snap_float': pts_per_snap,  # For sorting
+                                '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
+                            }
+                        else:
+                            # Offensive stats for other positions
+                            row = {
+                                'player': format_name(player.name),
+                                'pos': player.position,
+                                'rank': rank,
+                                'team': player.team or '-',
+                                'week': week,
+                                'opp': opponent_display,
+                                'pts': f"{custom_pts:.1f}",
+                                'snaps': snaps,
+                                'pts_per_snap': f"{pts_per_snap:.3f}" if snaps > 0 else '-',
+                                'comp': int(stats.get('pass_cmp', 0)) if player.position == 'QB' else '-',
+                                'pass_yd': int(stats.get('pass_yd', 0)) if player.position == 'QB' else '-',
+                                'pass_td': int(stats.get('pass_td', 0)) if player.position == 'QB' else '-',
+                                'rush_yd': int(stats.get('rush_yd', 0)),
+                                'rush_td': max(0, int(stats.get('rush_td', 0))),
+                                'rec': int(stats.get('rec', 0)) if player.position != 'QB' else '-',
+                                'rec_yd': int(stats.get('rec_yd', 0)) if player.position != 'QB' else '-',
+                                'rec_td': int(stats.get('rec_td', 0)) if player.position != 'QB' else '-',
+                                '_pts_float': custom_pts,  # For sorting
+                                '_week_int': week,  # For sorting
+                                '_pts_per_snap_float': pts_per_snap,  # For sorting
+                                '_rank_int': int(rank[2:]) if rank != '-' else 999  # For sorting
+                            }
                         rows.append(row)
         
         return rows

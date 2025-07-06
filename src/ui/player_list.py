@@ -116,7 +116,7 @@ class PlayerList(StyledFrame):
         filter_frame.pack(side='left', padx=20)
         
         # Add position filter buttons
-        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX"]
+        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX", "DB", "LB"]
         self.position_buttons = {}
         
         for pos in positions:
@@ -125,7 +125,7 @@ class PlayerList(StyledFrame):
                 btn_bg = DARK_THEME['button_active']
             elif pos == "FLEX":
                 btn_bg = DARK_THEME['button_active'] if pos == self.selected_position else DARK_THEME['button_bg']
-            elif pos in ["QB", "RB", "WR", "TE"]:
+            elif pos in ["QB", "RB", "WR", "TE", "DB", "LB"]:
                 btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
             else:
                 btn_bg = DARK_THEME['button_bg']
@@ -268,7 +268,9 @@ class PlayerList(StyledFrame):
                 'RB': [],
                 'WR': [],
                 'TE': [],
-                'FLEX': []
+                'FLEX': [],
+                'DB': [],
+                'LB': []
             }
             
             # Single pass through players to categorize
@@ -284,6 +286,10 @@ class PlayerList(StyledFrame):
                 elif p.position == 'TE':
                     self._position_cache['TE'].append(p)
                     self._position_cache['FLEX'].append(p)
+                elif p.position == 'DB':
+                    self._position_cache['DB'].append(p)
+                elif p.position == 'LB':
+                    self._position_cache['LB'].append(p)
         
         # Use pre-computed lists
         filtered_players = self._position_cache.get(self.selected_position, [])[:]
@@ -548,9 +554,16 @@ class PlayerList(StyledFrame):
             # Find current index of this player
             current_index = None
             for i, p in enumerate(self.players):
-                if p.player_id == player.player_id:
-                    current_index = i
-                    break
+                # For players without player_id (DB/LB), use object identity
+                if p.player_id and player.player_id:
+                    if p.player_id == player.player_id:
+                        current_index = i
+                        break
+                else:
+                    # Use object identity for players without player_id
+                    if p is player:
+                        current_index = i
+                        break
             
             if current_index is not None:
                 self.select_row(current_index)
@@ -568,16 +581,26 @@ class PlayerList(StyledFrame):
                 # Find current player in list
                 current_player = None
                 for p in self.players:
-                    if p.player_id == player.player_id:
-                        current_player = p
-                        break
+                    if p.player_id and player.player_id:
+                        if p.player_id == player.player_id:
+                            current_player = p
+                            break
+                    else:
+                        if p is player:
+                            current_player = p
+                            break
                 
                 if current_player:
                     # Find index
                     for i, p in enumerate(self.players):
-                        if p.player_id == current_player.player_id:
-                            self.selected_index = i
-                            break
+                        if p.player_id and current_player.player_id:
+                            if p.player_id == current_player.player_id:
+                                self.selected_index = i
+                                break
+                        else:
+                            if p is current_player:
+                                self.selected_index = i
+                                break
                     self.on_draft()
         
         row.bind('<Double-Button-1>', draft_on_double_click)
@@ -858,11 +881,18 @@ class PlayerList(StyledFrame):
         """Draft a specific player object directly"""
         # Find the player's current index
         for i, p in enumerate(self.players):
-            if p.player_id == player.player_id:
-                self.select_player(i)
-                if self.on_draft:
-                    self.on_draft()
-                return
+            if p.player_id and player.player_id:
+                if p.player_id == player.player_id:
+                    self.select_player(i)
+                    if self.on_draft:
+                        self.on_draft()
+                    return
+            else:
+                if p is player:
+                    self.select_player(i)
+                    if self.on_draft:
+                        self.on_draft()
+                    return
     
     def _show_player_stats(self, player: Player):
         """Show the player stats popup"""
@@ -947,7 +977,15 @@ class PlayerList(StyledFrame):
         
         for i, row in enumerate(self.row_frames):
             # Check if this row contains the selected player
-            is_selected = hasattr(row, 'player') and row.player.player_id == selected_player.player_id
+            # For players without player_id (DB/LB), use object identity comparison
+            if hasattr(row, 'player') and selected_player:
+                if row.player.player_id and selected_player.player_id:
+                    is_selected = row.player.player_id == selected_player.player_id
+                else:
+                    # Use object identity for players without player_id
+                    is_selected = row.player is selected_player
+            else:
+                is_selected = False
             
             if is_selected:
                 row.configure(bg=DARK_THEME['button_active'])
@@ -1217,15 +1255,23 @@ class PlayerList(StyledFrame):
                 
                 # Update the row display immediately
                 for row in self.row_frames:
-                    if hasattr(row, 'player') and row.player.player_id == player.player_id:
-                        # Find the ADP cell and update it
-                        for widget in row.winfo_children():
-                            if isinstance(widget, tk.Frame):
-                                for child in widget.winfo_children():
-                                    if isinstance(child, tk.Label) and hasattr(child, '_field_type') and child._field_type == 'adp':
-                                        child.config(text=f"{int(new_adp)}")
-                                        break
-                        break
+                    if hasattr(row, 'player'):
+                        # Check if this is the same player
+                        is_same_player = False
+                        if row.player.player_id and player.player_id:
+                            is_same_player = row.player.player_id == player.player_id
+                        else:
+                            is_same_player = row.player is player
+                            
+                        if is_same_player:
+                            # Find the ADP cell and update it
+                            for widget in row.winfo_children():
+                                if isinstance(widget, tk.Frame):
+                                    for child in widget.winfo_children():
+                                        if isinstance(child, tk.Label) and hasattr(child, '_field_type') and child._field_type == 'adp':
+                                            child.config(text=f"{int(new_adp)}")
+                                            break
+                            break
                 
                 # Re-sort if currently sorted by ADP
                 if self.sort_by == 'adp':

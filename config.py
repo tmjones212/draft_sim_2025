@@ -7,5 +7,7 @@ roster_spots = {
     "wr": 2,
     "te": 1,
     "flex": 2,  # RB/WR/TE
+    "db": 2,
+    "lb": 2,
     "bn": 8     # bench
 }

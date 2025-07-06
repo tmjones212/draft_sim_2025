@@ -13,7 +13,7 @@ class Team:
         pos = player.position.lower()
         
         # Check starting position slots
-        if pos in ["qb", "te"]:
+        if pos in ["qb", "te", "db", "lb"]:
             if len(self.roster[pos]) < self.roster_spots[pos]:
                 return True
         elif pos in ["rb", "wr"]:
@@ -37,7 +37,7 @@ class Team:
         pos = player.position.lower()
         
         # Try to fill starting position first
-        if pos in ["qb", "te"]:
+        if pos in ["qb", "te", "db", "lb"]:
             if len(self.roster[pos]) < self.roster_spots[pos]:
                 self.roster[pos].append(player)
                 return True

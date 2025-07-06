@@ -1051,6 +1051,286 @@
       "rank": 155,
       "name": "Ray Davis",
       "adp": 155
+    },
+    {
+      "position": "DB",
+      "team": "TB",
+      "rank": 151,
+      "name": "Antoine Winfield Jr.",
+      "adp": 160.0
+    },
+    {
+      "position": "DB",
+      "team": "ATL",
+      "rank": 152,
+      "name": "Jessie Bates III",
+      "adp": 162.5
+    },
+    {
+      "position": "DB",
+      "team": "BAL",
+      "rank": 153,
+      "name": "Kyle Hamilton",
+      "adp": 165.0
+    },
+    {
+      "position": "DB",
+      "team": "LAC",
+      "rank": 154,
+      "name": "Derwin James",
+      "adp": 167.5
+    },
+    {
+      "position": "DB",
+      "team": "ARI",
+      "rank": 155,
+      "name": "Budda Baker",
+      "adp": 170.0
+    },
+    {
+      "position": "DB",
+      "team": "PIT",
+      "rank": 156,
+      "name": "Minkah Fitzpatrick",
+      "adp": 172.5
+    },
+    {
+      "position": "DB",
+      "team": "SF",
+      "rank": 157,
+      "name": "Talanoa Hufanga",
+      "adp": 175.0
+    },
+    {
+      "position": "DB",
+      "team": "IND",
+      "rank": 158,
+      "name": "Nick Cross",
+      "adp": 177.5
+    },
+    {
+      "position": "DB",
+      "team": "MIA",
+      "rank": 159,
+      "name": "Jevon Holland",
+      "adp": 180.0
+    },
+    {
+      "position": "DB",
+      "team": "BAL",
+      "rank": 160,
+      "name": "Marcus Williams",
+      "adp": 182.5
+    },
+    {
+      "position": "DB",
+      "team": "MIA",
+      "rank": 161,
+      "name": "Jordan Poyer",
+      "adp": 185.0
+    },
+    {
+      "position": "DB",
+      "team": "CHI",
+      "rank": 162,
+      "name": "Kevin Byard",
+      "adp": 187.5
+    },
+    {
+      "position": "DB",
+      "team": "LAR",
+      "rank": 163,
+      "name": "Kamren Curl",
+      "adp": 190.0
+    },
+    {
+      "position": "DB",
+      "team": "HOU",
+      "rank": 164,
+      "name": "Jalen Pitre",
+      "adp": 192.5
+    },
+    {
+      "position": "DB",
+      "team": "SEA",
+      "rank": 165,
+      "name": "Julian Love",
+      "adp": 195.0
+    },
+    {
+      "position": "DB",
+      "team": "NYJ",
+      "rank": 166,
+      "name": "Sauce Gardner",
+      "adp": 197.5
+    },
+    {
+      "position": "DB",
+      "team": "DEN",
+      "rank": 167,
+      "name": "Patrick Surtain II",
+      "adp": 200.0
+    },
+    {
+      "position": "DB",
+      "team": "MIA",
+      "rank": 168,
+      "name": "Jalen Ramsey",
+      "adp": 202.5
+    },
+    {
+      "position": "DB",
+      "team": "KC",
+      "rank": 169,
+      "name": "L'Jarius Sneed",
+      "adp": 205.0
+    },
+    {
+      "position": "DB",
+      "team": "DAL",
+      "rank": 170,
+      "name": "DaRon Bland",
+      "adp": 207.5
+    },
+    {
+      "position": "LB",
+      "team": "BAL",
+      "rank": 171,
+      "name": "Roquan Smith",
+      "adp": 165.0
+    },
+    {
+      "position": "LB",
+      "team": "SF",
+      "rank": 172,
+      "name": "Fred Warner",
+      "adp": 167.5
+    },
+    {
+      "position": "LB",
+      "team": "JAX",
+      "rank": 173,
+      "name": "Foyesade Oluokun",
+      "adp": 170.0
+    },
+    {
+      "position": "LB",
+      "team": "PIT",
+      "rank": 174,
+      "name": "T.J. Watt",
+      "adp": 172.5
+    },
+    {
+      "position": "LB",
+      "team": "KC",
+      "rank": 175,
+      "name": "Nick Bolton",
+      "adp": 175.0
+    },
+    {
+      "position": "LB",
+      "team": "SF",
+      "rank": 176,
+      "name": "Dre Greenlaw",
+      "adp": 177.5
+    },
+    {
+      "position": "LB",
+      "team": "PIT",
+      "rank": 177,
+      "name": "Patrick Queen",
+      "adp": 180.0
+    },
+    {
+      "position": "LB",
+      "team": "IND",
+      "rank": 178,
+      "name": "Zaire Franklin",
+      "adp": 182.5
+    },
+    {
+      "position": "LB",
+      "team": "WAS",
+      "rank": 179,
+      "name": "Bobby Wagner",
+      "adp": 185.0
+    },
+    {
+      "position": "LB",
+      "team": "TB",
+      "rank": 180,
+      "name": "Lavonte David",
+      "adp": 187.5
+    },
+    {
+      "position": "LB",
+      "team": "SEA",
+      "rank": 181,
+      "name": "Ernest Jones",
+      "adp": 190.0
+    },
+    {
+      "position": "LB",
+      "team": "NYJ",
+      "rank": 182,
+      "name": "Quincy Williams",
+      "adp": 192.5
+    },
+    {
+      "position": "LB",
+      "team": "MIA",
+      "rank": 183,
+      "name": "Jordyn Brooks",
+      "adp": 195.0
+    },
+    {
+      "position": "LB",
+      "team": "DEN",
+      "rank": 184,
+      "name": "Alex Singleton",
+      "adp": 197.5
+    },
+    {
+      "position": "LB",
+      "team": "LV",
+      "rank": 185,
+      "name": "Divine Deablo",
+      "adp": 200.0
+    },
+    {
+      "position": "LB",
+      "team": "ATL",
+      "rank": 186,
+      "name": "Kaden Elliss",
+      "adp": 202.5
+    },
+    {
+      "position": "LB",
+      "team": "TEN",
+      "rank": 187,
+      "name": "Jerome Baker",
+      "adp": 205.0
+    },
+    {
+      "position": "LB",
+      "team": "CIN",
+      "rank": 188,
+      "name": "Logan Wilson",
+      "adp": 207.5
+    },
+    {
+      "position": "LB",
+      "team": "BUF",
+      "rank": 189,
+      "name": "Matt Milano",
+      "adp": 210.0
+    },
+    {
+      "position": "LB",
+      "team": "CHI",
+      "rank": 190,
+      "name": "Tremaine Edmunds",
+      "adp": 212.5
     }
   ]
 }

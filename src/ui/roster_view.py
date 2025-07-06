@@ -143,6 +143,8 @@ class RosterView(StyledFrame):
             ("WR", "wr"),
             ("TE", "te"),
             ("FLEX", "flex"),
+            ("DB", "db"),
+            ("LB", "lb"),
             ("BN", "bn")
         ]
         
