@@ -367,7 +367,7 @@ class MockDraftApp:
         # Bottom section - Available players
         player_panel = StyledFrame(paned_window, bg_type='secondary')
         
-        self.player_list = PlayerList(player_panel, on_draft=self.draft_player, image_service=self.image_service)
+        self.player_list = PlayerList(player_panel, on_draft=self.draft_player, on_adp_change=self.on_adp_change, image_service=self.image_service)
         self.player_list.pack(fill='both', expand=True, padx=10, pady=10)
         
         # Connect watch list to player list (bidirectional)
@@ -919,6 +919,11 @@ class MockDraftApp:
                 # Just update the custom rank display without full refresh
                 self.player_list.update_table_view()
     
+    def on_adp_change(self):
+        """Called when ADP values are changed via UI"""
+        # Re-sort available players by ADP to maintain proper draft order
+        self.available_players.sort(key=lambda p: p.adp if p.adp else 999)
+    
     def restart_draft(self):
         """Reset the draft but keep user team selection"""
         # Save current user team selection
@@ -938,7 +943,12 @@ class MockDraftApp:
         # Reset players - load in background if needed
         if self.players_loaded:
             # Already loaded, just reset the lists
-            self.available_players = list(self.all_players)
+            # Apply custom ADP values before sorting
+            from src.services.custom_adp_manager import CustomADPManager
+            adp_manager = CustomADPManager()
+            adp_manager.apply_custom_adp_to_players(self.all_players)
+            # Sort by ADP for proper draft order
+            self.available_players = sorted(list(self.all_players), key=lambda p: p.adp if p.adp else 999)
         else:
             # Still loading, wait for it to complete
             self.available_players = []
@@ -1024,7 +1034,12 @@ class MockDraftApp:
         # Reset players - load in background if needed
         if self.players_loaded:
             # Already loaded, just reset the lists
-            self.available_players = list(self.all_players)
+            # Apply custom ADP values before sorting
+            from src.services.custom_adp_manager import CustomADPManager
+            adp_manager = CustomADPManager()
+            adp_manager.apply_custom_adp_to_players(self.all_players)
+            # Sort by ADP for proper draft order
+            self.available_players = sorted(list(self.all_players), key=lambda p: p.adp if p.adp else 999)
         else:
             # Still loading, wait for it to complete
             self.available_players = []
@@ -1210,6 +1225,14 @@ class MockDraftApp:
         drafted_player_ids = {pick.player.player_id for pick in picks_to_keep}
         self.available_players = [p for p in self.available_players if p.player_id not in drafted_player_ids]
         
+        # Apply custom ADP values before sorting
+        from src.services.custom_adp_manager import CustomADPManager
+        adp_manager = CustomADPManager()
+        adp_manager.apply_custom_adp_to_players(self.available_players)
+        
+        # Sort by ADP for proper draft order
+        self.available_players.sort(key=lambda p: p.adp if p.adp else 999)
+        
         # Reset team rosters in one pass
         for team in self.teams.values():
             team.roster = {pos: [] for pos in team.roster}
@@ -1371,7 +1394,14 @@ class MockDraftApp:
     def on_players_loaded(self, players):
         """Called when players are loaded"""
         self.all_players = players
-        self.available_players = list(players)
+        
+        # Apply custom ADP values before sorting
+        from src.services.custom_adp_manager import CustomADPManager
+        adp_manager = CustomADPManager()
+        adp_manager.apply_custom_adp_to_players(players)
+        
+        # Sort available players by ADP for proper draft order
+        self.available_players = sorted(list(players), key=lambda p: p.adp if p.adp else 999)
         self.players_loaded = True
         
         # Initialize player pool service

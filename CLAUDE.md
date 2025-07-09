@@ -1,5 +1,43 @@
 # Project: Mock Draft Simulator 2025
 
+## How ADP (Average Draft Position) Works
+
+### ADP Data Sources
+1. **Primary source**: Local file `src/data/players_2025.json` (contains current ADP values)
+2. **Fallback if local file missing**: Live ADP data from `https://nfc.shgn.com/adp.data.php`
+3. **Custom overrides**: User-edited values saved in `data/custom_adp.json`
+
+### ADP Loading Process
+1. `generate_mock_players()` loads players via `get_players_with_fallback()`
+2. Base ADP values come from the data source (local file or API)
+3. When players are loaded in `main.py`:
+   - `on_players_loaded()` applies custom ADP values BEFORE sorting
+   - `available_players` is sorted by ADP (custom values take precedence)
+4. Custom ADP values are also applied when:
+   - Draft is restarted (`restart_draft`)
+   - Draft spot is repicked (`repick_spot`)
+   - Draft is reverted (`_revert_to_pick`)
+
+### Critical: Available Players List Must Be Sorted
+- **Issue**: Computer draft logic assumes `self.available_players` is sorted by ADP
+- **Solution**: Always sort `available_players` by ADP when:
+  - Players are initially loaded (`on_players_loaded`)
+  - Draft is restarted (`restart_draft`, `repick_spot`)
+  - Draft is reverted (`_revert_to_pick`)
+  - Custom ADP values are changed (`on_adp_change`)
+- **Sort key**: `lambda p: p.adp if p.adp else 999`
+
+### Custom ADP Management
+- Users can edit ADP by clicking on the ADP column in player list
+- Custom values are saved to `data/custom_adp.json` 
+- When ADP is edited, the `on_adp_change` callback re-sorts `available_players`
+- Reset ADP button clears all custom values and restores defaults
+
+### Computer Draft Logic
+- `_select_computer_pick()` assumes `self.available_players[0]` has the best ADP
+- Early picks (1-3) just take `available_players[0]`
+- Later picks consider position needs but still rely on list order
+
 ## Important Reminders
 
 ### Always Sync to Windows

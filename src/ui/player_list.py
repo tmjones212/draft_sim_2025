@@ -10,10 +10,11 @@ from ..services.custom_adp_manager import CustomADPManager
 
 
 class PlayerList(StyledFrame):
-    def __init__(self, parent, on_select: Optional[Callable] = None, on_draft: Optional[Callable] = None, image_service=None, **kwargs):
+    def __init__(self, parent, on_select: Optional[Callable] = None, on_draft: Optional[Callable] = None, on_adp_change: Optional[Callable] = None, image_service=None, **kwargs):
         super().__init__(parent, bg_type='secondary', **kwargs)
         self.on_select = on_select
         self.on_draft = on_draft
+        self.on_adp_change = on_adp_change
         self.players: List[Player] = []
         self.selected_index = None
         self.image_cache = {}  # Cache loaded images
@@ -1264,6 +1265,10 @@ class PlayerList(StyledFrame):
                     # Trigger a full update with current players
                     self.update_players(self.all_players)
                 
+                # Notify main app that ADP has changed
+                if self.on_adp_change:
+                    self.on_adp_change()
+                
                 dialog.destroy()
                 
             except ValueError as e:
@@ -1402,6 +1407,10 @@ class PlayerList(StyledFrame):
             
             # Refresh the display
             self.update_players(self.all_players, force_refresh=True)
+            
+            # Notify main app that ADP has changed
+            if self.on_adp_change:
+                self.on_adp_change()
             
             messagebox.showinfo(
                 "ADP Reset",

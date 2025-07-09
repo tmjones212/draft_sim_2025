@@ -1,14 +1,2 @@
-
-i dont like some of our colors we're using, let's change the following (dont re use colors if possible)
-WAS red is too dark, change it in @data/team_colors.json and anywhere else its used if necessary
-CHI blue color is too dark
-HOU blue is too dark
-make the NYJ green a little brighter
-SEA blue is too dark
-GB green is too dark
-IND blue is too dark
-TEN blue is too dark
-NYG blue is too dark
-PHI green is too dark
-NE blue is too dark
-
+i'd like to be able to right click on a player already drafted, and there be an optoin for "Change Pick", and when you hover, it shows a list of the next 5 players sorted on ADP (that haven't been drafted yet) and if I pick one, it replaces taht pick w/ the player I selected
+Make sure remove the new player from the available players table and put the old one back in there
