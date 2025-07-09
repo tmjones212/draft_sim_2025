@@ -116,14 +116,14 @@ class PlayerList(StyledFrame):
         filter_frame.pack(side='left', padx=20)
         
         # Add position filter buttons
-        positions = ["ALL", "QB", "RB", "WR", "TE", "FLEX", "LB", "DB"]
+        positions = ["ALL", "OFF", "QB", "RB", "WR", "TE", "FLEX", "LB", "DB"]
         self.position_buttons = {}
         
         for pos in positions:
             # Use position colors for filter buttons
             if pos == "ALL":
                 btn_bg = DARK_THEME['button_active']
-            elif pos == "FLEX":
+            elif pos in ["FLEX", "OFF"]:
                 btn_bg = DARK_THEME['button_active'] if pos == self.selected_position else DARK_THEME['button_bg']
             elif pos in ["QB", "RB", "WR", "TE", "LB", "DB"]:
                 btn_bg = get_position_color(pos) if pos == self.selected_position else DARK_THEME['button_bg']
@@ -264,6 +264,7 @@ class PlayerList(StyledFrame):
             self._position_cache = {
                 'players': id(players),
                 'ALL': players[:],  # Copy of all players
+                'OFF': [],  # Offensive players (QB, RB, WR, TE)
                 'QB': [],
                 'RB': [],
                 'WR': [],
@@ -277,15 +278,19 @@ class PlayerList(StyledFrame):
             for p in players:
                 if p.position == 'QB':
                     self._position_cache['QB'].append(p)
+                    self._position_cache['OFF'].append(p)
                 elif p.position == 'RB':
                     self._position_cache['RB'].append(p)
                     self._position_cache['FLEX'].append(p)
+                    self._position_cache['OFF'].append(p)
                 elif p.position == 'WR':
                     self._position_cache['WR'].append(p)
                     self._position_cache['FLEX'].append(p)
+                    self._position_cache['OFF'].append(p)
                 elif p.position == 'TE':
                     self._position_cache['TE'].append(p)
                     self._position_cache['FLEX'].append(p)
+                    self._position_cache['OFF'].append(p)
                 elif p.position == 'LB':
                     self._position_cache['LB'].append(p)
                 elif p.position == 'DB':
@@ -900,7 +905,7 @@ class PlayerList(StyledFrame):
         # Update button appearances with position colors
         for pos, btn in self.position_buttons.items():
             if pos == position:
-                if pos == "ALL" or pos == "FLEX":
+                if pos in ["ALL", "FLEX", "OFF"]:
                     btn.config(bg=DARK_THEME['button_active'], activebackground=DARK_THEME['button_active'])
                 else:
                     pos_color = get_position_color(pos)
