@@ -50,6 +50,8 @@ MAKE SURE TO COMMIT WHEN YOU MAKE A CHANGE.
 
 Windows local path: `C:\Users\alaba\source\repos\Python\draft_sim_2025`
 
+**Important**: The sync script excludes `data/custom_adp.json` to preserve your custom ADP values on the Windows side.
+
 ### Misc
 Also use the formatted player name (the format_name function in player_extensions.py)
 

@@ -231,19 +231,32 @@ def load_2024_stats() -> Dict[str, Dict]:
             with open(stats_file, 'r') as f:
                 stats_data = json.load(f)
                 for player_id, player_data in stats_data.items():
-                    if player_data.get('player_name') and player_data.get('position') not in ['LB', 'DB']:
+                    if player_data.get('player_name'):
                         name = player_data['player_name']
+                        position = player_data.get('position', '')
+                        
+                        # Skip defensive players in offensive stats
+                        if position in ['LB', 'DB']:
+                            continue
+                            
                         stats = {
                             'games_2024': player_data.get('games_played', 0),
-                            'points_2024': player_data.get('custom_season_total', 0.0)
+                            'points_2024': player_data.get('custom_season_total', 0.0),
+                            'player_id': player_id,  # Store player_id for debugging
+                            'position': position
                         }
                         
-                        # Store with original name
-                        name_to_stats[name] = stats
+                        # Create keys with position to handle duplicates
+                        key_with_pos = f"{name}|{position}"
+                        name_to_stats[key_with_pos] = stats
                         
-                        # Also store with formatted name for matching
-                        formatted = format_name(name)
-                        name_to_stats[formatted] = stats
+                        # Also store without position for backwards compatibility
+                        # But only if this player has games played (avoid 0-game players overwriting)
+                        if player_data.get('games_played', 0) > 0:
+                            name_to_stats[name] = stats
+                            # Also store with formatted name for matching
+                            formatted = format_name(name)
+                            name_to_stats[formatted] = stats
         
         # Load defensive stats if available
         if os.path.exists(defensive_file):
@@ -382,17 +395,34 @@ def match_with_sleeper_data(players: List[Dict]) -> List[Dict]:
                     player['team'] = sleeper_data['team']
         
         # Match with 2024 stats
-        # The player name is already formatted (uppercase) in the ADP data
-        # The stats dict has both original and formatted names as keys
-        if player['name'] in stats_2024:
+        # Try position-specific key first to handle duplicate names
+        position = player.get('position', '')
+        key_with_pos = f"{player['name']}|{position}"
+        formatted_with_pos = f"{formatted_name}|{position}"
+        
+        if key_with_pos in stats_2024:
+            stats = stats_2024[key_with_pos]
+            player['games_2024'] = stats['games_2024']
+            player['points_2024'] = stats['points_2024']
+        elif formatted_with_pos in stats_2024:
+            stats = stats_2024[formatted_with_pos]
+            player['games_2024'] = stats['games_2024']
+            player['points_2024'] = stats['points_2024']
+        elif player['name'] in stats_2024:
             stats = stats_2024[player['name']]
             player['games_2024'] = stats['games_2024']
             player['points_2024'] = stats['points_2024']
         elif formatted_name in stats_2024:
-            # This should normally not be needed as player['name'] is already formatted
             stats = stats_2024[formatted_name]
             player['games_2024'] = stats['games_2024']
             player['points_2024'] = stats['points_2024']
+        else:
+            # Debug for specific players
+            if 'Lamar' in player['name']:
+                print(f"DEBUG: Failed to match stats for {player['name']} (formatted: {formatted_name})")
+                print(f"  Position: {position}")
+                print(f"  Tried keys: {[key_with_pos, formatted_with_pos, player['name'], formatted_name]}")
+                print(f"  Available keys sample: {list(stats_2024.keys())[:10]}")
             
         # Match with projections
         if player['name'] in projections:
