@@ -180,6 +180,12 @@ class PlayerComparisonPopup:
         for widget in parent.winfo_children():
             widget.destroy()
         
+        # Clear this player's weekly data to ensure fresh comparison
+        if player_num == 1:
+            self.player1_weekly_data.clear()
+        else:
+            self.player2_weekly_data.clear()
+        
         card_frame = StyledFrame(parent, bg_type='secondary')
         card_frame.pack(fill='both', expand=True)
         
@@ -442,6 +448,9 @@ class PlayerComparisonPopup:
             other_player_data = self.player2_weekly_data if player_num == 1 else self.player1_weekly_data
             compare_data = other_player_data.get(week_key, {})
             
+            # Debug: Check if we have comparison data
+            has_compare_data = bool(compare_data)
+            
             # Helper to create cells with comparison coloring
             def create_cell(text, width, value=None, stat_name=None):
                 cell = tk.Frame(row, bg=row_bg, width=width, height=22)
@@ -450,14 +459,15 @@ class PlayerComparisonPopup:
                 
                 # Determine color based on comparison
                 fg = DARK_THEME['text_primary']
-                if value is not None and stat_name and compare_data:
-                    # Get other player's value
+                if value is not None and stat_name and has_compare_data:
+                    # Get other player's value with proper defaults
                     if stat_name == 'points':
                         other_value = compare_data.get('points', 0)
                     elif stat_name == 'snaps':
                         other_value = compare_data.get('snaps', 0)
                     else:
-                        other_value = compare_data.get('stats', {}).get(stat_name, 0)
+                        other_stats = compare_data.get('stats', {})
+                        other_value = other_stats.get(stat_name, 0) if other_stats else 0
                     
                     # Color based on comparison (only if both players played that week)
                     # Check if both players have data for this week
@@ -627,13 +637,12 @@ class PlayerComparisonPopup:
         else:
             self.player2 = selected_player
         
-        # Clear weekly data for fresh comparison
-        self.player1_weekly_data = {}
-        self.player2_weekly_data = {}
-        
         # Recreate both cards to update comparison colors
         self.create_player_card(self.left_card_container, self.player1, 1)
         self.create_player_card(self.right_card_container, self.player2, 2)
+        
+        # Recreate first player's card again now that we have second player's data
+        self.create_player_card(self.left_card_container, self.player1, 1)
         
         # Update window title
         self.window.title(f"Comparing {self.player1.format_name()} vs {self.player2.format_name()}")
