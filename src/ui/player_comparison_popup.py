@@ -150,9 +150,12 @@ class PlayerComparisonPopup:
         self.player1_weekly_data = {}
         self.player2_weekly_data = {}
         
-        # Create player cards
+        # Create player cards - create both initially to populate data
         self.create_player_card(self.left_card_container, self.player1, 1)
         self.create_player_card(self.right_card_container, self.player2, 2)
+        
+        # Recreate first player's card now that we have second player's data for comparison
+        self.create_player_card(self.left_card_container, self.player1, 1)
         
         # Close button
         close_btn = tk.Button(
@@ -411,26 +414,34 @@ class PlayerComparisonPopup:
             'tgt': 0, 'rec': 0, 'rec_yds': 0, 'rec_td': 0
         }
         
-        # Display only weeks with data
-        week_count = 0
-        for week_data in sorted(player.weekly_stats_2024, key=lambda x: x['week']):
-            week_num = week_data['week']
+        # Create a dictionary of weekly stats for easy lookup
+        week_stats_dict = {}
+        if hasattr(player, 'weekly_stats_2024') and player.weekly_stats_2024:
+            for week_data in player.weekly_stats_2024:
+                week_stats_dict[week_data['week']] = week_data
+        
+        # Display all weeks 1-18 (regular season)
+        for week_num in range(1, 19):
+            week_count = week_num
             
-            # Skip bye week
-            if hasattr(player, 'bye_week') and player.bye_week == week_num:
-                continue
-                
-            stats = week_data.get('stats', {})
+            # Check if this is bye week
+            is_bye_week = hasattr(player, 'bye_week') and player.bye_week == week_num
             
-            # Check if player played
-            if stats.get('off_snp', 0) == 0 and stats.get('def_snp', 0) == 0:
-                continue
+            # Get week data if available
+            week_data = week_stats_dict.get(week_num, None)
+            if week_data:
+                stats = week_data.get('stats', {})
+                opponent = week_data.get('opponent', 'DNP')
+                # Check if player actually played
+                played = stats.get('off_snp', 0) > 0 or stats.get('def_snp', 0) > 0
+            else:
+                stats = {}
+                opponent = 'BYE' if is_bye_week else 'DNP'
+                played = False
             
-            week_count += 1
-            
-            # Calculate points and snaps first
-            points = stats.get('pts_ppr', 0)
-            snaps = stats.get('off_snp', 0) or stats.get('def_snp', 0)
+            # Calculate points and snaps
+            points = stats.get('pts_ppr', 0) if played else 0
+            snaps = (stats.get('off_snp', 0) or stats.get('def_snp', 0)) if played else 0
             
             row_bg = DARK_THEME['bg_tertiary'] if week_count % 2 == 0 else DARK_THEME['bg_secondary']
             row = tk.Frame(data_container, bg=row_bg, height=22)
@@ -491,39 +502,41 @@ class PlayerComparisonPopup:
             
             # Week and opponent
             create_cell(f"{week_num}", col_widths['week'])
-            create_cell(week_data['opponent'], col_widths['opp'])
+            create_cell(opponent, col_widths['opp'])
             create_cell(f"{points:.1f}", col_widths['points'], points, 'points')
             create_cell(f"{int(snaps)}", col_widths['snaps'], snaps, 'snaps')
             
-            # Update totals
-            weekly_totals['points'] += points
-            weekly_totals['snaps'] += int(snaps)
-            weekly_totals['games'] += 1
+            # Update totals only if player played
+            if played:
+                weekly_totals['points'] += points
+                weekly_totals['snaps'] += int(snaps)
+                weekly_totals['games'] += 1
             
             # Position-specific stats
             if player.position == 'QB':
-                pass_yds = stats.get('pass_yd', 0)
-                pass_td = stats.get('pass_td', 0)
-                rush_yds = stats.get('rush_yd', 0)
-                rush_td = stats.get('rush_td', 0)
+                pass_yds = stats.get('pass_yd', 0) if played else 0
+                pass_td = stats.get('pass_td', 0) if played else 0
+                rush_yds = stats.get('rush_yd', 0) if played else 0
+                rush_td = stats.get('rush_td', 0) if played else 0
                 
                 create_cell(f"{int(pass_yds)}", col_widths['pass_yds'], pass_yds, 'pass_yd')
                 create_cell(f"{int(pass_td)}", col_widths['pass_td'], pass_td, 'pass_td')
                 create_cell(f"{int(rush_yds)}", col_widths['rush_yds'], rush_yds, 'rush_yd')
                 create_cell(f"{int(rush_td)}", col_widths['rush_td'], rush_td, 'rush_td')
                 
-                weekly_totals['pass_yds'] += int(pass_yds)
-                weekly_totals['pass_td'] += int(pass_td)
-                weekly_totals['rush_yds'] += int(rush_yds)
-                weekly_totals['rush_td'] += int(rush_td)
+                if played:
+                    weekly_totals['pass_yds'] += int(pass_yds)
+                    weekly_totals['pass_td'] += int(pass_td)
+                    weekly_totals['rush_yds'] += int(rush_yds)
+                    weekly_totals['rush_td'] += int(rush_td)
                 
             elif player.position in ['RB', 'WR', 'TE']:
-                rush_yds = stats.get('rush_yd', 0)
-                rush_td = stats.get('rush_td', 0)
-                tgt = stats.get('rec_tgt', 0)
-                rec = stats.get('rec', 0)
-                rec_yds = stats.get('rec_yd', 0)
-                rec_td = stats.get('rec_td', 0)
+                rush_yds = stats.get('rush_yd', 0) if played else 0
+                rush_td = stats.get('rush_td', 0) if played else 0
+                tgt = stats.get('rec_tgt', 0) if played else 0
+                rec = stats.get('rec', 0) if played else 0
+                rec_yds = stats.get('rec_yd', 0) if played else 0
+                rec_td = stats.get('rec_td', 0) if played else 0
                 
                 create_cell(f"{int(rush_yds)}", col_widths['rush_yds'], rush_yds, 'rush_yd')
                 create_cell(f"{int(rush_td)}", col_widths['rush_td'], rush_td, 'rush_td')
@@ -532,12 +545,13 @@ class PlayerComparisonPopup:
                 create_cell(f"{int(rec_yds)}", col_widths['rec_yds'], rec_yds, 'rec_yd')
                 create_cell(f"{int(rec_td)}", col_widths['rec_td'], rec_td, 'rec_td')
                 
-                weekly_totals['rush_yds'] += int(rush_yds)
-                weekly_totals['rush_td'] += int(rush_td)
-                weekly_totals['tgt'] += int(tgt)
-                weekly_totals['rec'] += int(rec)
-                weekly_totals['rec_yds'] += int(rec_yds)
-                weekly_totals['rec_td'] += int(rec_td)
+                if played:
+                    weekly_totals['rush_yds'] += int(rush_yds)
+                    weekly_totals['rush_td'] += int(rush_td)
+                    weekly_totals['tgt'] += int(tgt)
+                    weekly_totals['rec'] += int(rec)
+                    weekly_totals['rec_yds'] += int(rec_yds)
+                    weekly_totals['rec_td'] += int(rec_td)
         
         # Add totals row at bottom of scrollable area
         separator = tk.Frame(data_container, bg=DARK_THEME['border'], height=2)
