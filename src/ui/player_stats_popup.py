@@ -26,14 +26,21 @@ class PlayerStatsPopup:
         # Hide window initially to prevent flashing
         self.window.withdraw()
         
-        # Set window size
-        self.window.geometry("800x600")
+        # Set window size - taller to show all weeks
+        self.window.geometry("800x850")
         
         # Center the window
         self.window.update_idletasks()
+        screen_height = self.window.winfo_screenheight()
+        window_height = 850
+        
+        # Make sure window fits on screen
+        if window_height > screen_height - 100:  # Leave some margin
+            window_height = screen_height - 100
+        
         x = (self.window.winfo_screenwidth() // 2) - (800 // 2)
-        y = (self.window.winfo_screenheight() // 2) - (600 // 2)
-        self.window.geometry(f"800x600+{x}+{y}")
+        y = (screen_height // 2) - (window_height // 2)
+        self.window.geometry(f"800x{window_height}+{x}+{y}")
         
         # Show window after positioning
         self.window.deiconify()

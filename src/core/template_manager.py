@@ -110,7 +110,11 @@ class TemplateManager:
                     "bye_week": p.bye_week,
                     "points_2024": p.points_2024,
                     "points_2025_proj": p.points_2025_proj,
-                    "var": p.var
+                    "var": p.var,
+                    "games_2024": p.games_2024,
+                    "position_rank_2024": p.position_rank_2024,
+                    "position_rank_proj": p.position_rank_proj,
+                    "weekly_stats_2024": p.weekly_stats_2024
                 } for p in all_players]
             }
             

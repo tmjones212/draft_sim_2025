@@ -8,7 +8,7 @@ from .styled_widgets import StyledFrame
 
 
 class DraftBoard(StyledFrame):
-    def __init__(self, parent, teams: Dict[int, Team], total_rounds: int, max_visible_rounds: int = 9, on_team_select=None, on_pick_click=None, image_service=None, **kwargs):
+    def __init__(self, parent, teams: Dict[int, Team], total_rounds: int, max_visible_rounds: int = 9, on_team_select=None, on_pick_click=None, image_service=None, on_pick_change=None, get_top_players=None, **kwargs):
         super().__init__(parent, bg_type='secondary', **kwargs)
         self.teams = teams
         self.num_teams = len(teams)
@@ -18,6 +18,8 @@ class DraftBoard(StyledFrame):
         self.current_pick_num = 1
         self.on_team_select = on_team_select
         self.on_pick_click = on_pick_click
+        self.on_pick_change = on_pick_change
+        self.get_top_players = get_top_players
         self.selected_team_id = None
         self.team_buttons = {}  # team_id -> button widget
         self.draft_results = []  # Store draft picks
@@ -342,21 +344,30 @@ class DraftBoard(StyledFrame):
                 if pick.pick_number <= len(self.draft_results):
                     self.on_pick_click(pick.pick_number)
         
+        # Create right-click handler for changing picks
+        def handle_right_click(event):
+            if hasattr(self, 'on_pick_change') and self.draft_results:
+                if pick.pick_number <= len(self.draft_results):
+                    self.show_change_pick_menu(event, pick)
+        
         # Player container with horizontal layout - use full width
         player_frame = StyledFrame(pick_frame, bg_type='tertiary')
         player_frame.place(x=2, y=20, relwidth=0.95, height=40)
         player_frame.bind("<Button-1>", handle_pick_click)
+        player_frame.bind("<Button-3>", handle_right_click)
         
         # Create horizontal layout
         content_frame = tk.Frame(player_frame, bg=DARK_THEME['bg_tertiary'])
         content_frame.pack(fill='both', expand=True)
         content_frame.bind("<Button-1>", handle_pick_click)
+        content_frame.bind("<Button-3>", handle_right_click)
         
         # Player image container (for player + team logo)
         image_container = tk.Frame(content_frame, bg=DARK_THEME['bg_tertiary'], width=40, height=32)
         image_container.pack(side='left', padx=(2, 5))
         image_container.pack_propagate(False)
         image_container.bind("<Button-1>", handle_pick_click)
+        image_container.bind("<Button-3>", handle_right_click)
         
         # Always create placeholder first for consistent layout
         img_label = tk.Label(
@@ -367,6 +378,7 @@ class DraftBoard(StyledFrame):
         )
         img_label.place(x=0, y=0, width=40, height=32)
         img_label.bind("<Button-1>", handle_pick_click)
+        img_label.bind("<Button-3>", handle_right_click)
         
         # Load player image if available
         if self.image_service and pick.player.player_id:
@@ -400,6 +412,7 @@ class DraftBoard(StyledFrame):
                 )
                 logo_placeholder.place(x=26, y=14, width=16, height=16)
                 logo_placeholder.bind("<Button-1>", handle_pick_click)
+                logo_placeholder.bind("<Button-3>", handle_right_click)
                 
                 # Check cache for team logo
                 team_logo = self.image_service.get_image(f"team_{pick.player.team}", size=(16, 16))
@@ -424,11 +437,13 @@ class DraftBoard(StyledFrame):
         text_frame = tk.Frame(content_frame, bg=DARK_THEME['bg_tertiary'])
         text_frame.pack(side='left', fill='both', expand=True)
         text_frame.bind("<Button-1>", handle_pick_click)
+        text_frame.bind("<Button-3>", handle_right_click)
         
         # Create a single line for name and position
         info_frame = tk.Frame(text_frame, bg=DARK_THEME['bg_tertiary'])
         info_frame.pack(fill='x')
         info_frame.bind("<Button-1>", handle_pick_click)
+        info_frame.bind("<Button-3>", handle_right_click)
         
         # Player name
         name_label = tk.Label(
@@ -441,6 +456,7 @@ class DraftBoard(StyledFrame):
         )
         name_label.pack(side='left', fill='x', expand=True)
         name_label.bind("<Button-1>", handle_pick_click)
+        name_label.bind("<Button-3>", handle_right_click)
         
         # Position badge inline with name
         pos_frame = tk.Frame(
@@ -451,6 +467,7 @@ class DraftBoard(StyledFrame):
         )
         pos_frame.pack(side='right', padx=(5, 0))
         pos_frame.bind("<Button-1>", handle_pick_click)
+        pos_frame.bind("<Button-3>", handle_right_click)
         
         pos_label = tk.Label(
             pos_frame,
@@ -461,6 +478,7 @@ class DraftBoard(StyledFrame):
         )
         pos_label.pack()
         pos_label.bind("<Button-1>", handle_pick_click)
+        pos_label.bind("<Button-3>", handle_right_click)
     
     def highlight_current_pick(self):
         # Remove previous highlights
@@ -511,6 +529,43 @@ class DraftBoard(StyledFrame):
         # Schedule next animation frame
         if self.glow_animation_running:
             self.after(500, self.animate_glow)  # Pulse every 500ms
+    
+    def show_change_pick_menu(self, event, pick: DraftPick):
+        """Show context menu for changing a draft pick"""
+        if not self.on_pick_change:
+            return
+            
+        # Create context menu
+        context_menu = tk.Menu(self, tearoff=0, 
+                             bg=DARK_THEME['bg_secondary'], 
+                             fg=DARK_THEME['text_primary'],
+                             activebackground=DARK_THEME['button_active'],
+                             activeforeground='white')
+        
+        # Add "Change Pick" option with submenu
+        change_menu = tk.Menu(context_menu, tearoff=0, 
+                            bg=DARK_THEME['bg_secondary'], 
+                            fg=DARK_THEME['text_primary'],
+                            activebackground=DARK_THEME['button_active'],
+                            activeforeground='white')
+        context_menu.add_cascade(label="Change Pick", menu=change_menu)
+        
+        # Request top 10 available players using callback
+        if self.get_top_players:
+            top_players = self.get_top_players(10, pick.pick_number)
+            
+            for player in top_players:
+                player_label = f"{player.name} - {player.position} (ADP: {int(player.adp) if player.adp else 'N/A'})"
+                change_menu.add_command(
+                    label=player_label,
+                    command=lambda p=player: self.on_pick_change(pick.pick_number, p)
+                )
+        
+        # Show menu at mouse position
+        try:
+            context_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            context_menu.grab_release()
     
     def format_player_name(self, name):
         """Format player names with special nicknames"""

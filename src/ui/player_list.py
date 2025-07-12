@@ -887,13 +887,39 @@ class PlayerList(StyledFrame):
     
     def draft_specific_player(self, player: Player):
         """Draft a specific player object directly"""
-        # Find the player's current index
+        # First check if player is in current filtered list
         for i, p in enumerate(self.players):
             if p.player_id == player.player_id:
                 self.select_player(i)
                 if self.on_draft:
                     self.on_draft()
                 return
+        
+        # If not found in filtered list, temporarily clear filters to find the player
+        # Save current filter state
+        current_position = self.position_filter.get()
+        current_search = self.search_var.get()
+        
+        # Clear filters temporarily
+        self.position_filter.set("ALL")
+        self.search_var.set("")
+        self.update_players(self.all_players)
+        
+        # Now find the player
+        for i, p in enumerate(self.players):
+            if p.player_id == player.player_id:
+                self.select_player(i)
+                if self.on_draft:
+                    self.on_draft()
+                # Restore filters after drafting
+                self.position_filter.set(current_position)
+                self.search_var.set(current_search)
+                return
+        
+        # If still not found, restore filters
+        self.position_filter.set(current_position)
+        self.search_var.set(current_search)
+        self.update_players(self.all_players)
     
     def _show_player_stats(self, player: Player):
         """Show the player stats popup"""

@@ -19,10 +19,11 @@ DOME_TEAMS = {'ATL', 'DET', 'MIN', 'NO', 'LV', 'ARI', 'AZ', 'DAL', 'HOU', 'IND'}
 
 
 class GameHistory(StyledFrame):
-    def __init__(self, parent, all_players, player_pool_service=None, **kwargs):
+    def __init__(self, parent, all_players, player_pool_service=None, on_draft=None, **kwargs):
         super().__init__(parent, bg_type='primary', **kwargs)
         self.all_players = all_players
         self.player_pool_service = player_pool_service
+        self.on_draft = on_draft
         self.player_lookup = {p.player_id: p for p in all_players if hasattr(p, 'player_id')}
         self.weekly_stats = {}
         self.filtered_players = []
@@ -964,8 +965,9 @@ class GameHistory(StyledFrame):
                     continue
                 
                 # Show Available filter (only undrafted players)
-                if self.show_available_var.get() and hasattr(player, 'drafted') and player.drafted:
-                    continue
+                if self.show_available_var.get() and self.player_pool_service:
+                    if not self.player_pool_service.is_player_available(player):
+                        continue
                 
                 # Initialize player totals if needed
                 if player_id not in player_totals:
@@ -1397,12 +1399,31 @@ class GameHistory(StyledFrame):
         
         player_name = values[0]  # First column is player name
         
+        # Skip if it's a totals row
+        if 'TOTALS' in str(player_name):
+            return
+        
+        # Find the player object
+        player = None
+        for p in self.all_players:
+            if format_name(p.name) == player_name:
+                player = p
+                break
+        
         # Create context menu
         menu = tk.Menu(self, tearoff=0,
                       bg=DARK_THEME['bg_secondary'],
                       fg=DARK_THEME['text_primary'],
                       activebackground=DARK_THEME['button_active'],
                       activeforeground='white')
+        
+        # Add draft option if player is available and draft callback exists
+        if player and self.on_draft and self.player_pool_service:
+            if self.player_pool_service.is_player_available(player):
+                menu.add_command(label=f"Draft {player_name}",
+                                command=lambda: self._draft_player(player),
+                                font=(DARK_THEME['font_family'], 10, 'bold'))
+                menu.add_separator()
         
         menu.add_command(label=f"Filter: {player_name}",
                         command=lambda: self.filter_by_player(player_name))
@@ -1412,6 +1433,12 @@ class GameHistory(StyledFrame):
         
         # Show menu
         menu.post(event.x_root, event.y_root)
+    
+    def _draft_player(self, player):
+        """Handle drafting a player from the context menu"""
+        if self.on_draft:
+            # Call the draft callback with the player
+            self.on_draft(player)
     
     def filter_by_player(self, player_name):
         """Filter to show only a specific player"""

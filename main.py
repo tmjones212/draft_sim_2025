@@ -11,7 +11,7 @@ sys.path.insert(0, current_dir)
 
 import config
 from src.models import Team, Player
-from src.core import DraftEngine
+from src.core import DraftEngine, DraftPick
 from src.core.template_manager import TemplateManager
 from src.ui import DraftBoard, PlayerList, RosterView, GameHistory
 from src.ui.cheat_sheet import CheatSheet
@@ -353,6 +353,8 @@ class MockDraftApp:
             max_visible_rounds=3,
             on_team_select=self.on_team_selected,
             on_pick_click=self.on_pick_clicked,
+            on_pick_change=self.on_pick_changed,
+            get_top_players=self.get_top_available_players,
             image_service=self.image_service
         )
         self.draft_board.pack(fill='both', expand=True, padx=10, pady=10)
@@ -479,59 +481,8 @@ class MockDraftApp:
         print(f"\n=== USER DRAFT START ===")
         print(f"[{time.time()-start_time:.3f}s] Starting draft for {player.name}")
         
-        _, _, _, team_on_clock = self.draft_engine.get_current_pick_info()
-        current_team = self.teams[team_on_clock]
-        
-        try:
-            # First make the pick in the engine
-            print(f"[{time.time()-start_time:.3f}s] Making pick in engine...")
-            self.draft_engine.make_pick(current_team, player)
-            
-            # Remove from available players list
-            print(f"[{time.time()-start_time:.3f}s] Removing from available list...")
-            if player in self.available_players:
-                self.available_players.remove(player)
-            
-            # Update player pool service
-            if self.player_pool:
-                self.player_pool.draft_player(player)
-            
-            # Remove player from UI immediately
-            print(f"[{time.time()-start_time:.3f}s] Removing from UI...")
-            self._remove_drafted_player(player)
-            print(f"[{time.time()-start_time:.3f}s] UI removal complete")
-            
-            # Update draft board immediately
-            print(f"[{time.time()-start_time:.3f}s] Updating draft board...")
-            pick_info = self.draft_engine.get_current_pick_info()
-            self.draft_board.update_picks(
-                self.draft_engine.get_draft_results(),
-                pick_info[0]
-            )
-            print(f"[{time.time()-start_time:.3f}s] Draft board updated")
-            
-            # Update roster view to show the new pick
-            print(f"[{time.time()-start_time:.3f}s] Updating roster view...")
-            self.roster_view.update_roster_display()
-            print(f"[{time.time()-start_time:.3f}s] Roster view updated")
-            
-            # Show pick quality indicator
-            # current_pick_num = self.draft_engine.get_current_pick_info()[0] - 1  # -1 because pick was just made
-            # self.show_pick_quality(player, current_pick_num)
-            
-            # Check if we need to auto-draft next
-            print(f"[{time.time()-start_time:.3f}s] Checking auto-draft...")
-            
-            # Schedule auto-draft to run after UI updates
-            self.root.after(1, self.check_auto_draft)
-            
-            print(f"[{time.time()-start_time:.3f}s] Draft player complete (scheduled auto-draft)")
-        except ValueError as e:
-            messagebox.showerror(
-                "Invalid Pick", 
-                str(e),
-                parent=self.root
-            )
+        # Make the pick using the shared method
+        self._make_pick(player)
     
     def setup_keyboard_shortcuts(self):
         """Setup keyboard shortcuts for drafting"""
@@ -619,6 +570,104 @@ class MockDraftApp:
             else:
                 # Update display to show correct status
                 self.update_display(full_update=False)
+    
+    def draft_specific_player(self, player):
+        """Draft a specific player object directly (e.g., from Game History)"""
+        # Check if players are loaded
+        if not self.players_loaded:
+            messagebox.showinfo(
+                "Loading",
+                "Please wait for player data to finish loading.",
+                parent=self.root
+            )
+            return
+        
+        # Check if user has selected a team first (only in normal mode)
+        if not self.manual_mode and not self.user_team_id:
+            messagebox.showwarning(
+                "No Team Selected", 
+                "Please select a team before drafting.",
+                parent=self.root
+            )
+            return
+        
+        # Check if it's the user's turn
+        current_pick, current_round, pick_in_round, team_on_clock = self.draft_engine.get_current_pick_info()
+        if not self.manual_mode and team_on_clock.team_id != self.user_team_id:
+            messagebox.showwarning(
+                "Not Your Turn", 
+                f"It's {team_on_clock.name}'s turn to pick.",
+                parent=self.root
+            )
+            return
+        
+        # Check if player is available
+        if player not in self.available_players:
+            messagebox.showwarning(
+                "Player Unavailable", 
+                f"{player.name} has already been drafted.",
+                parent=self.root
+            )
+            return
+        
+        # Make the pick directly
+        self._make_pick(player)
+    
+    def _make_pick(self, player):
+        """Make a draft pick for the given player"""
+        import time
+        start_time = time.time()
+        
+        # Get current pick info
+        current_pick, current_round, pick_in_round, team_on_clock = self.draft_engine.get_current_pick_info()
+        current_team = self.teams[team_on_clock]
+        
+        try:
+            # First make the pick in the engine
+            print(f"[{time.time()-start_time:.3f}s] Making pick in engine...")
+            self.draft_engine.make_pick(current_team, player)
+            
+            # Remove from available players list
+            print(f"[{time.time()-start_time:.3f}s] Removing from available list...")
+            if player in self.available_players:
+                self.available_players.remove(player)
+            
+            # Update player pool service
+            if self.player_pool:
+                self.player_pool.draft_player(player)
+            
+            # Remove player from UI immediately
+            print(f"[{time.time()-start_time:.3f}s] Removing from UI...")
+            self._remove_drafted_player(player)
+            print(f"[{time.time()-start_time:.3f}s] UI removal complete")
+            
+            # Update draft board immediately
+            print(f"[{time.time()-start_time:.3f}s] Updating draft board...")
+            pick_info = self.draft_engine.get_current_pick_info()
+            self.draft_board.update_picks(
+                self.draft_engine.get_draft_results(),
+                pick_info[0]
+            )
+            print(f"[{time.time()-start_time:.3f}s] Draft board updated")
+            
+            # Update roster view to show the new pick
+            print(f"[{time.time()-start_time:.3f}s] Updating roster view...")
+            self.roster_view.update_roster_display()
+            print(f"[{time.time()-start_time:.3f}s] Roster view updated")
+            
+            # Check if we need to auto-draft next
+            print(f"[{time.time()-start_time:.3f}s] Checking auto-draft...")
+            
+            # Schedule auto-draft to run after UI updates
+            self.root.after(1, self.check_auto_draft)
+            
+            print(f"[{time.time()-start_time:.3f}s] Draft player complete (scheduled auto-draft)")
+        except ValueError as e:
+            messagebox.showerror(
+                "Invalid Pick", 
+                str(e),
+                parent=self.root
+            )
     
     def _remove_drafted_player(self, player):
         """Remove a drafted player from the UI"""
@@ -840,6 +889,28 @@ class MockDraftApp:
                 return eligible_players[3]
             else:
                 return eligible_players[0]
+    
+    def get_top_available_players(self, count=5, pick_number=None):
+        """Get the top N available players by ADP, or players drafted after given pick"""
+        if pick_number is None:
+            # Normal case - just return available players
+            return self.available_players[:count] if self.available_players else []
+        
+        # For change pick - include available players and players drafted after this pick
+        eligible_players = []
+        
+        # Add all available players
+        eligible_players.extend(self.available_players)
+        
+        # Add players drafted after this pick
+        for i in range(pick_number, len(self.draft_engine.draft_results)):
+            pick = self.draft_engine.draft_results[i]
+            if pick.player not in eligible_players:
+                eligible_players.append(pick.player)
+        
+        # Sort by ADP and return top N
+        eligible_players.sort(key=lambda p: p.adp if p.adp else 999)
+        return eligible_players[:count]
     
     def _get_position_counts(self, team):
         """Get count of players by position for a team"""
@@ -1142,6 +1213,68 @@ class MockDraftApp:
         # Enable undo button
         self.undo_button.config(state='normal')
     
+    def on_pick_changed(self, pick_number, new_player):
+        """Handle changing a draft pick to a different player"""
+        current_pick = self.draft_engine.get_current_pick_info()[0]
+        if pick_number >= current_pick:
+            return  # Can't change future picks
+        
+        print(f"\n=== CHANGE PICK ===")
+        print(f"Changing pick {pick_number} to {new_player.name}")
+        
+        # Save current state for undo
+        self.draft_state_before_reversion = {
+            'picks': list(self.draft_engine.draft_results),
+            'teams': self._save_team_state(),
+            'current_pick': current_pick,
+            'watched_players': self._save_watch_list_state()
+        }
+        self.players_before_reversion = list(self.available_players)
+        
+        # Get the original pick details
+        original_pick = self.draft_engine.draft_results[pick_number - 1]
+        original_team_id = original_pick.team_id
+        
+        # Check if new player was already drafted
+        already_drafted_at = None
+        for i, pick in enumerate(self.draft_engine.draft_results):
+            if pick.player.player_id == new_player.player_id:
+                already_drafted_at = i + 1  # Convert to 1-based pick number
+                print(f"Player {new_player.name} was already drafted at pick {already_drafted_at}")
+                break
+        
+        # First, revert to the pick we want to change (skip auto-draft!)
+        print(f"Reverting to pick {pick_number}...")
+        self._revert_to_pick(pick_number, skip_auto_draft=True)
+        
+        # Verify we're at the right pick
+        current = self.draft_engine.get_current_pick_info()
+        print(f"Now at pick {current[0]}, team {current[3]} on clock")
+        
+        # Make the specific pick
+        print(f"Making pick: {new_player.name}")
+        self._make_pick(new_player)
+        
+        # Handle the case where the player was already drafted
+        if already_drafted_at and already_drafted_at > pick_number:
+            if not self.manual_mode:
+                # In non-manual mode, auto-draft until user's turn
+                print(f"Auto-drafting from pick {pick_number + 1} to user's turn...")
+                self.root.after(100, self.auto_draft_until_user_turn)
+            else:
+                # In manual mode, revert to where player was originally drafted
+                print(f"Manual mode: Reverting to pick {already_drafted_at} where {new_player.name} was originally")
+                self.root.after(100, lambda: self._revert_to_pick(already_drafted_at, skip_auto_draft=True))
+        else:
+            # No conflict, just need to auto-draft if not in manual mode
+            if not self.manual_mode:
+                print(f"Auto-drafting remaining picks...")
+                self.root.after(100, self.auto_draft_until_user_turn)
+        
+        # Enable undo button
+        self.undo_button.config(state='normal')
+        print("=== CHANGE PICK COMPLETE ===\n")
+    
     def undo_reversion(self):
         """Undo the last draft reversion"""
         if not self.draft_state_before_reversion:
@@ -1208,7 +1341,7 @@ class MockDraftApp:
                 self.player_list.watched_player_ids = set(watch_state['player_ids'])
                 self.player_list._update_star_icons()
     
-    def _revert_to_pick(self, target_pick_number):
+    def _revert_to_pick(self, target_pick_number, skip_auto_draft=False):
         """Revert draft to specified pick number and auto-draft to user's turn"""
         # Get picks to keep/remove
         picks_to_keep = [p for p in self.draft_engine.draft_results if p.pick_number < target_pick_number]
@@ -1249,8 +1382,9 @@ class MockDraftApp:
         self.draft_board._last_pick_count = len(picks_to_keep)
         self.draft_board.draft_results = picks_to_keep
         
-        # Now immediately auto-draft until user's turn
-        self._fast_auto_draft_to_user()
+        # Now immediately auto-draft until user's turn (unless skipped)
+        if not skip_auto_draft:
+            self._fast_auto_draft_to_user()
     
     def _fast_auto_draft_to_user(self):
         """Fast auto-draft until it's the user's turn"""
@@ -1446,7 +1580,8 @@ class MockDraftApp:
                 self.game_history = GameHistory(
                     self.game_history_container,
                     self.all_players,
-                    player_pool_service=self.player_pool
+                    player_pool_service=self.player_pool,
+                    on_draft=self.draft_specific_player
                 )
                 self.game_history.pack(fill='both', expand=True)
             
@@ -1744,7 +1879,11 @@ class MockDraftApp:
                 points_2025_proj=p_data.get('points_2025_proj', 0),
                 var=p_data.get('var', 0),
                 rank=p_data.get('rank', 999),
-                adp=p_data.get('adp', 999)
+                adp=p_data.get('adp', 999),
+                games_2024=p_data.get('games_2024'),
+                position_rank_2024=p_data.get('position_rank_2024'),
+                position_rank_proj=p_data.get('position_rank_proj'),
+                weekly_stats_2024=p_data.get('weekly_stats_2024')
             )
             player.player_id = p_data['player_id']
             self.all_players.append(player)
@@ -1809,7 +1948,7 @@ class MockDraftApp:
         self.update_display(full_update=True, force_refresh=True)
         
         # Update draft board
-        self.draft_board.update_board(self.draft_engine.draft_results)
+        self.draft_board.update_picks(self.draft_engine.draft_results)
         self.draft_board.highlight_current_pick()
         
         # Update status
