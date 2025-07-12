@@ -25,15 +25,15 @@ class PlayerComparisonPopup:
         # Hide window initially to prevent flashing
         self.window.withdraw()
         
-        # Set window size - wider for side-by-side comparison
-        self.window.geometry("1400x700")
+        # Set window size - wider and taller to show all weeks
+        self.window.geometry("1400x900")
         
         # Center the window
         self.window.update_idletasks()
         screen_width = self.window.winfo_screenwidth()
         screen_height = self.window.winfo_screenheight()
         window_width = 1400
-        window_height = 700
+        window_height = 900
         
         # Make sure window fits on screen
         if window_width > screen_width - 100:
@@ -378,34 +378,9 @@ class PlayerComparisonPopup:
             create_header_cell('YDs', col_widths['rec_yds'])
             create_header_cell('TD', col_widths['rec_td'])
         
-        # Create scrollable container for data rows
-        canvas = tk.Canvas(stats_frame, bg=DARK_THEME['bg_secondary'], highlightthickness=0)
-        scrollbar = ttk.Scrollbar(stats_frame, orient='vertical', command=canvas.yview)
-        data_container = tk.Frame(canvas, bg=DARK_THEME['bg_secondary'])
-        
-        # Create window in canvas
-        canvas_window = canvas.create_window((0, 0), window=data_container, anchor='nw')
-        
-        # Configure canvas scrolling
-        def configure_scroll(event=None):
-            canvas.configure(scrollregion=canvas.bbox('all'))
-            # Update window width to match canvas
-            canvas_width = event.width if event else canvas.winfo_width()
-            canvas.itemconfig(canvas_window, width=canvas_width)
-        
-        data_container.bind('<Configure>', configure_scroll)
-        canvas.bind('<Configure>', configure_scroll)
-        canvas.configure(yscrollcommand=scrollbar.set)
-        
-        # Pack canvas and scrollbar
-        canvas.pack(side='left', fill='both', expand=True)
-        scrollbar.pack(side='right', fill='y')
-        
-        # Bind mouse wheel
-        def on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
-        canvas.bind('<MouseWheel>', on_mousewheel)
-        self.window.bind('<MouseWheel>', on_mousewheel)
+        # Create container for data rows (no scrolling needed with taller window)
+        data_container = tk.Frame(stats_frame, bg=DARK_THEME['bg_secondary'])
+        data_container.pack(fill='both', expand=True)
         
         # Process weekly data
         weekly_totals = {
@@ -484,8 +459,18 @@ class PlayerComparisonPopup:
                     else:
                         other_value = compare_data.get('stats', {}).get(stat_name, 0)
                     
-                    # Color based on comparison (only if both players played)
-                    if value > 0 and other_value > 0:
+                    # Color based on comparison (only if both players played that week)
+                    # Check if both players have data for this week
+                    both_played = value > 0 or other_value > 0
+                    if stat_name in ['points', 'snaps'] and both_played:
+                        # For points and snaps, only color if both have non-zero values
+                        if value > 0 and other_value > 0:
+                            if value > other_value:
+                                fg = '#00ff00'  # Green
+                            elif value < other_value:
+                                fg = '#ff4444'  # Red
+                    elif stat_name not in ['points', 'snaps'] and both_played:
+                        # For other stats, color even if one is zero (e.g., 0 TDs vs 1 TD)
                         if value > other_value:
                             fg = '#00ff00'  # Green
                         elif value < other_value:
@@ -500,9 +485,38 @@ class PlayerComparisonPopup:
                 )
                 label.pack(expand=True)
             
-            # Week and opponent
+            # Week
             create_cell(f"{week_num}", col_widths['week'])
-            create_cell(opponent, col_widths['opp'])
+            
+            # Opponent with logo
+            opp_cell = tk.Frame(row, bg=row_bg, width=col_widths['opp'], height=22)
+            opp_cell.pack(side='left', padx=1)
+            opp_cell.pack_propagate(False)
+            
+            if opponent not in ['BYE', 'DNP'] and opponent:
+                # Try to load team logo
+                logo_path = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'team_logos', f'{opponent.lower()}.png')
+                if os.path.exists(logo_path):
+                    try:
+                        img = Image.open(logo_path)
+                        img = img.resize((18, 18), Image.Resampling.LANCZOS)
+                        photo = ImageTk.PhotoImage(img)
+                        
+                        logo_label = tk.Label(opp_cell, image=photo, bg=row_bg)
+                        logo_label.image = photo  # Keep reference
+                        logo_label.pack(expand=True)
+                    except Exception:
+                        # Fallback to text
+                        opp_label = tk.Label(opp_cell, text=opponent, bg=row_bg, fg=DARK_THEME['text_primary'], font=(DARK_THEME['font_family'], 9))
+                        opp_label.pack(expand=True)
+                else:
+                    # No logo found
+                    opp_label = tk.Label(opp_cell, text=opponent, bg=row_bg, fg=DARK_THEME['text_primary'], font=(DARK_THEME['font_family'], 9))
+                    opp_label.pack(expand=True)
+            else:
+                # BYE or DNP
+                opp_label = tk.Label(opp_cell, text=opponent, bg=row_bg, fg=DARK_THEME['text_muted'], font=(DARK_THEME['font_family'], 9))
+                opp_label.pack(expand=True)
             create_cell(f"{points:.1f}", col_widths['points'], points, 'points')
             create_cell(f"{int(snaps)}", col_widths['snaps'], snaps, 'snaps')
             
