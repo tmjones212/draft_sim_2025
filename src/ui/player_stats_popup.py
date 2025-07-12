@@ -7,13 +7,16 @@ from ..models import Player
 from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
 from ..config.scoring import SCORING_CONFIG
+from .player_selection_dialog import PlayerSelectionDialog
+from .player_comparison_popup import PlayerComparisonPopup
 
 
 class PlayerStatsPopup:
-    def __init__(self, parent, player: Player, image_service=None):
+    def __init__(self, parent, player: Player, image_service=None, all_players=None):
         self.player = player
         self.parent = parent
         self.image_service = image_service
+        self.all_players = all_players
         self.sort_column = None
         self.sort_ascending = True
         self.weekly_data = []  # Store weekly data for sorting
@@ -26,17 +29,13 @@ class PlayerStatsPopup:
         # Hide window initially to prevent flashing
         self.window.withdraw()
         
-        # Set window size - taller to show all weeks
-        self.window.geometry("800x850")
+        # Set window size - smaller without scrollbar
+        self.window.geometry("800x600")
         
         # Center the window
         self.window.update_idletasks()
         screen_height = self.window.winfo_screenheight()
-        window_height = 850
-        
-        # Make sure window fits on screen
-        if window_height > screen_height - 100:  # Leave some margin
-            window_height = screen_height - 100
+        window_height = 600
         
         x = (self.window.winfo_screenwidth() // 2) - (800 // 2)
         y = (screen_height // 2) - (window_height // 2)
@@ -167,6 +166,24 @@ class PlayerStatsPopup:
             )
             avg_label.pack()
         
+        # Add Compare button if we have other players
+        if self.all_players and len(self.all_players) > 1:
+            compare_btn = tk.Button(
+                totals_frame,
+                text='Compare',
+                bg=DARK_THEME['button_bg'],
+                fg='white',
+                font=(DARK_THEME['font_family'], 10, 'bold'),
+                bd=0,
+                relief='flat',
+                padx=15,
+                pady=5,
+                command=self.compare_players,
+                cursor='hand2',
+                activebackground=DARK_THEME['button_hover']
+            )
+            compare_btn.pack(pady=(10, 0))
+        
         # Weekly stats container
         stats_container = StyledFrame(main_frame, bg_type='tertiary')
         stats_container.pack(fill='both', expand=True)
@@ -184,33 +201,9 @@ class PlayerStatsPopup:
             no_stats_label.pack(expand=True)
             return
         
-        # Create scrollable frame for weekly stats
-        canvas = tk.Canvas(stats_container, bg=DARK_THEME['bg_tertiary'], highlightthickness=0)
-        scrollbar = ttk.Scrollbar(stats_container, orient='vertical', command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas, bg=DARK_THEME['bg_tertiary'])
-        
-        # Create window in canvas
-        canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        
-        # Configure canvas scrolling
-        def configure_scroll(event=None):
-            canvas.configure(scrollregion=canvas.bbox("all"))
-            # Update window width to match canvas
-            canvas_width = event.width if event else canvas.winfo_width()
-            canvas.itemconfig(canvas_window, width=canvas_width)
-        
-        scrollable_frame.bind("<Configure>", configure_scroll)
-        canvas.bind("<Configure>", configure_scroll)
-        canvas.configure(yscrollcommand=scrollbar.set)
-        
-        # Add mouse wheel scrolling
-        def on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-        
-        # Bind mouse wheel to canvas and all child widgets
-        canvas.bind("<MouseWheel>", on_mousewheel)
-        # Also bind to the popup window itself
-        self.window.bind("<MouseWheel>", on_mousewheel)
+        # Create non-scrollable frame for weekly stats
+        scrollable_frame = tk.Frame(stats_container, bg=DARK_THEME['bg_tertiary'])
+        scrollable_frame.pack(fill='both', expand=True, padx=10, pady=10)
         
         # Define column widths (in pixels) - must match data cells exactly
         col_widths = {
@@ -340,13 +333,7 @@ class PlayerStatsPopup:
         self.build_weekly_data()
         self.display_weekly_data()
         
-        # Pack canvas and scrollbar
-        canvas.pack(side='left', fill='both', expand=True, padx=(10, 0))
-        scrollbar.pack(side='right', fill='y', padx=(0, 10))
-        
-        # Force update to ensure everything is displayed
-        self.window.update_idletasks()
-        canvas.configure(scrollregion=canvas.bbox("all"))
+        # No canvas or scrollbar needed
         
         # Removed note about snap count since we now have the data
         
@@ -370,6 +357,21 @@ class PlayerStatsPopup:
     def close(self):
         self.window.grab_release()
         self.window.destroy()
+    
+    def compare_players(self):
+        """Open player selection dialog to choose player to compare"""
+        if not self.all_players:
+            return
+        
+        dialog = PlayerSelectionDialog(self.window, self.all_players, self.player)
+        selected_player = dialog.get_selected_player()
+        
+        if selected_player:
+            # Close current window first
+            self.close()
+            
+            # Open comparison window directly with the original parent
+            PlayerComparisonPopup(self.parent, self.player, selected_player, self.image_service, self.all_players)
     
     def calculate_defensive_points(self, stats):
         """Calculate defensive fantasy points"""
@@ -687,8 +689,21 @@ class PlayerStatsPopup:
             if widget != self.scrollable_frame.winfo_children()[0]:  # Keep header
                 widget.destroy()
         
+        # Track totals for summary row
+        totals = {
+            'points': 0, 'snaps': 0, 'games_played': 0,
+            'pass_cmp': 0, 'pass_yd': 0, 'pass_td': 0, 'pass_int': 0,
+            'rush_yd': 0, 'rush_td': 0, 'tgt': 0, 'rec': 0, 'rec_yd': 0, 'rec_td': 0,
+            'tackle_solo': 0, 'tackle_assist': 0, 'sack': 0, 'int': 0,
+            'ff': 0, 'fr': 0, 'def_td': 0, 'pass_defended': 0
+        }
+        
+        # Limit weeks to show (to fit without scrolling)
+        max_weeks = 12
+        weeks_to_show = self.weekly_data[:max_weeks]
+        
         # Create data rows
-        for i, week_entry in enumerate(self.weekly_data):
+        for i, week_entry in enumerate(weeks_to_show):
             row_bg = DARK_THEME['bg_secondary'] if i % 2 == 0 else DARK_THEME['bg_tertiary']
             row = tk.Frame(self.scrollable_frame, bg=row_bg, height=30)
             row.pack(fill='x', padx=10, pady=1)
@@ -808,6 +823,92 @@ class PlayerStatsPopup:
                 pd = int(week_entry.get('pass_defended', 0))
                 create_cell(f"{pd}", self.col_widths['pd'],
                            self.get_stat_color('pass_defended', pd, self.player.position) if week_entry['played'] and pd > 0 else None)
+            
+            # Update totals if player played
+            if week_entry['played']:
+                totals['games_played'] += 1
+                totals['points'] += week_entry['points']
+                totals['snaps'] += week_entry['snaps']
+                
+                if self.player.position == 'QB':
+                    totals['pass_cmp'] += week_entry['pass_cmp']
+                    totals['pass_yd'] += week_entry['pass_yd']
+                    totals['pass_td'] += week_entry['pass_td']
+                    totals['pass_int'] += week_entry['pass_int']
+                    totals['rush_yd'] += week_entry['rush_yd']
+                    totals['rush_td'] += week_entry['rush_td']
+                elif self.player.position in ['RB', 'WR', 'TE']:
+                    totals['rush_yd'] += week_entry['rush_yd']
+                    totals['rush_td'] += week_entry['rush_td']
+                    totals['tgt'] += week_entry['tgt']
+                    totals['rec'] += week_entry['rec']
+                    totals['rec_yd'] += week_entry['rec_yd']
+                    totals['rec_td'] += week_entry['rec_td']
+                elif self.player.position in ['LB', 'DB']:
+                    totals['tackle_solo'] += week_entry.get('tackle_solo', 0)
+                    totals['tackle_assist'] += week_entry.get('tackle_assist', 0)
+                    totals['sack'] += week_entry.get('sack', 0)
+                    totals['int'] += week_entry.get('int', 0)
+                    totals['ff'] += week_entry.get('ff', 0)
+                    totals['fr'] += week_entry.get('fr', 0)
+                    totals['def_td'] += week_entry.get('def_td', 0)
+                    totals['pass_defended'] += week_entry.get('pass_defended', 0)
+        
+        # Add separator line
+        separator = tk.Frame(self.scrollable_frame, bg=DARK_THEME['border'], height=2)
+        separator.pack(fill='x', padx=10, pady=5)
+        
+        # Add totals row
+        totals_row = tk.Frame(self.scrollable_frame, bg=DARK_THEME['bg_primary'], height=35)
+        totals_row.pack(fill='x', padx=10, pady=(0, 10))
+        totals_row.pack_propagate(False)
+        
+        # Helper to create total cells
+        def create_total_cell(text, width, bold=True):
+            cell = tk.Frame(totals_row, bg=DARK_THEME['bg_primary'], width=width, height=35)
+            cell.pack(side='left', padx=1)
+            cell.pack_propagate(False)
+            label = tk.Label(
+                cell,
+                text=text,
+                bg=DARK_THEME['bg_primary'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 11, 'bold' if bold else 'normal')
+            )
+            label.pack(expand=True)
+        
+        # Total label
+        create_total_cell('TOTAL', self.col_widths['week'])
+        create_total_cell('', self.col_widths['opp'])
+        
+        # Points and snaps
+        create_total_cell(f"{totals['points']:.1f}", self.col_widths['points'])
+        create_total_cell(f"{totals['snaps']}", self.col_widths['snaps'])
+        
+        # Position-specific totals
+        if self.player.position == 'QB':
+            create_total_cell(f"{totals['pass_cmp']}", self.col_widths['comp'])
+            create_total_cell(f"{totals['pass_yd']}", self.col_widths['pass_yds'])
+            create_total_cell(f"{totals['pass_td']}", self.col_widths['pass_td'])
+            create_total_cell(f"{totals['pass_int']}", self.col_widths['int'])
+            create_total_cell(f"{totals['rush_yd']}", self.col_widths['rush_yds'])
+            create_total_cell(f"{totals['rush_td']}", self.col_widths['rush_td'])
+        elif self.player.position in ['RB', 'WR', 'TE']:
+            create_total_cell(f"{totals['rush_yd']}", self.col_widths['rush_yds'])
+            create_total_cell(f"{totals['rush_td']}", self.col_widths['rush_td'])
+            create_total_cell(f"{totals['tgt']}", self.col_widths['tgt'])
+            create_total_cell(f"{totals['rec']}", self.col_widths['rec'])
+            create_total_cell(f"{totals['rec_yd']}", self.col_widths['rec_yds'])
+            create_total_cell(f"{totals['rec_td']}", self.col_widths['rec_td'])
+        elif self.player.position in ['LB', 'DB']:
+            create_total_cell(f"{totals['tackle_solo']}", self.col_widths['tackle_solo'])
+            create_total_cell(f"{totals['tackle_assist']}", self.col_widths['tackle_assist'])
+            create_total_cell(f"{totals['sack']:.1f}", self.col_widths['sack'])
+            create_total_cell(f"{totals['int']}", self.col_widths['int'])
+            create_total_cell(f"{totals['ff']}", self.col_widths['ff'])
+            create_total_cell(f"{totals['fr']}", self.col_widths['fr'])
+            create_total_cell(f"{totals['def_td']}", self.col_widths['def_td'])
+            create_total_cell(f"{totals['pass_defended']}", self.col_widths['pd'])
     
     def sort_data(self, sort_key, arrow_label):
         """Sort the weekly data by the specified column"""

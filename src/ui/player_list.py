@@ -923,7 +923,7 @@ class PlayerList(StyledFrame):
     
     def _show_player_stats(self, player: Player):
         """Show the player stats popup"""
-        PlayerStatsPopup(self.winfo_toplevel(), player, self.image_service)
+        PlayerStatsPopup(self.winfo_toplevel(), player, self.image_service, self.all_players)
     
     def filter_by_position(self, position: str):
         """Filter players by position"""
