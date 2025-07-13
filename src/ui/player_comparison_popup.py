@@ -293,7 +293,23 @@ class PlayerComparisonPopup:
         # Season totals and projections
         stats_text_lines = []
         if player.points_2024:
-            stats_text_lines.append(f"2024: {player.points_2024:.1f} pts | {player.games_2024} games | {player.points_2024/player.games_2024:.1f} ppg")
+            # Calculate games with meaningful snaps (15+) for PPG
+            meaningful_games = 0
+            meaningful_points = 0
+            if hasattr(player, 'weekly_stats_2024') and player.weekly_stats_2024:
+                for week_data in player.weekly_stats_2024:
+                    stats = week_data.get('stats', {})
+                    snaps = stats.get('off_snp', 0) or stats.get('def_snp', 0)
+                    if snaps >= 15:
+                        meaningful_games += 1
+                        meaningful_points += self.calculate_custom_points(stats, player.position)
+            
+            # Use meaningful games for PPG if available, otherwise fall back to total
+            if meaningful_games > 0:
+                ppg = meaningful_points / meaningful_games
+                stats_text_lines.append(f"2024: {player.points_2024:.1f} pts | {player.games_2024} games ({meaningful_games} w/15+ snaps) | {ppg:.1f} ppg")
+            else:
+                stats_text_lines.append(f"2024: {player.points_2024:.1f} pts | {player.games_2024} games | {player.points_2024/player.games_2024:.1f} ppg")
         
         # Add 2025 projection if available
         if hasattr(player, 'points_2025_proj') and player.points_2025_proj:
@@ -331,9 +347,9 @@ class PlayerComparisonPopup:
         
         # Define column widths
         col_widths = {
-            'week': 35,
+            'week': 70,  # Increased for "Total (16g)" text
             'opp': 50,
-            'points': 50,
+            'points': 85,  # Increased for "264.7 (16.5)" format
             'snaps': 45,
             'pass_yds': 55,
             'pass_td': 40,
@@ -420,8 +436,11 @@ class PlayerComparisonPopup:
                 opponent = 'BYE' if is_bye_week else 'DNP'
                 played = False
             
-            # Calculate points and snaps
-            points = stats.get('pts_ppr', 0) if played else 0
+            # Calculate points using our custom scoring
+            if played:
+                points = self.calculate_custom_points(stats, player.position)
+            else:
+                points = 0
             snaps = (stats.get('off_snp', 0) or stats.get('def_snp', 0)) if played else 0
             
             row_bg = DARK_THEME['bg_tertiary'] if week_count % 2 == 0 else DARK_THEME['bg_secondary']
@@ -530,11 +549,12 @@ class PlayerComparisonPopup:
             create_cell(f"{points:.1f}", col_widths['points'], points, 'points')
             create_cell(f"{int(snaps)}", col_widths['snaps'], snaps, 'snaps')
             
-            # Update totals only if player played
+            # Update totals only if player played meaningful snaps
             if played:
-                weekly_totals['points'] += points
                 weekly_totals['snaps'] += int(snaps)
-                weekly_totals['games'] += 1
+                if snaps >= 15:  # Only count games with 15+ snaps for points/games
+                    weekly_totals['points'] += points
+                    weekly_totals['games'] += 1
             
             # Position-specific stats
             if player.position == 'QB':
@@ -598,10 +618,19 @@ class PlayerComparisonPopup:
             )
             label.pack(expand=True)
         
-        # Totals
-        create_total_cell('Total', col_widths['week'])
+        # Totals with PPG
+        if weekly_totals['games'] > 0:
+            create_total_cell(f"Total ({weekly_totals['games']}g)", col_widths['week'])
+        else:
+            create_total_cell("Total", col_widths['week'])
         create_total_cell('', col_widths['opp'])
-        create_total_cell(f"{weekly_totals['points']:.1f}", col_widths['points'])
+        
+        # Show total points and PPG
+        if weekly_totals['games'] > 0:
+            ppg = weekly_totals['points'] / weekly_totals['games']
+            create_total_cell(f"{weekly_totals['points']:.1f} ({ppg:.1f})", col_widths['points'])
+        else:
+            create_total_cell(f"{weekly_totals['points']:.1f}", col_widths['points'])
         create_total_cell(f"{int(weekly_totals['snaps'])}", col_widths['snaps'])
         
         if player.position == 'QB':
@@ -616,6 +645,40 @@ class PlayerComparisonPopup:
             create_total_cell(f"{int(weekly_totals['rec'])}", col_widths['rec'])
             create_total_cell(f"{int(weekly_totals['rec_yds'])}", col_widths['rec_yds'])
             create_total_cell(f"{int(weekly_totals['rec_td'])}", col_widths['rec_td'])
+    
+    def calculate_custom_points(self, stats: dict, position: str) -> float:
+        """Calculate fantasy points using our custom scoring"""
+        points = 0.0
+        
+        if position == 'QB':
+            # Passing
+            points += stats.get('pass_cmp', 0) * SCORING_CONFIG.get('pass_completion', 0.5)
+            points += stats.get('pass_yd', 0) * SCORING_CONFIG.get('pass_yard', 0.05)
+            points += stats.get('pass_td', 0) * SCORING_CONFIG.get('touchdown', 6.0)
+            # Rushing
+            points += stats.get('rush_yd', 0) * SCORING_CONFIG.get('rush_yard', 0.2)
+            points += stats.get('rush_td', 0) * SCORING_CONFIG.get('touchdown', 6.0)
+            # Bonuses
+            if stats.get('pass_yd', 0) >= 300:
+                points += SCORING_CONFIG.get('bonus_pass_300_yards', 6.0)
+            if stats.get('rush_yd', 0) >= 100:
+                points += SCORING_CONFIG.get('bonus_rush_100_yards', 3.0)
+        
+        elif position in ['RB', 'WR', 'TE']:
+            # Receiving
+            points += stats.get('rec', 0) * SCORING_CONFIG.get('reception', 2.0)
+            points += stats.get('rec_yd', 0) * SCORING_CONFIG.get('rec_yard', 0.2)
+            points += stats.get('rec_td', 0) * SCORING_CONFIG.get('touchdown', 6.0)
+            # Rushing
+            points += stats.get('rush_yd', 0) * SCORING_CONFIG.get('rush_yard', 0.2)
+            points += stats.get('rush_td', 0) * SCORING_CONFIG.get('touchdown', 6.0)
+            # Bonuses
+            if stats.get('rush_yd', 0) >= 100:
+                points += SCORING_CONFIG.get('bonus_rush_100_yards', 3.0)
+            if stats.get('rec_yd', 0) >= 100:
+                points += SCORING_CONFIG.get('bonus_rec_100_yards', 3.0)
+        
+        return round(points, 1)
     
     def close(self):
         self.window.grab_release()

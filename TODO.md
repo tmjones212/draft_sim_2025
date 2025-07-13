@@ -1,3 +1,1 @@
-when I'm looking at the player game stats by clicking the "?" icon, i want to be able to compare 2 players side by side
-so when i click one, there should be a button or something that lets me pick who i want to compare with, and it should show their 2 player cards side by side
-also add a Total row to teh bottom of the player card, make sure it's visible without scrolling. i dont even want the vertical scrollbar, we should just be able to see it all
+the adp page sucks. the round width is not nearly wide enough. and each player needs to take up mor ewidth, i can't read the names. and the font is too big. look how bad this is @Screenshot 2025-07-13 111942.png

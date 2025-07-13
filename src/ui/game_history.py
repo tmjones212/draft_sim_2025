@@ -34,7 +34,7 @@ class GameHistory(StyledFrame):
         self.sort_column = 'pts'  # Default sort by points
         self.sort_ascending = False  # Default descending
         self.search_var = tk.StringVar()
-        self.view_mode = "detailed"  # "detailed" or "summarized"
+        self.view_mode = "summarized"  # "detailed" or "summarized"
         self.min_games_var = tk.IntVar(value=1)  # Minimum games filter
         
         # Filter history for back button
@@ -48,6 +48,7 @@ class GameHistory(StyledFrame):
         self.week_range_start = 1
         self.week_range_end = 18
         self.last_clicked_item = None  # Track last clicked item for shift+click
+        self.graph_metric = "points"  # Default metric for graph
         
         self.setup_ui()
         self.update_column_visibility()  # Set initial column visibility
@@ -602,23 +603,34 @@ class GameHistory(StyledFrame):
                      row['pts'], row.get('median', '-'), row.get('avg', '-'), row['snaps'], row.get('pts_per_snap', '-'), row['comp'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
                      row['rush_td'], row.get('tgt', '-'), row['rec'], row['rec_yd'], row['rec_td'])
             
-            # Add row with alternating colors
-            tags = ()
-            if len(self.tree.get_children()) % 2 == 0:
-                tags = ('even',)
-            else:
-                tags = ('odd',)
-                
+            # Add row with position-based colors
+            position = row['pos']
+            tags = (f'pos_{position}',)
+            
             self.tree.insert('', 'end', values=values, tags=tags)
         
         # Add totals row if filtering by single player
         if self.should_show_totals(rows):
             self.add_totals_row(rows)
         
-        # Configure tag colors
-        self.tree.tag_configure('even', background=DARK_THEME['bg_tertiary'])
-        self.tree.tag_configure('odd', background=DARK_THEME['bg_secondary'])
+        # Configure tag colors for positions
+        position_colors = {
+            'QB': '#FF5E5B',  # Pink/Red
+            'RB': '#23CDCD',  # Teal
+            'WR': '#5E9BFF',  # Blue
+            'TE': '#FF8C42',  # Orange
+            'LB': '#9370DB',  # Medium Purple
+            'DB': '#20B2AA'   # Light Sea Green
+        }
+        
+        # Configure each position tag with a darker shade for better readability
+        for pos, color in position_colors.items():
+            # Create a darker version of the color by mixing with background
+            self.tree.tag_configure(f'pos_{pos}', background=self.blend_colors(color, DARK_THEME['bg_secondary'], 0.3))
+        
+        # Configure special tags
         self.tree.tag_configure('totals', background=DARK_THEME['button_active'], foreground='white')
+        self.tree.tag_configure('separator', background=DARK_THEME['bg_primary'])
         
         # Update status
         self.status_label.config(text=f"Showing {len(rows)} {'seasons' if self.view_mode == 'summarized' else 'games'}")
@@ -1554,14 +1566,45 @@ class GameHistory(StyledFrame):
     def setup_graph(self, container):
         """Setup the matplotlib graph"""
         # Graph title
-        title_label = tk.Label(
+        self.graph_title_label = tk.Label(
             container,
             text="POINTS BY WEEK",
             bg=DARK_THEME['bg_secondary'],
             fg=DARK_THEME['text_primary'],
             font=(DARK_THEME['font_family'], 12, 'bold')
         )
-        title_label.pack(pady=(10, 5))
+        self.graph_title_label.pack(pady=(10, 5))
+        
+        # Metric dropdown frame
+        metric_frame = StyledFrame(container, bg_type='secondary')
+        metric_frame.pack(pady=(0, 5))
+        
+        # Metric label
+        metric_label = tk.Label(
+            metric_frame,
+            text="Metric:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10, 'bold')
+        )
+        metric_label.pack(side='left', padx=(0, 5))
+        
+        # Metric dropdown
+        self.metric_var = tk.StringVar(value="points")
+        self.metric_dropdown = ttk.Combobox(
+            metric_frame,
+            textvariable=self.metric_var,
+            values=[
+                "points", "snaps", "pass_yd", "rush_yd", "rec_yd",
+                "pass_td", "rush_td", "rec_td", "rec", "pass_cmp",
+                "rush_att", "rec_tgt"
+            ],
+            state='readonly',
+            width=12,
+            font=(DARK_THEME['font_family'], 9)
+        )
+        self.metric_dropdown.pack(side='left')
+        self.metric_dropdown.bind('<<ComboboxSelected>>', self.on_metric_changed)
         
         # Instructions
         info_label = tk.Label(
@@ -1805,10 +1848,12 @@ class GameHistory(StyledFrame):
         weeks = []
         points = []
         snaps = []  # Track snaps for each week
+        metric_data = []  # Track selected metric data
         
         for week in range(1, 19):  # All weeks 1-18
             week_points = 0  # Default to 0
             week_snaps = 0   # Default to 0
+            week_metric = 0  # Default to 0
             
             if week in self.weekly_stats and player_id in self.weekly_stats[week]:
                 stats_data = self.weekly_stats[week][player_id]
@@ -1827,11 +1872,20 @@ class GameHistory(StyledFrame):
                     if week_snaps > 0:
                         # Calculate custom points
                         week_points = self.calculate_custom_points(stats, player.position)
+                        # Get metric data
+                        if self.graph_metric == "snaps":
+                            week_metric = week_snaps
+                        elif self.graph_metric == "points":
+                            week_metric = week_points
+                        else:
+                            # Get raw stat value
+                            week_metric = float(stats.get(self.graph_metric, 0))
                         break  # Only one game per week
             
             weeks.append(week)
             points.append(week_points)
             snaps.append(week_snaps)
+            metric_data.append(week_metric)
         
         # Calculate standard deviation for games with 5+ snaps
         points_for_std = [points[i] for i in range(len(points)) if snaps[i] >= 5]
@@ -1854,6 +1908,7 @@ class GameHistory(StyledFrame):
                 'weeks': weeks,
                 'points': points,
                 'snaps': snaps,
+                'metric_data': metric_data,
                 'std_dev': std_dev,
                 'color': color,
                 'position': player.position,
@@ -1869,7 +1924,7 @@ class GameHistory(StyledFrame):
         
         if not self.graph_players:
             # Empty graph
-            self.ax.text(0.5, 0.5, 'Click on players to graph their points',
+            self.ax.text(0.5, 0.5, 'Click on players to graph their stats',
                         horizontalalignment='center',
                         verticalalignment='center',
                         transform=self.ax.transAxes,
@@ -1898,7 +1953,9 @@ class GameHistory(StyledFrame):
                 label = f"{data['name']} ({data['team']}) σ={data['std_dev']:.1f}"
                 marker = player_markers[player_id]
                 
-                self.ax.plot(data['weeks'], data['points'], 
+                # Plot using the selected metric
+                plot_data = data['metric_data'] if 'metric_data' in data else data['points']
+                self.ax.plot(data['weeks'], plot_data, 
                            marker=marker, linewidth=2, markersize=8,
                            color=data['color'], 
                            label=label)
@@ -1923,7 +1980,23 @@ class GameHistory(StyledFrame):
         
         # Labels
         self.ax.set_xlabel('Week', color=DARK_THEME['text_primary'])
-        self.ax.set_ylabel('Points', color=DARK_THEME['text_primary'])
+        # Update y-axis label based on metric
+        metric_labels = {
+            'points': 'Points',
+            'snaps': 'Snaps',
+            'pass_yd': 'Passing Yards',
+            'rush_yd': 'Rushing Yards',
+            'rec_yd': 'Receiving Yards',
+            'pass_td': 'Passing TDs',
+            'rush_td': 'Rushing TDs',
+            'rec_td': 'Receiving TDs',
+            'rec': 'Receptions',
+            'pass_cmp': 'Completions',
+            'rush_att': 'Rush Attempts',
+            'rec_tgt': 'Targets'
+        }
+        ylabel = metric_labels.get(self.graph_metric, self.graph_metric.replace('_', ' ').title())
+        self.ax.set_ylabel(ylabel, color=DARK_THEME['text_primary'])
         
         # Redraw
         self.figure.tight_layout()
@@ -1985,6 +2058,56 @@ class GameHistory(StyledFrame):
         
         # Redraw graph
         self.update_graph()
+    
+    def on_metric_changed(self, event=None):
+        """Handle metric dropdown change"""
+        self.graph_metric = self.metric_var.get()
+        
+        # Update graph title
+        metric_titles = {
+            'points': 'POINTS BY WEEK',
+            'snaps': 'SNAPS BY WEEK',
+            'pass_yd': 'PASSING YARDS BY WEEK',
+            'rush_yd': 'RUSHING YARDS BY WEEK',
+            'rec_yd': 'RECEIVING YARDS BY WEEK',
+            'pass_td': 'PASSING TDS BY WEEK',
+            'rush_td': 'RUSHING TDS BY WEEK',
+            'rec_td': 'RECEIVING TDS BY WEEK',
+            'rec': 'RECEPTIONS BY WEEK',
+            'pass_cmp': 'COMPLETIONS BY WEEK',
+            'rush_att': 'RUSH ATTEMPTS BY WEEK',
+            'rec_tgt': 'TARGETS BY WEEK'
+        }
+        title = metric_titles.get(self.graph_metric, self.graph_metric.replace('_', ' ').upper() + ' BY WEEK')
+        self.graph_title_label.config(text=title)
+        
+        # Re-add all players with new metric
+        players_to_readd = list(self.graph_players.keys())
+        self.graph_players.clear()
+        
+        for player_id in players_to_readd:
+            player = self.player_lookup.get(player_id)
+            if player:
+                self.add_player_to_graph(format_name(player.name), add_to_selection=True)
+    
+    def blend_colors(self, color1, color2, ratio=0.5):
+        """Blend two colors together"""
+        # Convert hex to RGB
+        r1 = int(color1[1:3], 16)
+        g1 = int(color1[3:5], 16)
+        b1 = int(color1[5:7], 16)
+        
+        r2 = int(color2[1:3], 16)
+        g2 = int(color2[3:5], 16)
+        b2 = int(color2[5:7], 16)
+        
+        # Blend
+        r = int(r1 * ratio + r2 * (1 - ratio))
+        g = int(g1 * ratio + g2 * (1 - ratio))
+        b = int(b1 * ratio + b2 * (1 - ratio))
+        
+        # Convert back to hex
+        return f'#{r:02x}{g:02x}{b:02x}'
     
     def on_custom_range_changed(self):
         """Handle custom range spinbox changes"""

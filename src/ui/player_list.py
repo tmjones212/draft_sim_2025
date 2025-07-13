@@ -7,6 +7,7 @@ from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
 from .player_stats_popup import PlayerStatsPopup
 from ..services.custom_adp_manager import CustomADPManager
+from ..services.custom_round_manager import CustomRoundManager
 
 
 class PlayerList(StyledFrame):
@@ -23,6 +24,8 @@ class PlayerList(StyledFrame):
         self.image_service = image_service
         self.all_players: List[Player] = []  # Store all players
         self.selected_position = "ALL"  # Current filter
+        self.current_pick = 0  # Track current pick number for BPA calculation
+        self.user_team = None  # Track user's team for position needs
         self.sort_by = "adp"  # Default sort by ADP
         self.sort_ascending = True  # Track sort direction
         self.dragging_player = None  # Track dragged player
@@ -31,6 +34,7 @@ class PlayerList(StyledFrame):
         self.watch_list_ref = None  # Reference to watch list widget
         self.drag_start_pos = None  # Track drag start position
         self.is_dragging = False  # Track if actually dragging
+        self.drafted_players = set()  # Track drafted players
         
         # Custom rankings from cheat sheet
         self.custom_rankings = {}
@@ -41,6 +45,9 @@ class PlayerList(StyledFrame):
         
         # Initialize custom ADP manager
         self.custom_adp_manager = CustomADPManager()
+        
+        # Initialize custom round manager
+        self.custom_round_manager = CustomRoundManager()
         
         # Row management for performance
         self.row_frames = []  # Active row frames
@@ -148,6 +155,9 @@ class PlayerList(StyledFrame):
             btn.pack(side='left', padx=1)
             self.position_buttons[pos] = btn
         
+        # Suggested picks section (initially hidden)
+        self.create_suggested_picks_section()
+        
         # Table container
         self.create_table_view(container)
     
@@ -172,11 +182,13 @@ class PlayerList(StyledFrame):
             ('Rank', 50, 'var'),  # Changed to sort by VAR when clicking Rank column
             ('CR', 35, 'custom_rank'),  # Custom Rank
             ('', 25, None),      # Star column
+            ('BPA', 35, None),   # BPA indicator
             ('Pos', 45, 'position'),
             ('', 25, None),      # Info button column
             ('Name', 155, 'name'),
             ('Team', 45, 'team'),
             ('ADP', 55, 'adp'),  # Editable column
+            ('Rd', 35, None),    # Round tag column
             ('GP', 40, 'games_2024'),  # Added 5px
             ('2024 Pts', 75, 'points_2024'),  # Added 10px
             ('Proj Rank', 85, 'position_rank_proj'),  # Added 10px
@@ -354,6 +366,11 @@ class PlayerList(StyledFrame):
         """Remove multiple players from the list efficiently"""
         if not players_to_remove:
             return
+        
+        # Add to drafted players set
+        for player in players_to_remove:
+            if hasattr(player, 'player_id'):
+                self.drafted_players.add(player)
         
         # Clear position cache since players are being removed
         if hasattr(self, '_position_cache'):
@@ -539,6 +556,29 @@ class PlayerList(StyledFrame):
     
     def create_player_row(self, index, player):
         """Create a row with player data"""
+        # Check if we need a tier break
+        show_tier_break = False
+        if index > 0 and hasattr(self, 'players'):
+            prev_player = self.players[index - 1]
+            curr_tier = self.calculate_player_tier(player)
+            prev_tier = self.calculate_player_tier(prev_player)
+            show_tier_break = curr_tier != prev_tier and curr_tier > 0 and prev_tier > 0
+        
+        # Add tier break if needed
+        if show_tier_break:
+            tier_break = tk.Frame(self.table_frame, bg=DARK_THEME['button_bg'], height=2)
+            tier_break.pack(fill='x', padx=20, pady=3)
+            
+            # Add tier label
+            tier_label = tk.Label(
+                self.table_frame,
+                text=f"━━━ Tier {curr_tier} ━━━",
+                bg=DARK_THEME['bg_secondary'],
+                fg=DARK_THEME['text_muted'],
+                font=(DARK_THEME['font_family'], 9)
+            )
+            tier_label.pack(pady=(0, 2))
+        
         # Reuse or create row
         if self.hidden_rows:
             row = self.hidden_rows.pop()
@@ -718,6 +758,40 @@ class PlayerList(StyledFrame):
         star_btn._is_star_button = True
         row.star_button = star_btn
         
+        # BPA indicator
+        bpa_frame = tk.Frame(row, bg=bg, width=35)
+        bpa_frame.pack(side='left', fill='y')
+        bpa_frame.pack_propagate(False)
+        
+        # Calculate BPA indicator for this player
+        # Find player's index in current filtered list
+        player_index = None
+        for idx, p in enumerate(self.players):
+            if p.player_id == player.player_id:
+                player_index = idx
+                break
+        
+        bpa_info = self.calculate_bpa_indicator(player, player_index) if player_index is not None else None
+        if bpa_info:
+            bpa_label = tk.Label(
+                bpa_frame,
+                text=bpa_info['text'],
+                bg=bpa_info['bg'],
+                fg=bpa_info['fg'],
+                font=(DARK_THEME['font_family'], 11, 'bold'),
+                padx=5,
+                pady=2
+            )
+            bpa_label.pack(expand=True)
+            
+            # Add tooltip
+            self.create_tooltip(bpa_label, bpa_info['tooltip'])
+        else:
+            # Empty BPA column
+            tk.Label(bpa_frame, text='', bg=bg).pack(expand=True)
+        
+        bpa_frame.bind('<Button-1>', select_row)
+        
         # Position
         pos_frame = tk.Frame(row, bg=bg, width=45)
         pos_frame.pack(side='left', fill='y')
@@ -767,6 +841,14 @@ class PlayerList(StyledFrame):
         if player.adp:
             adp_cell.config(fg=DARK_THEME['text_accent'], cursor='hand2')
         
+        # Round tag (check for custom round first)
+        custom_round = self.custom_round_manager.get_custom_round(player.player_id)
+        if custom_round:
+            round_text = str(custom_round)
+        else:
+            round_text = self.calculate_draft_round(player) or '-'
+        round_cell = self.create_round_tag_cell(row, player, round_text, 35, bg, select_row)
+        
         # Stats
         games_text = str(getattr(player, 'games_2024', 0) or 0)
         self.create_cell(row, games_text, 40, bg, select_row, field_type='games')
@@ -789,6 +871,84 @@ class PlayerList(StyledFrame):
         self.create_cell(row, var_text, 60, bg, select_row, field_type='var')
         
         # No more draft button - users can double-click or right-click to draft
+    
+    def create_round_tag_cell(self, parent, player, round_text, width, bg, click_handler):
+        """Create a cell with round tag styling and editing capability"""
+        cell_frame = tk.Frame(parent, bg=bg, width=width)
+        cell_frame.pack(side='left', fill='y')
+        cell_frame.pack_propagate(False)
+        
+        # Style based on round
+        if round_text == '-':
+            # No round
+            cell = tk.Label(
+                cell_frame,
+                text=round_text,
+                bg=bg,
+                fg=DARK_THEME['text_muted'],
+                font=(DARK_THEME['font_family'], 9),
+                anchor='center'
+            )
+            cell.pack(expand=True)
+        else:
+            # Create a styled round tag
+            tag_frame = tk.Frame(cell_frame, bg=bg)
+            tag_frame.pack(expand=True)
+            
+            # Determine color based on round
+            try:
+                round_num = int(round_text.replace('+', ''))
+                if round_num <= 3:
+                    tag_bg = '#FF5E5B'  # Red for early rounds
+                    tag_fg = 'white'
+                elif round_num <= 6:
+                    tag_bg = '#FFB347'  # Orange for mid rounds
+                    tag_fg = 'white'
+                elif round_num <= 9:
+                    tag_bg = '#4ECDC4'  # Teal for mid-late rounds
+                    tag_fg = 'white'
+                else:
+                    tag_bg = '#7B68EE'  # Purple for late rounds
+                    tag_fg = 'white'
+            except:
+                tag_bg = bg
+                tag_fg = DARK_THEME['text_secondary']
+            
+            cell = tk.Label(
+                tag_frame,
+                text=f"R{round_text}",
+                bg=tag_bg,
+                fg=tag_fg,
+                font=(DARK_THEME['font_family'], 9, 'bold'),
+                padx=6,
+                pady=1,
+                anchor='center'
+            )
+            cell.pack()
+        
+        # Bind click handler - make it editable on single click
+        def edit_round(e):
+            self._edit_player_round(player, cell_frame)
+            return "break"  # Prevent event propagation
+        
+        cell.bind('<Button-1>', edit_round)
+        cell_frame.bind('<Button-1>', edit_round)
+        
+        # Make cursor indicate it's clickable
+        cell.config(cursor='hand2')
+        cell_frame.config(cursor='hand2')
+        
+        # Bind double-click if the parent row has it
+        if hasattr(parent, '_double_click_handler'):
+            cell.bind('<Double-Button-1>', parent._double_click_handler)
+            cell_frame.bind('<Double-Button-1>', parent._double_click_handler)
+        
+        # Bind mousewheel
+        if hasattr(self, '_mousewheel_handler'):
+            cell_frame.bind('<MouseWheel>', self._mousewheel_handler)
+            cell.bind('<MouseWheel>', self._mousewheel_handler)
+        
+        return cell
     
     def create_cell(self, parent, text, width, bg, click_handler, anchor='center', field_type=None):
         """Create a table cell with exact pixel width"""
@@ -824,32 +984,15 @@ class PlayerList(StyledFrame):
                 cell_frame.bind('<Button-1>', edit_adp)
                 cell.config(cursor='hand2')  # Show hand cursor to indicate it's clickable
                 
-                # Add hover effect to show it's editable
-                def on_enter(e, c=cell, cf=cell_frame):
+                # Add subtle hover effect to show it's editable (no tooltip)
+                def on_enter(e, c=cell):
                     c.config(fg='#4ECDC4')  # Bright teal to show editable
-                    # Show tooltip
-                    tooltip = tk.Label(
-                        self.winfo_toplevel(),
-                        text="Click to edit ADP",
-                        bg='#333333',
-                        fg='white',
-                        font=(DARK_THEME['font_family'], 9),
-                        padx=5,
-                        pady=2
-                    )
-                    tooltip.place(x=cf.winfo_rootx(), y=cf.winfo_rooty() - 25)
-                    cf._tooltip = tooltip
                     
-                def on_leave(e, c=cell, cf=cell_frame):
+                def on_leave(e, c=cell):
                     c.config(fg=DARK_THEME['text_primary'])
-                    if hasattr(cf, '_tooltip'):
-                        cf._tooltip.destroy()
-                        delattr(cf, '_tooltip')
                         
                 cell.bind('<Enter>', on_enter)
                 cell.bind('<Leave>', on_leave)
-                cell_frame.bind('<Enter>', on_enter)
-                cell_frame.bind('<Leave>', on_leave)
         
         # Also bind double-click if the parent row has it (but not for ADP cells)
         if hasattr(parent, '_double_click_handler') and field_type != 'adp':
@@ -897,11 +1040,11 @@ class PlayerList(StyledFrame):
         
         # If not found in filtered list, temporarily clear filters to find the player
         # Save current filter state
-        current_position = self.position_filter.get()
+        current_position = self.selected_position
         current_search = self.search_var.get()
         
         # Clear filters temporarily
-        self.position_filter.set("ALL")
+        self.selected_position = "ALL"
         self.search_var.set("")
         self.update_players(self.all_players)
         
@@ -912,12 +1055,12 @@ class PlayerList(StyledFrame):
                 if self.on_draft:
                     self.on_draft()
                 # Restore filters after drafting
-                self.position_filter.set(current_position)
+                self.selected_position = current_position
                 self.search_var.set(current_search)
                 return
         
         # If still not found, restore filters
-        self.position_filter.set(current_position)
+        self.selected_position = current_position
         self.search_var.set(current_search)
         self.update_players(self.all_players)
     
@@ -1277,13 +1420,80 @@ class PlayerList(StyledFrame):
                 # Update the row display immediately
                 for row in self.row_frames:
                     if hasattr(row, 'player') and row.player.player_id == player.player_id:
-                        # Find the ADP cell and update it
-                        for widget in row.winfo_children():
+                        # Update player's ADP value for round calculation
+                        row.player.adp = new_adp
+                        
+                        # Find and update the ADP cell
+                        adp_updated = False
+                        round_cell_frame = None
+                        round_cell_index = 0
+                        
+                        for i, widget in enumerate(row.winfo_children()):
                             if isinstance(widget, tk.Frame):
                                 for child in widget.winfo_children():
                                     if isinstance(child, tk.Label) and hasattr(child, '_field_type') and child._field_type == 'adp':
                                         child.config(text=f"{int(new_adp)}")
+                                        adp_updated = True
+                                        # Round cell should be the next frame
+                                        round_cell_index = i + 1
                                         break
+                        
+                        # Update the round tag (it's the frame after ADP)
+                        if adp_updated and round_cell_index < len(row.winfo_children()):
+                            round_cell_frame = row.winfo_children()[round_cell_index]
+                            if isinstance(round_cell_frame, tk.Frame):
+                                # Recreate the round tag with new value
+                                for widget in round_cell_frame.winfo_children():
+                                    widget.destroy()
+                                
+                                # Get new round text
+                                new_round_text = self.calculate_draft_round(row.player) or '-'
+                                
+                                # Recreate the round tag content
+                                if new_round_text == '-':
+                                    cell = tk.Label(
+                                        round_cell_frame,
+                                        text=new_round_text,
+                                        bg=round_cell_frame['bg'],
+                                        fg=DARK_THEME['text_muted'],
+                                        font=(DARK_THEME['font_family'], 9),
+                                        anchor='center'
+                                    )
+                                    cell.pack(expand=True)
+                                else:
+                                    tag_frame = tk.Frame(round_cell_frame, bg=round_cell_frame['bg'])
+                                    tag_frame.pack(expand=True)
+                                    
+                                    # Determine color based on round
+                                    try:
+                                        round_num = int(new_round_text.replace('+', ''))
+                                        if round_num <= 3:
+                                            tag_bg = '#FF5E5B'  # Red for early rounds
+                                            tag_fg = 'white'
+                                        elif round_num <= 6:
+                                            tag_bg = '#FFB347'  # Orange for mid rounds
+                                            tag_fg = 'white'
+                                        elif round_num <= 9:
+                                            tag_bg = '#4ECDC4'  # Teal for mid-late rounds
+                                            tag_fg = 'white'
+                                        else:
+                                            tag_bg = '#7B68EE'  # Purple for late rounds
+                                            tag_fg = 'white'
+                                    except:
+                                        tag_bg = round_cell_frame['bg']
+                                        tag_fg = DARK_THEME['text_secondary']
+                                    
+                                    cell = tk.Label(
+                                        tag_frame,
+                                        text=f"R{new_round_text}",
+                                        bg=tag_bg,
+                                        fg=tag_fg,
+                                        font=(DARK_THEME['font_family'], 9, 'bold'),
+                                        padx=6,
+                                        pady=1,
+                                        anchor='center'
+                                    )
+                                    cell.pack()
                         break
                 
                 # Re-sort if currently sorted by ADP
@@ -1342,6 +1552,202 @@ class PlayerList(StyledFrame):
         # Bind Escape to cancel
         dialog.bind('<Escape>', lambda e: dialog.destroy())
     
+    def _edit_player_round(self, player, cell_frame):
+        """Show dialog to edit player's round assignment"""
+        # Create dialog window
+        dialog = tk.Toplevel(self)
+        dialog.title(f"Assign Round - {player.name}")
+        dialog.geometry("400x250")
+        dialog.configure(bg=DARK_THEME['bg_secondary'])
+        dialog.transient(self.master)
+        dialog.grab_set()
+        
+        # Center dialog on parent
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
+        y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Player info
+        info_frame = tk.Frame(dialog, bg=DARK_THEME['bg_secondary'])
+        info_frame.pack(pady=10)
+        
+        player_label = tk.Label(
+            info_frame,
+            text=f"{player.name} ({player.position})",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 12, 'bold')
+        )
+        player_label.pack()
+        
+        # Show current round
+        current_round = self.custom_round_manager.get_custom_round(player.player_id)
+        if not current_round:
+            current_round = self.calculate_draft_round(player) or '-'
+        
+        current_label = tk.Label(
+            info_frame,
+            text=f"Current Round: {current_round}",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        current_label.pack()
+        
+        adp_label = tk.Label(
+            info_frame,
+            text=f"ADP: {player.adp:.1f}" if player.adp else "ADP: -",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_muted'],
+            font=(DARK_THEME['font_family'], 9)
+        )
+        adp_label.pack()
+        
+        # Round selection frame
+        select_frame = tk.Frame(dialog, bg=DARK_THEME['bg_secondary'])
+        select_frame.pack(pady=20)
+        
+        label = tk.Label(
+            select_frame,
+            text="Assign to Round:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 11)
+        )
+        label.pack(pady=(0, 10))
+        
+        # Create round buttons in a grid
+        rounds_frame = tk.Frame(select_frame, bg=DARK_THEME['bg_secondary'])
+        rounds_frame.pack()
+        
+        def assign_round(round_num):
+            """Assign player to specified round"""
+            self.custom_round_manager.set_custom_round(player.player_id, round_num)
+            
+            # Update the round tag cell immediately
+            for widget in cell_frame.winfo_children():
+                widget.destroy()
+            
+            # Recreate the round tag content
+            if round_num == 0:
+                round_text = self.calculate_draft_round(player) or '-'
+            else:
+                round_text = str(round_num)
+            
+            # Style based on round
+            if round_text == '-':
+                cell = tk.Label(
+                    cell_frame,
+                    text=round_text,
+                    bg=cell_frame['bg'],
+                    fg=DARK_THEME['text_muted'],
+                    font=(DARK_THEME['font_family'], 9),
+                    anchor='center'
+                )
+                cell.pack(expand=True)
+            else:
+                tag_frame = tk.Frame(cell_frame, bg=cell_frame['bg'])
+                tag_frame.pack(expand=True)
+                
+                # Determine color based on round
+                try:
+                    rnd = int(round_text.replace('+', ''))
+                    if rnd <= 3:
+                        tag_bg = '#FF5E5B'  # Red for early rounds
+                        tag_fg = 'white'
+                    elif rnd <= 6:
+                        tag_bg = '#FFB347'  # Orange for mid rounds
+                        tag_fg = 'white'
+                    elif rnd <= 9:
+                        tag_bg = '#4ECDC4'  # Teal for mid-late rounds
+                        tag_fg = 'white'
+                    else:
+                        tag_bg = '#7B68EE'  # Purple for late rounds
+                        tag_fg = 'white'
+                except:
+                    tag_bg = cell_frame['bg']
+                    tag_fg = DARK_THEME['text_secondary']
+                
+                cell = tk.Label(
+                    tag_frame,
+                    text=f"R{round_text}",
+                    bg=tag_bg,
+                    fg=tag_fg,
+                    font=(DARK_THEME['font_family'], 9, 'bold'),
+                    padx=6,
+                    pady=1,
+                    anchor='center'
+                )
+                cell.pack()
+            
+            # Re-bind click handler
+            def edit_round(e):
+                self._edit_player_round(player, cell_frame)
+                return "break"
+            
+            cell.bind('<Button-1>', edit_round)
+            cell_frame.bind('<Button-1>', edit_round)
+            cell.config(cursor='hand2')
+            cell_frame.config(cursor='hand2')
+            
+            dialog.destroy()
+        
+        # Create round buttons (1-15)
+        for i in range(3):
+            row_frame = tk.Frame(rounds_frame, bg=DARK_THEME['bg_secondary'])
+            row_frame.pack(pady=2)
+            
+            for j in range(5):
+                round_num = i * 5 + j + 1
+                if round_num <= 15:
+                    # Determine button color
+                    if round_num <= 3:
+                        btn_bg = '#FF5E5B'  # Red
+                    elif round_num <= 6:
+                        btn_bg = '#FFB347'  # Orange
+                    elif round_num <= 9:
+                        btn_bg = '#4ECDC4'  # Teal
+                    else:
+                        btn_bg = '#7B68EE'  # Purple
+                    
+                    btn = tk.Button(
+                        row_frame,
+                        text=f"R{round_num}",
+                        command=lambda r=round_num: assign_round(r),
+                        bg=btn_bg,
+                        fg='white',
+                        font=(DARK_THEME['font_family'], 10, 'bold'),
+                        width=5,
+                        padx=5,
+                        pady=5,
+                        bd=0,
+                        highlightthickness=0,
+                        cursor='hand2'
+                    )
+                    btn.pack(side='left', padx=2)
+        
+        # Clear button
+        clear_frame = tk.Frame(dialog, bg=DARK_THEME['bg_secondary'])
+        clear_frame.pack(pady=10)
+        
+        clear_btn = tk.Button(
+            clear_frame,
+            text="CLEAR CUSTOM ROUND",
+            command=lambda: assign_round(0),
+            bg=DARK_THEME['button_bg'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            padx=20,
+            pady=5,
+            bd=0,
+            highlightthickness=0
+        )
+        clear_btn.pack()
+        
+        # Bind Escape to cancel
+        dialog.bind('<Escape>', lambda e: dialog.destroy())
+    
     def _toggle_watch_list(self, player):
         """Toggle player in watch list"""
         if self.watch_list_ref:
@@ -1364,6 +1770,17 @@ class PlayerList(StyledFrame):
                     text="★" if is_watched else "☆",
                     fg=DARK_THEME['text_accent'] if is_watched else DARK_THEME['text_muted']
                 )
+    
+    def cleanup_tooltips(self):
+        """Clean up any lingering tooltips when switching tabs"""
+        # Clean up any non-ADP tooltips (ADP tooltips have been removed)
+        for widget in self.winfo_children():
+            if hasattr(widget, '_tooltip'):
+                try:
+                    widget._tooltip.destroy()
+                except:
+                    pass
+                delattr(widget, '_tooltip')
     
     def _create_team_logo_cell(self, row, player, bg, select_row):
         """Create a cell with team logo"""
@@ -1450,3 +1867,330 @@ class PlayerList(StyledFrame):
         if watch_list:
             # Sync watched player IDs
             self.watched_player_ids = watch_list.watched_player_ids
+    
+    def calculate_player_tier(self, player):
+        """Calculate player tier based on ADP or VAR"""
+        # Use ADP for tier calculation
+        if not player.adp:
+            return 8  # Lowest tier
+        
+        adp = player.adp
+        if adp <= 12:  # First round
+            return 1
+        elif adp <= 24:  # Second round
+            return 2
+        elif adp <= 36:  # Third round
+            return 3
+        elif adp <= 60:  # Rounds 4-5
+            return 4
+        elif adp <= 84:  # Rounds 6-7
+            return 5
+        elif adp <= 120:  # Rounds 8-10
+            return 6
+        elif adp <= 150:  # Rounds 11-12
+            return 7
+        else:
+            return 8
+    
+    def calculate_draft_round(self, player):
+        """Calculate which round the player is expected to be drafted based on ADP"""
+        if not player.adp:
+            return None
+        
+        adp = player.adp
+        # Assuming 12-team league (12 picks per round)
+        round_num = int((adp - 1) / 12) + 1
+        
+        # Cap at round 15 for display purposes
+        if round_num > 15:
+            return "15+"
+        
+        return str(round_num)
+    
+    def create_tooltip(self, widget, text):
+        """Create a tooltip for a widget"""
+        def on_enter(event):
+            tooltip = tk.Toplevel()
+            tooltip.wm_overrideredirect(True)
+            tooltip.wm_geometry(f"+{event.x_root+10}+{event.y_root+10}")
+            label = tk.Label(
+                tooltip,
+                text=text,
+                bg=DARK_THEME['bg_tertiary'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 9),
+                padx=5,
+                pady=2,
+                relief='solid',
+                borderwidth=1
+            )
+            label.pack()
+            widget._tooltip = tooltip
+        
+        def on_leave(event):
+            if hasattr(widget, '_tooltip'):
+                widget._tooltip.destroy()
+                del widget._tooltip
+        
+        widget.bind('<Enter>', on_enter)
+        widget.bind('<Leave>', on_leave)
+
+    def create_suggested_picks_section(self):
+        """Create the suggested picks section at the top"""
+        self.suggested_frame = StyledFrame(self, bg_type="tertiary")
+        self.suggested_frame.pack(fill="x", padx=10, pady=(10, 0))
+        
+        # Title
+        title_label = tk.Label(
+            self.suggested_frame,
+            text="🎯 Suggested Picks",
+            bg=DARK_THEME["bg_tertiary"],
+            fg=DARK_THEME["text_primary"],
+            font=(DARK_THEME["font_family"], 11, "bold")
+        )
+        title_label.pack(anchor="w", padx=10, pady=(5, 0))
+        
+        # Container for suggested player cards
+        self.suggested_container = tk.Frame(self.suggested_frame, bg=DARK_THEME["bg_tertiary"])
+        self.suggested_container.pack(fill="x", padx=10, pady=5)
+        
+        # Initially hidden
+        self.suggested_frame.pack_forget()
+    
+    def update_suggested_picks(self):
+        """Update the suggested picks based on current draft state"""
+        if not self.current_pick or not self.user_team:
+            self.suggested_frame.pack_forget()
+            return
+        
+        # Clear existing suggestions
+        for widget in self.suggested_container.winfo_children():
+            widget.destroy()
+        
+        # Get top 3 suggestions
+        suggestions = self.get_draft_suggestions()
+        
+        if not suggestions:
+            self.suggested_frame.pack_forget()
+            return
+        
+        # Show the frame
+        self.suggested_frame.pack(fill="x", padx=10, pady=(10, 0), before=self.winfo_children()[1])
+        
+        # Create mini cards for each suggestion
+        for i, (player, reason) in enumerate(suggestions[:3]):
+            self.create_suggestion_card(player, reason, i)
+    
+    def create_suggestion_card(self, player, reason, index):
+        """Create a mini card for a suggested player"""
+        card = tk.Frame(
+            self.suggested_container,
+            bg=DARK_THEME["bg_secondary"],
+            relief="solid",
+            borderwidth=1
+        )
+        card.pack(side="left", padx=(0, 10), pady=5, fill="x", expand=True)
+        
+        # Rank indicator
+        rank_label = tk.Label(
+            card,
+            text=f"#{index + 1}",
+            bg=DARK_THEME["button_bg"],
+            fg="white",
+            font=(DARK_THEME["font_family"], 10, "bold"),
+            padx=8,
+            pady=4
+        )
+        rank_label.pack(side="left", padx=(5, 0), pady=5)
+        
+        # Player info
+        info_frame = tk.Frame(card, bg=DARK_THEME["bg_secondary"])
+        info_frame.pack(side="left", fill="both", expand=True, padx=10, pady=5)
+        
+        # Name and position
+        name_frame = tk.Frame(info_frame, bg=DARK_THEME["bg_secondary"])
+        name_frame.pack(anchor="w")
+        
+        name_label = tk.Label(
+            name_frame,
+            text=player.format_name(),
+            bg=DARK_THEME["bg_secondary"],
+            fg=DARK_THEME["text_primary"],
+            font=(DARK_THEME["font_family"], 10, "bold")
+        )
+        name_label.pack(side="left", padx=(0, 5))
+        
+        pos_bg = get_position_color(player.position)
+        pos_label = tk.Label(
+            name_frame,
+            text=player.position,
+            bg=pos_bg,
+            fg="white",
+            font=(DARK_THEME["font_family"], 8, "bold"),
+            padx=6,
+            pady=2
+        )
+        pos_label.pack(side="left")
+        
+        # Reason
+        reason_label = tk.Label(
+            info_frame,
+            text=reason,
+            bg=DARK_THEME["bg_secondary"],
+            fg=DARK_THEME["text_secondary"],
+            font=(DARK_THEME["font_family"], 9),
+            anchor="w"
+        )
+        reason_label.pack(anchor="w")
+        
+        # Draft button
+        draft_btn = tk.Button(
+            card,
+            text="DRAFT",
+            bg=DARK_THEME["button_bg"],
+            fg="white",
+            font=(DARK_THEME["font_family"], 9, "bold"),
+            bd=0,
+            relief="flat",
+            padx=12,
+            pady=4,
+            command=lambda: self.draft_specific_player(player),
+            cursor="hand2",
+            activebackground=DARK_THEME["button_hover"]
+        )
+        draft_btn.pack(side="right", padx=10)
+        
+        # Make entire card clickable
+        def on_card_click(e):
+            # Find player in list and select
+            for i, p in enumerate(self.players):
+                if p.player_id == player.player_id:
+                    self.select_player(i)
+                    break
+        
+        card.bind("<Button-1>", on_card_click)
+        for widget in [rank_label, info_frame, name_label, pos_label, reason_label]:
+            widget.bind("<Button-1>", on_card_click)
+    
+    def get_draft_suggestions(self):
+        """Get top 3 draft suggestions with reasons"""
+        if not self.players or not self.user_team:
+            return []
+        
+        suggestions = []
+        
+        # Calculate position needs
+        position_counts = {"QB": 0, "RB": 0, "WR": 0, "TE": 0}
+        for pos_players in self.user_team.roster.values():
+            for p in pos_players:
+                if p.position in position_counts:
+                    position_counts[p.position] += 1
+        
+        position_needs = {
+            "QB": 2 - position_counts.get("QB", 0),
+            "RB": 5 - position_counts.get("RB", 0),
+            "WR": 5 - position_counts.get("WR", 0),
+            "TE": 2 - position_counts.get("TE", 0)
+        }
+        
+        # Check for elite values in top 10
+        for i, player in enumerate(self.players[:10]):
+            if player in self.drafted_players:
+                continue
+            
+            reason = None
+            score = 0
+            
+            # Check if falling below ADP
+            if player.adp:
+                spots_fallen = self.current_pick - player.adp
+                if spots_fallen >= 5:
+                    reason = f"Elite value\! Falling {int(spots_fallen)} spots"
+                    score = 100 + spots_fallen
+                elif spots_fallen >= 3:
+                    reason = f"Great value - {int(spots_fallen)} spots below ADP"
+                    score = 80 + spots_fallen
+            
+            # Check position need
+            if position_needs.get(player.position, 0) > 0:
+                if not reason:
+                    reason = f"Fills {player.position} need"
+                    score = 60 - i
+                else:
+                    reason += f" + fills {player.position} need"
+                    score += 20
+            
+            # Top player at position
+            if i < 3 and not reason:
+                reason = f"Best available {player.position}"
+                score = 50 - i
+            
+            if reason:
+                suggestions.append((player, reason, score))
+        
+        # Sort by score and return top 3
+        suggestions.sort(key=lambda x: x[2], reverse=True)
+        return [(p, r) for p, r, _ in suggestions[:3]]
+    
+    def set_draft_context(self, current_pick: int, user_team):
+        """Set draft context for BPA calculations"""
+        self.current_pick = current_pick
+        self.user_team = user_team
+        # Don't update suggested picks here - let it be done explicitly when needed
+
+    def calculate_bpa_indicator(self, player, index):
+        """Calculate BPA indicator for a player"""
+        if not self.current_pick or not player.adp:
+            return None
+        
+        # Calculate how many spots the player has fallen
+        # Positive = player falling (value), Negative = reach
+        spots_fallen = self.current_pick - player.adp
+        
+        # Only show indicators for players falling below ADP
+        if spots_fallen < 0:
+            return None  # Player would be a reach, no value indicator
+        
+        # Elite value: Top 3 available and falling 5+ spots
+        if index < 3 and spots_fallen >= 5:
+            return {
+                "text": "🔥",
+                "bg": "#ff4444",
+                "fg": "white",
+                "tooltip": f"Elite value\! Falling {int(spots_fallen)} spots below ADP"
+            }
+        
+        # Great value: Falling 3+ spots
+        if spots_fallen >= 3:
+            return {
+                "text": "⭐",
+                "bg": "#ffaa00",
+                "fg": "white",
+                "tooltip": f"Great value\! {int(spots_fallen)} spots below ADP"
+            }
+        
+        # Check position need if we have user team
+        if self.user_team and player.position in ["QB", "RB", "WR", "TE"]:
+            position_counts = {"QB": 0, "RB": 0, "WR": 0, "TE": 0}
+            for pos_players in self.user_team.roster.values():
+                for p in pos_players:
+                    if p.position in position_counts:
+                        position_counts[p.position] += 1
+            
+            # Check if position is needed
+            position_needs = {
+                "QB": 2 - position_counts.get("QB", 0),
+                "RB": 5 - position_counts.get("RB", 0),
+                "WR": 5 - position_counts.get("WR", 0),
+                "TE": 2 - position_counts.get("TE", 0)
+            }
+            
+            if position_needs.get(player.position, 0) > 0:
+                return {
+                    "text": "✓",
+                    "bg": "#00aa00",
+                    "fg": "white",
+                    "tooltip": f"Fills {player.position} need"
+                }
+        
+        return None

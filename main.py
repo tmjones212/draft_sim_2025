@@ -13,12 +13,13 @@ import config
 from src.models import Team, Player
 from src.core import DraftEngine, DraftPick
 from src.core.template_manager import TemplateManager
-from src.ui import DraftBoard, PlayerList, RosterView, GameHistory
+from src.ui import DraftBoard, PlayerList, RosterView, GameHistory, DraftHistory
 from src.ui.cheat_sheet import CheatSheet
 from src.ui.theme import DARK_THEME
 from src.ui.styled_widgets import StyledFrame, StyledButton
 from src.utils import generate_mock_players
 from src.services.player_pool_service import PlayerPoolService
+from src.services.draft_save_manager import DraftSaveManager
 
 
 class MockDraftApp:
@@ -72,6 +73,9 @@ class MockDraftApp:
         
         # Template manager
         self.template_manager = TemplateManager()
+        
+        # Draft save manager
+        self.draft_save_manager = DraftSaveManager()
         
         # Quick loading indicator
         loading_label = tk.Label(
@@ -195,6 +199,18 @@ class MockDraftApp:
             pady=10
         )
         self.restart_button.pack(side='left', padx=(0, 10))
+        
+        # View Saved Drafts button
+        self.view_saved_button = StyledButton(
+            button_container,
+            text="VIEW SAVED",
+            command=self.view_saved_drafts,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            padx=20,
+            pady=10
+        )
+        self.view_saved_button.pack(side='left', padx=(0, 10))
         
         # Repick Spot button
         self.repick_button = StyledButton(
@@ -391,10 +407,20 @@ class MockDraftApp:
         self._cheat_sheet_needs_sync = False
         self.cheat_sheet = None  # Will be created on first access
         
-        # Tab 3: Game History (defer creation)
+        # Tab 3: Stats (defer creation)
         self.game_history_container = StyledFrame(self.notebook, bg_type='primary')
-        self.notebook.add(self.game_history_container, text="Game History")
+        self.notebook.add(self.game_history_container, text="Stats")
         self.game_history = None  # Will be created on first access
+        
+        # Draft History tab
+        self.draft_history_container = StyledFrame(self.notebook, bg_type='primary')
+        self.notebook.add(self.draft_history_container, text="Draft History")
+        self.draft_history = None  # Will be created on first access
+        
+        # ADP tab
+        self.adp_container = StyledFrame(self.notebook, bg_type='primary')
+        self.notebook.add(self.adp_container, text="ADP")
+        self.adp_page = None  # Will be created on first access
     
     def update_display(self, full_update=True, force_refresh=False):
         # Update status
@@ -404,6 +430,11 @@ class MockDraftApp:
             self.status_label.config(text="Draft Complete!")
             self.on_clock_label.config(text="All picks have been made")
             self.draft_button.config(state="disabled", bg=DARK_THEME['button_bg'])
+            
+            # Save the completed draft
+            if not hasattr(self, '_draft_saved') or not self._draft_saved:
+                self._save_completed_draft()
+                self._draft_saved = True
         else:
             # Show appropriate status based on mode and team selection
             if self.manual_mode:
@@ -429,6 +460,11 @@ class MockDraftApp:
         
         # Update components
         if full_update:
+            # Update draft context for BPA calculations
+            current_pick = len(self.draft_engine.draft_results) + 1
+            user_team = self.teams.get(self.user_team_id) if self.user_team_id else None
+            self.player_list.set_draft_context(current_pick, user_team)
+            
             self.player_list.update_players(self.available_players, force_refresh=force_refresh)
             # Update draft button states based on mode
             self.player_list.set_draft_enabled(self.manual_mode or self.user_team_id is not None)
@@ -654,6 +690,11 @@ class MockDraftApp:
             print(f"[{time.time()-start_time:.3f}s] Updating roster view...")
             self.roster_view.update_roster_display()
             print(f"[{time.time()-start_time:.3f}s] Roster view updated")
+            
+            # Update draft history if it exists
+            if self.draft_history:
+                last_pick = self.draft_engine.draft_results[-1]
+                self.draft_history.add_pick(last_pick)
             
             # Check if we need to auto-draft next
             print(f"[{time.time()-start_time:.3f}s] Checking auto-draft...")
@@ -1000,6 +1041,9 @@ class MockDraftApp:
         # Save current user team selection
         saved_user_team = self.user_team_id
         
+        # Reset draft saved flag
+        self._draft_saved = False
+        
         # Reset teams
         self.teams = self._create_teams()
         
@@ -1068,6 +1112,10 @@ class MockDraftApp:
         # Reset last roster team tracking
         if hasattr(self, '_last_roster_team'):
             delattr(self, '_last_roster_team')
+        
+        # Clear draft history if it exists
+        if self.draft_history:
+            self.draft_history.clear_history()
         
         # Update button states based on user team
         if self.user_team_id:
@@ -1515,8 +1563,16 @@ class MockDraftApp:
     def load_players_async(self):
         """Load players in a background thread"""
         def load_players():
-            # Load players
-            players = generate_mock_players()
+            try:
+                # Load players
+                players = generate_mock_players()
+                print(f"Successfully loaded {len(players)} players")
+            except Exception as e:
+                print(f"ERROR loading players: {e}")
+                import traceback
+                traceback.print_exc()
+                # Return empty list on error
+                players = []
             
             # Update the app state from the main thread
             self.root.after(0, lambda: self.on_players_loaded(players))
@@ -1561,6 +1617,10 @@ class MockDraftApp:
         selected_tab = self.notebook.select()
         tab_text = self.notebook.tab(selected_tab, "text")
         
+        # Clean up any lingering tooltips from player list
+        if hasattr(self, 'player_list') and self.player_list:
+            self.player_list.cleanup_tooltips()
+        
         if tab_text == "Cheat Sheet":
             # Create cheat sheet on first access
             if self.cheat_sheet is None and self.players_loaded:
@@ -1574,7 +1634,7 @@ class MockDraftApp:
             if self.cheat_sheet:
                 # Force focus to cheat sheet for mouse wheel scrolling
                 self.root.after(10, lambda: self.cheat_sheet.focus_set())
-        elif tab_text == "Game History":
+        elif tab_text == "Stats":
             # Create game history on first access
             if self.game_history is None and self.players_loaded:
                 self.game_history = GameHistory(
@@ -1588,6 +1648,81 @@ class MockDraftApp:
             if self.game_history:
                 # Force focus for scrolling
                 self.root.after(10, lambda: self.game_history.focus_set())
+        elif tab_text == "Draft History":
+            # Create draft history on first access
+            if self.draft_history is None:
+                self.draft_history = DraftHistory(self.draft_history_container)
+                self.draft_history.pack(fill='both', expand=True)
+                # Initialize with current draft data
+                self.draft_history.update_draft_history(self.draft_engine.draft_results, self.teams)
+            
+            if self.draft_history:
+                # Update with latest draft data
+                self.draft_history.update_draft_history(self.draft_engine.draft_results, self.teams)
+                # Force focus for scrolling
+                self.root.after(10, lambda: self.draft_history.focus_set())
+        elif tab_text == "ADP":
+            # Check if players are loaded
+            if not self.players_loaded:
+                # Show loading message
+                if not hasattr(self, 'adp_loading_label'):
+                    self.adp_loading_label = tk.Label(
+                        self.adp_container,
+                        text="Loading player data...",
+                        bg=DARK_THEME['bg_primary'],
+                        fg=DARK_THEME['text_secondary'],
+                        font=(DARK_THEME['font_family'], 14)
+                    )
+                    self.adp_loading_label.place(relx=0.5, rely=0.5, anchor='center')
+                    
+                # Track loading attempts
+                if not hasattr(self, 'adp_loading_attempts'):
+                    self.adp_loading_attempts = 0
+                self.adp_loading_attempts += 1
+                
+                # After 10 attempts (5 seconds), show error message
+                if self.adp_loading_attempts > 10:
+                    if hasattr(self, 'adp_loading_label'):
+                        self.adp_loading_label.config(
+                            text="Failed to load player data. Please restart the application."
+                        )
+                    print("ERROR: Failed to load players after 10 attempts")
+                    return
+                    
+                # Check again in a moment
+                self.root.after(500, lambda: self.on_tab_changed(None))
+                return
+            
+            # Remove loading label if it exists
+            if hasattr(self, 'adp_loading_label'):
+                self.adp_loading_label.destroy()
+                delattr(self, 'adp_loading_label')
+            
+            # Create ADP page on first access
+            if self.adp_page is None:
+                print(f"Creating ADPPage with {len(self.all_players)} players")
+                # Debug: Show sample players
+                if self.all_players:
+                    print(f"Sample players being passed to ADPPage:")
+                    for p in self.all_players[:3]:
+                        print(f"  - {p.format_name()} ({p.position}) ADP: {p.adp}")
+                else:
+                    print("WARNING: No players available for ADPPage!")
+                    
+                from src.ui.adp_page import ADPPage
+                self.adp_page = ADPPage(
+                    self.adp_container,
+                    self.all_players,
+                    on_adp_change=self.on_adp_change
+                )
+                self.adp_page.pack(fill='both', expand=True)
+            
+            if self.adp_page:
+                # Update with latest player data in case it changed
+                self.adp_page.all_players = self.all_players
+                self.adp_page.update_display()
+                # Force focus for scrolling
+                self.root.after(10, lambda: self.adp_page.focus_set())
         elif tab_text == "Draft" and self._cheat_sheet_needs_sync and self.cheat_sheet:
             # Sync rankings when switching back to draft tab
             self._cheat_sheet_needs_sync = False
@@ -1987,6 +2122,242 @@ class MockDraftApp:
         
         # Show loading message for players
         self.show_loading_message()
+    
+    def _save_completed_draft(self):
+        """Save the completed draft to JSON"""
+        try:
+            filename = self.draft_save_manager.save_draft(
+                self.draft_engine.draft_results,
+                self.teams,
+                self.user_team_id,
+                self.manual_mode
+            )
+            
+            # Show success message
+            messagebox.showinfo(
+                "Draft Saved",
+                f"Draft saved successfully!\n\nFile: {filename}",
+                parent=self.root
+            )
+        except Exception as e:
+            messagebox.showerror(
+                "Save Error",
+                f"Failed to save draft: {str(e)}",
+                parent=self.root
+            )
+    
+    def view_saved_drafts(self):
+        """View saved draft files"""
+        saved_drafts = self.draft_save_manager.get_saved_drafts()
+        
+        if not saved_drafts:
+            messagebox.showinfo(
+                "No Saved Drafts",
+                "No saved drafts found.\n\nDrafts are automatically saved when completed.",
+                parent=self.root
+            )
+            return
+        
+        # Create dialog
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Saved Drafts")
+        dialog.geometry("600x400")
+        dialog.configure(bg=DARK_THEME['bg_primary'])
+        
+        # Header
+        header = tk.Label(
+            dialog,
+            text="SAVED DRAFTS",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 14, 'bold')
+        )
+        header.pack(pady=10)
+        
+        # List frame
+        list_frame = StyledFrame(dialog, bg_type='secondary')
+        list_frame.pack(fill='both', expand=True, padx=20, pady=(0, 20))
+        
+        # Scrollable list
+        canvas = tk.Canvas(list_frame, bg=DARK_THEME['bg_secondary'], highlightthickness=0)
+        scrollbar = tk.Scrollbar(list_frame, orient='vertical', command=canvas.yview)
+        
+        drafts_frame = tk.Frame(canvas, bg=DARK_THEME['bg_secondary'])
+        drafts_frame.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
+        
+        canvas_window = canvas.create_window((0, 0), window=drafts_frame, anchor='nw')
+        
+        # Make drafts frame expand to canvas width
+        def configure_canvas(event):
+            canvas_width = event.width
+            canvas.itemconfig(canvas_window, width=canvas_width)
+        
+        canvas.bind('<Configure>', configure_canvas)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        canvas.pack(side='left', fill='both', expand=True)
+        scrollbar.pack(side='right', fill='y')
+        
+        # Display saved drafts
+        for i, draft_info in enumerate(saved_drafts):
+            # Row background
+            row_bg = DARK_THEME['bg_tertiary'] if i % 2 == 0 else DARK_THEME['bg_secondary']
+            
+            row = tk.Frame(drafts_frame, bg=row_bg, height=60)
+            row.pack(fill='x', pady=1)
+            row.pack_propagate(False)
+            
+            # Draft info
+            info_frame = tk.Frame(row, bg=row_bg)
+            info_frame.pack(side='left', fill='both', expand=True, padx=10)
+            
+            # Filename and timestamp
+            filename_label = tk.Label(
+                info_frame,
+                text=draft_info['filename'],
+                bg=row_bg,
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 11, 'bold')
+            )
+            filename_label.pack(anchor='w', pady=(5, 0))
+            
+            # Team and mode info
+            info_text = f"Team: {draft_info['user_team']} | "
+            info_text += f"Mode: {'Manual' if draft_info['manual_mode'] else 'Normal'} | "
+            info_text += f"Picks: {draft_info['total_picks']}"
+            
+            info_label = tk.Label(
+                info_frame,
+                text=info_text,
+                bg=row_bg,
+                fg=DARK_THEME['text_secondary'],
+                font=(DARK_THEME['font_family'], 9)
+            )
+            info_label.pack(anchor='w')
+            
+            # View button
+            view_btn = StyledButton(
+                row,
+                text="VIEW",
+                command=lambda f=draft_info['filename']: self.view_draft_details(f),
+                bg=DARK_THEME['button_bg'],
+                font=(DARK_THEME['font_family'], 9),
+                padx=15,
+                pady=5
+            )
+            view_btn.pack(side='right', padx=10)
+        
+        # Close button
+        close_btn = StyledButton(
+            dialog,
+            text="CLOSE",
+            command=dialog.destroy,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 11),
+            padx=30,
+            pady=10
+        )
+        close_btn.pack(pady=(0, 20))
+    
+    def view_draft_details(self, filename):
+        """View details of a saved draft"""
+        try:
+            draft_data = self.draft_save_manager.load_draft(filename)
+            
+            # Create detail window
+            detail_window = tk.Toplevel(self.root)
+            detail_window.title(f"Draft Details - {filename}")
+            detail_window.geometry("800x600")
+            detail_window.configure(bg=DARK_THEME['bg_primary'])
+            
+            # Notebook for different views
+            notebook = ttk.Notebook(detail_window)
+            notebook.pack(fill='both', expand=True, padx=10, pady=10)
+            
+            # Summary tab
+            summary_frame = StyledFrame(notebook, bg_type='secondary')
+            notebook.add(summary_frame, text="Summary")
+            
+            # Create summary text
+            summary_text = tk.Text(
+                summary_frame,
+                bg=DARK_THEME['bg_tertiary'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 10),
+                wrap='word',
+                padx=10,
+                pady=10
+            )
+            summary_text.pack(fill='both', expand=True, padx=10, pady=10)
+            
+            # Add summary content
+            summary = draft_data.get('summary', {})
+            summary_content = f"Draft Date: {draft_data.get('timestamp', 'Unknown')}\n\n"
+            
+            if 'user_team' in summary:
+                summary_content += f"Your Team: {summary['user_team']['name']}\n"
+                summary_content += "Positions Drafted:\n"
+                for pos, count in summary['user_team']['positions_drafted'].items():
+                    summary_content += f"  {pos}: {count}\n"
+                summary_content += "\n"
+            
+            summary_content += f"Total Rounds: {summary.get('total_rounds', 0)}\n\n"
+            
+            if summary.get('value_picks'):
+                summary_content += "Best Value Picks:\n"
+                for pick in summary['value_picks'][:5]:
+                    summary_content += f"  Pick #{pick['pick']}: {pick['player']} (ADP {pick['adp']}, +{pick['value']} value)\n"
+                summary_content += "\n"
+            
+            if summary.get('reach_picks'):
+                summary_content += "Biggest Reaches:\n"
+                for pick in summary['reach_picks'][:5]:
+                    summary_content += f"  Pick #{pick['pick']}: {pick['player']} (ADP {pick['adp']}, -{pick['reach']} reach)\n"
+            
+            summary_text.insert('1.0', summary_content)
+            summary_text.config(state='disabled')
+            
+            # Picks tab
+            picks_frame = StyledFrame(notebook, bg_type='secondary')
+            notebook.add(picks_frame, text="All Picks")
+            
+            # Create picks text
+            picks_text = tk.Text(
+                picks_frame,
+                bg=DARK_THEME['bg_tertiary'],
+                fg=DARK_THEME['text_primary'],
+                font=('Courier', 10),
+                wrap='none',
+                padx=10,
+                pady=10
+            )
+            picks_scroll = tk.Scrollbar(picks_frame, command=picks_text.yview)
+            picks_text.config(yscrollcommand=picks_scroll.set)
+            
+            picks_text.pack(side='left', fill='both', expand=True, padx=(10, 0), pady=10)
+            picks_scroll.pack(side='right', fill='y', padx=(0, 10), pady=10)
+            
+            # Add picks content
+            picks_content = "Pick  Round  Team                  Position  Player\n"
+            picks_content += "-" * 70 + "\n"
+            
+            teams_dict = {t['id']: t['name'] for t in draft_data.get('teams', [])}
+            
+            for pick in draft_data.get('picks', []):
+                team_name = teams_dict.get(pick['team_id'], 'Unknown')
+                picks_content += f"{pick['pick_number']:>4}  {pick['round']:>5}.{pick['pick_in_round']:02d}  "
+                picks_content += f"{team_name:<20}  {pick['player']['position']:<8}  "
+                picks_content += f"{pick['player']['name']}\n"
+            
+            picks_text.insert('1.0', picks_content)
+            picks_text.config(state='disabled')
+            
+        except Exception as e:
+            messagebox.showerror(
+                "Error",
+                f"Failed to load draft details: {str(e)}",
+                parent=self.root
+            )
 
 
 def main():

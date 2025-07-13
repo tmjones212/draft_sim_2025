@@ -3,5 +3,6 @@ from .player_list import PlayerList
 from .roster_view import RosterView
 from .watch_list import WatchList
 from .game_history import GameHistory
+from .draft_history import DraftHistory
 
-__all__ = ['DraftBoard', 'PlayerList', 'RosterView', 'WatchList', 'GameHistory']
+__all__ = ['DraftBoard', 'PlayerList', 'RosterView', 'WatchList', 'GameHistory', 'DraftHistory']

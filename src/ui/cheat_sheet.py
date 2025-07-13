@@ -6,6 +6,7 @@ from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame, StyledButton
 import json
 import os
+import threading
 
 
 class CheatSheet(StyledFrame):
@@ -18,6 +19,8 @@ class CheatSheet(StyledFrame):
         self.custom_rankings = {}  # player_id -> custom_rank
         self.player_tiers = {}  # player_id -> tier
         self.tier_breaks = set()  # Set of indices after which tier breaks appear
+        
+        
         self.tier_colors = {
             1: '#FFD700',  # Gold
             2: '#C0C0C0',  # Silver
@@ -38,7 +41,9 @@ class CheatSheet(StyledFrame):
         
         self.setup_ui()
         self.load_rankings()
-        self.update_display()
+        
+        # Defer initial display for faster load
+        self.after(1, self.update_display)
     
     def setup_ui(self):
         # Header
@@ -54,15 +59,17 @@ class CheatSheet(StyledFrame):
         )
         title_label.pack(side='left', padx=10, pady=5)
         
+        # No mode toggle needed - always in tiers mode
+        
         # Instructions
-        instructions = tk.Label(
+        instructions_label = tk.Label(
             header_frame,
             text="(Top 100 Players • Drag to reorder • Click between rows to create tiers)",
             bg=DARK_THEME['bg_secondary'],
             fg=DARK_THEME['text_muted'],
             font=(DARK_THEME['font_family'], 10, 'italic')
         )
-        instructions.pack(side='left', padx=20)
+        instructions_label.pack(side='left', padx=10)
         
         # Save button
         save_btn = StyledButton(
@@ -169,9 +176,14 @@ class CheatSheet(StyledFrame):
         # Create headers
         self.create_headers()
     
+    
     def create_headers(self):
-        header_frame = StyledFrame(self.scrollable_frame, bg_type='tertiary')
-        header_frame.pack(fill='x', pady=(0, 5))
+        # Clear existing header if any
+        if hasattr(self, 'header_frame'):
+            self.header_frame.destroy()
+        
+        self.header_frame = StyledFrame(self.scrollable_frame, bg_type='tertiary')
+        self.header_frame.pack(fill='x', pady=(0, 5))
         
         # Column headers
         headers = [
@@ -181,13 +193,14 @@ class CheatSheet(StyledFrame):
             ("Player", 200),
             ("Team", 45),
             ("ADP", 50),
+            ("VAR", 55),
             ("2024 Pts", 70),
             ("2025 Proj", 70),
         ]
         
         for text, width in headers:
             label = tk.Label(
-                header_frame,
+                self.header_frame,
                 text=text,
                 bg=DARK_THEME['bg_tertiary'],
                 fg=DARK_THEME['text_primary'],
@@ -196,8 +209,15 @@ class CheatSheet(StyledFrame):
             )
             label.pack(side='left', padx=5)
     
-    def update_display(self):
-        # Clear existing player frames and tier separators
+    def update_display(self, force_full_refresh=False):
+        # For dragging, use quick refresh if possible
+        if hasattr(self, '_dragging') and self._dragging:
+            return  # Don't update during drag
+        
+        # Performance optimization: Store scroll position
+        scroll_pos = self.canvas.canvasy(0) if hasattr(self, 'canvas') else 0
+            
+        # Clear existing frames - we need to rebuild to get proper layout
         for frame in self.player_frames:
             frame.destroy()
         for sep in self.tier_separators:
@@ -228,8 +248,19 @@ class CheatSheet(StyledFrame):
             
             self.create_player_row(idx, player)
         
-        # Fix mouse wheel scrolling by binding to all new widgets
-        self.bind_mousewheel_to_children()
+        # Update scroll region
+        self.scrollable_frame.update_idletasks()
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        
+        # Restore scroll position
+        if scroll_pos:
+            self.canvas.yview_moveto(scroll_pos / self.canvas.winfo_height())
+        
+        # Bind mouse wheel only once on first display
+        if not hasattr(self, '_mousewheel_bound'):
+            self.bind_mousewheel_to_children()
+            self._mousewheel_bound = True
+    
     
     def get_filtered_players(self):
         position = self.position_var.get()
@@ -461,12 +492,10 @@ class CheatSheet(StyledFrame):
         def on_enter(event):
             self.canvas.focus_set()
         
-        # Bind to all widgets in the scrollable frame
-        for widget in self.scrollable_frame.winfo_children():
-            widget.bind('<MouseWheel>', on_mousewheel)
-            widget.bind('<Enter>', on_enter)
-            # Recursively bind to all children
-            self._bind_mousewheel_recursive(widget, on_mousewheel, on_enter)
+        # Bind to canvas and scrollable frame only - more efficient
+        self.canvas.bind('<MouseWheel>', on_mousewheel)
+        self.scrollable_frame.bind('<MouseWheel>', on_mousewheel)
+        self.canvas.bind('<Enter>', on_enter)
     
     def _bind_mousewheel_recursive(self, widget, scroll_callback, enter_callback):
         """Recursively bind mouse wheel to all children"""
@@ -597,35 +626,33 @@ class CheatSheet(StyledFrame):
         row_frame.bind('<Enter>', on_enter)
         row_frame.bind('<Leave>', on_leave)
         
-        # Custom rank entry
+        
+        # Custom rank display (non-editable)
         rank_frame = tk.Frame(row_frame, bg=bg, width=60)
         rank_frame.pack(side='left', fill='y')
         rank_frame.pack_propagate(False)
+        bind_drag_events(rank_frame)
         
         custom_rank = self.custom_rankings.get(player.player_id, idx + 1)
-        rank_var = tk.StringVar(value=str(custom_rank))
         
-        rank_entry = tk.Entry(
+        rank_label = tk.Label(
             rank_frame,
-            textvariable=rank_var,
-            bg=DARK_THEME['bg_hover'],
+            text=str(custom_rank),
+            bg=bg,
             fg=DARK_THEME['text_primary'],
             font=(DARK_THEME['font_family'], 10, 'bold'),
-            width=5,
-            justify='center',
-            bd=1,
-            relief='flat'
+            anchor='center'
         )
-        rank_entry.pack(expand=True)
-        rank_entry.bind('<Return>', lambda e: self.update_rank(player, rank_var.get()))
-        rank_entry.bind('<FocusOut>', lambda e: self.update_rank(player, rank_var.get()))
+        rank_label.pack(expand=True)
+        bind_drag_events(rank_label)
         
-        # Tier display
+        # Tier/Round display
         tier_frame = tk.Frame(row_frame, bg=bg, width=50)
         tier_frame.pack(side='left', fill='y')
         tier_frame.pack_propagate(False)
         bind_drag_events(tier_frame)
         
+        # Show tier
         current_tier = self.player_tiers.get(player.player_id, 0)
         tier_label = tk.Label(
             tier_frame,
@@ -634,6 +661,7 @@ class CheatSheet(StyledFrame):
             fg='black' if current_tier in [1, 2, 3, 5] else 'white',
             font=(DARK_THEME['font_family'], 10, 'bold')
         )
+        
         tier_label.pack(expand=True, fill='both', padx=2, pady=2)
         tier_label._tier_label = True  # Mark as tier label
         self.tier_entries[player.player_id] = tier_label
@@ -681,6 +709,11 @@ class CheatSheet(StyledFrame):
         adp_label = self.create_cell(row_frame, f"{player.adp:.1f}" if player.adp else '-', 50, bg)
         bind_drag_events(adp_label)
         
+        # VAR
+        var = getattr(player, 'var', None)
+        var_label = self.create_cell(row_frame, f"{var:.1f}" if var is not None else '-', 55, bg)
+        bind_drag_events(var_label)
+        
         # 2024 Points
         points = getattr(player, 'points_2024', 0)
         points_label = self.create_cell(row_frame, f"{points:.0f}" if points else '-', 70, bg)
@@ -710,19 +743,6 @@ class CheatSheet(StyledFrame):
         
         return cell_frame  # Return frame so we can bind events to it
     
-    def update_rank(self, player, new_rank_str):
-        try:
-            new_rank = int(new_rank_str)
-            if new_rank < 1:
-                new_rank = 1
-            
-            self.custom_rankings[player.player_id] = new_rank
-            self.update_display()
-            
-            if self.on_rankings_update:
-                self.on_rankings_update(self.custom_rankings, self.player_tiers)
-        except ValueError:
-            pass
     
     def cycle_tier(self, player):
         # Tiers are now managed by tier breaks
@@ -754,9 +774,8 @@ class CheatSheet(StyledFrame):
                 for widget in frame.winfo_children():
                     if isinstance(widget, tk.Frame) and widget.winfo_width() == 60:  # Rank frame
                         for child in widget.winfo_children():
-                            if isinstance(child, tk.Entry):
-                                child.delete(0, tk.END)
-                                child.insert(0, str(i + 1))
+                            if isinstance(child, tk.Label) and not hasattr(child, '_tier_label'):
+                                child.config(text=str(i + 1))
                                 break
                         break
                 
@@ -819,17 +838,17 @@ class CheatSheet(StyledFrame):
             widget_index = 0
             for widget in frame.winfo_children():
                 if widget_index == 0 and isinstance(widget, tk.Frame):
-                    # Rank entry
+                    # Rank label
                     for child in widget.winfo_children():
-                        if isinstance(child, tk.Entry):
-                            child.delete(0, tk.END)
-                            child.insert(0, str(i + 1))
+                        if isinstance(child, tk.Label) and not hasattr(child, '_tier_label'):
+                            child.config(text=str(i + 1))
                             break
                             
                 elif widget_index == 1 and isinstance(widget, tk.Frame):
-                    # Tier label
+                    # Tier/Round label
                     for child in widget.winfo_children():
                         if isinstance(child, tk.Label) and hasattr(child, '_tier_label'):
+                            # Update tier display
                             tier = self.player_tiers.get(player.player_id, 0)
                             if tier > 0:
                                 child.config(
@@ -870,6 +889,14 @@ class CheatSheet(StyledFrame):
                             break
                             
                 elif widget_index == 6 and isinstance(widget, tk.Frame):
+                    # VAR
+                    for child in widget.winfo_children():
+                        if isinstance(child, tk.Label):
+                            var = getattr(player, 'var', None)
+                            child.config(text=f"{var:.1f}" if var is not None else '-')
+                            break
+                            
+                elif widget_index == 7 and isinstance(widget, tk.Frame):
                     # 2024 Points
                     for child in widget.winfo_children():
                         if isinstance(child, tk.Label):
@@ -877,7 +904,7 @@ class CheatSheet(StyledFrame):
                             child.config(text=f"{points:.0f}" if points else '-')
                             break
                             
-                elif widget_index == 7 and isinstance(widget, tk.Frame):
+                elif widget_index == 8 and isinstance(widget, tk.Frame):
                     # 2025 Projection
                     for child in widget.winfo_children():
                         if isinstance(child, tk.Label):
@@ -893,6 +920,7 @@ class CheatSheet(StyledFrame):
         self.dragged_player = row_frame.player
         self.drag_start_y = event.y_root
         self.drag_start_index = self.player_frames.index(row_frame)
+        self._dragging = True
         
         # Simple visual feedback - dim the text
         row_frame.configure(bg=DARK_THEME['bg_hover'])
@@ -916,20 +944,41 @@ class CheatSheet(StyledFrame):
         if target_index is None:
             target_index = len(self.player_frames) - 1
         
-        # Visual feedback - just highlight border of target row
-        for i, frame in enumerate(self.player_frames):
-            if i == target_index and frame != self.dragged_row:
-                frame.configure(highlightbackground=DARK_THEME['accent_warning'], highlightthickness=2)
+        # Clear previous drop indicator
+        if hasattr(self, 'drop_indicator'):
+            self.drop_indicator.destroy()
+        
+        # Create drop indicator line
+        if target_index is not None:
+            # Get the position where the indicator should appear
+            if target_index < len(self.player_frames):
+                target_frame = self.player_frames[target_index]
+                y_pos = target_frame.winfo_y() - 2
             else:
-                frame.configure(highlightthickness=0)
+                # Dropping at the end
+                last_frame = self.player_frames[-1]
+                y_pos = last_frame.winfo_y() + last_frame.winfo_height() + 2
+            
+            # Create a bright line to show drop position
+            self.drop_indicator = tk.Frame(
+                self.scrollable_frame,
+                bg='#FF5E5B',  # Bright red
+                height=3,
+                borderwidth=0
+            )
+            self.drop_indicator.place(x=10, y=y_pos, relwidth=0.95)
+            
+            # Also highlight the dragged row more prominently
+            self.dragged_row.configure(bg=DARK_THEME['bg_hover'])
     
     def end_drag(self, event):
         if not hasattr(self, 'dragged_row'):
             return
         
         # Reset visual feedback
-        for frame in self.player_frames:
-            frame.configure(highlightthickness=0)
+        if hasattr(self, 'drop_indicator'):
+            self.drop_indicator.destroy()
+            delattr(self, 'drop_indicator')
         
         # Restore dragged row appearance
         current_idx = self.player_frames.index(self.dragged_row)
@@ -949,76 +998,68 @@ class CheatSheet(StyledFrame):
         if target_index is None:
             target_index = len(self.player_frames) - 1
         
-        # Get current rankings
-        filtered_players = self.get_filtered_players()
-        sorted_players = self.sort_players_by_custom_rank(filtered_players)
-        
-        # Find current position of dragged player
+        # Get current players and find dragged player
+        players_in_view = [frame.player for frame in self.player_frames]
         current_idx = None
-        for i, p in enumerate(sorted_players):
-            if p.player_id == self.dragged_player.player_id:
+        for i, frame in enumerate(self.player_frames):
+            if frame == self.dragged_row:
                 current_idx = i
                 break
         
-        if current_idx is not None and target_index is not None:
-            # Only reorder if position actually changed
-            if current_idx != target_index:
-                # Create new order of players
-                players_in_view = [frame.player for frame in self.player_frames]
-                
-                # Move the player in the list
-                player_to_move = players_in_view.pop(current_idx)
-                
-                # Adjust insertion point
-                insert_idx = target_index
-                if current_idx < target_index:
-                    insert_idx -= 1
-                
-                players_in_view.insert(insert_idx, player_to_move)
-                
-                # Update only the affected range
-                start_idx = min(current_idx, insert_idx)
-                end_idx = max(current_idx, insert_idx) + 1
-                
-                # Just update the entire display - it's faster and cleaner
-                # But do it in a way that doesn't destroy/recreate frames
-                self._quick_refresh(players_in_view)
-                
-                # Update custom rankings
-                self.custom_rankings = {}
-                for i, player in enumerate(players_in_view):
-                    self.custom_rankings[player.player_id] = i + 1
-                
-                # Update player tiers after reordering
-                filtered_players = self.get_filtered_players()
-                sorted_players = self.sort_players_by_custom_rank(filtered_players)[:100]
-                self.update_player_tiers_from_breaks(sorted_players)
-                
-                # Update tier labels
-                for i, player in enumerate(players_in_view):
-                    if player.player_id in self.tier_entries:
-                        label = self.tier_entries[player.player_id]
-                        tier = self.player_tiers.get(player.player_id, 0)
-                        if tier > 0:
-                            label.config(
-                                text=str(tier),
-                                bg=self.tier_colors.get(tier, DARK_THEME['bg_tertiary']),
-                                fg='black' if tier in [1, 2, 3, 5] else 'white'
-                            )
-                        else:
-                            label.config(text="-", bg=DARK_THEME['bg_tertiary'], fg=DARK_THEME['text_primary'])
-                
-                # Set flag to sync when user switches tabs
-                if hasattr(self.master.master.master, '_cheat_sheet_needs_sync'):
-                    self.master.master.master._cheat_sheet_needs_sync = True
+        if current_idx is not None and target_index is not None and current_idx != target_index:
+            # Handle tier-based dragging  
+            self._handle_tier_drag(current_idx, target_index, players_in_view)
         
         # Clean up
+        self._dragging = False
         if hasattr(self, 'dragged_row'):
             delattr(self, 'dragged_row')
         if hasattr(self, 'dragged_player'):
             delattr(self, 'dragged_player')
         if hasattr(self, 'drag_start_y'):
             delattr(self, 'drag_start_y')
+    
+    
+    def _handle_tier_drag(self, current_idx, target_idx, players_in_view):
+        """Handle dragging in tiers mode - properly manage tier assignments"""
+        # Find which tier the target position is in
+        target_tier = 1
+        for i in range(target_idx):
+            if i in self.tier_breaks:
+                target_tier += 1
+        
+        # Get the dragged player
+        dragged_player = players_in_view[current_idx]
+        
+        # Simple reordering within the same tier
+        if current_idx < target_idx:
+            # Moving down
+            players_in_view.insert(target_idx, players_in_view.pop(current_idx))
+        else:
+            # Moving up
+            players_in_view.insert(target_idx, players_in_view.pop(current_idx))
+        
+        # Update custom rankings based on new order
+        self.custom_rankings = {}
+        for i, player in enumerate(players_in_view):
+            self.custom_rankings[player.player_id] = i + 1
+        
+        # Update tier assignments based on tier breaks
+        self.player_tiers = {}
+        current_tier = 1
+        for i, player in enumerate(players_in_view):
+            self.player_tiers[player.player_id] = current_tier
+            if i + 1 in self.tier_breaks:
+                current_tier += 1
+                if current_tier > 8:
+                    current_tier = 8
+        
+        # Full refresh to update display properly
+        self.update_display()
+        
+        # Set flag to sync
+        if hasattr(self.master.master.master, '_cheat_sheet_needs_sync'):
+            self.master.master.master._cheat_sheet_needs_sync = True
     
     def save_rankings(self):
         data = {

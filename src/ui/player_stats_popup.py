@@ -698,9 +698,8 @@ class PlayerStatsPopup:
             'ff': 0, 'fr': 0, 'def_td': 0, 'pass_defended': 0
         }
         
-        # Limit weeks to show (to fit without scrolling)
-        max_weeks = 12
-        weeks_to_show = self.weekly_data[:max_weeks]
+        # Show all weeks
+        weeks_to_show = self.weekly_data
         
         # Create data rows
         for i, week_entry in enumerate(weeks_to_show):

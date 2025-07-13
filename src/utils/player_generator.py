@@ -79,12 +79,20 @@ def generate_mock_players() -> List[Player]:
     # Get real player data
     player_data = get_players_with_fallback()
     
+    print(f"DEBUG: generate_mock_players received {len(player_data)} players from get_players_with_fallback")
+    
     # Debug: Count positions in raw data
     position_counts = {}
     for p in player_data:
         pos = p.get('position', 'UNKNOWN')
         position_counts[pos] = position_counts.get(pos, 0) + 1
     print(f"DEBUG: Position counts in raw player_data: {position_counts}")
+    
+    # Debug: Show first few players
+    if player_data:
+        print(f"DEBUG: First 3 players from data:")
+        for p in player_data[:3]:
+            print(f"  - {p.get('name')} ({p.get('position')}) ADP: {p.get('adp')}")
     
     players = []
     for data in player_data:
