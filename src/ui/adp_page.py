@@ -560,23 +560,53 @@ class ADPPage(StyledFrame):
             target_player = target.player
             target_index = sorted_players.index(target_player)
             
-            # Find previous and next players to calculate ADP between them
+            # Check if we're moving within the same round
+            source_round = old_round
+            target_round = new_round
+            
+            # Simpler approach: determine where we're inserting based on visual feedback
+            # The drop indicator shows on the left or right of the target
+            
+            # Remove the dragged player from consideration
+            players_without_dragged = [p for p in sorted_players if p.player_id != player.player_id]
+            
+            # Find where we're inserting based on the drag direction
             if self.drag_data['widget'].pick_num < target.pick_num:
-                # Dragging down - insert after target
-                if target_index < len(sorted_players) - 1:
-                    next_player = sorted_players[target_index + 1]
-                    new_adp = (target_player.adp + next_player.adp) / 2.0
+                # Dragging down/right - insert AFTER the target
+                # Find target in the list without the dragged player
+                target_idx = None
+                for i, p in enumerate(players_without_dragged):
+                    if p.player_id == target_player.player_id:
+                        target_idx = i
+                        break
+                
+                if target_idx is not None and target_idx < len(players_without_dragged) - 1:
+                    # Insert between target and next
+                    new_adp = (players_without_dragged[target_idx].adp + players_without_dragged[target_idx + 1].adp) / 2.0
                 else:
-                    # At the end - add 0.5
+                    # Insert after last
                     new_adp = target_player.adp + 0.5
             else:
-                # Dragging up - insert before target
-                if target_index > 0:
-                    prev_player = sorted_players[target_index - 1]
-                    new_adp = (prev_player.adp + target_player.adp) / 2.0
+                # Dragging up/left - insert BEFORE the target
+                # Find target in the list without the dragged player
+                target_idx = None
+                for i, p in enumerate(players_without_dragged):
+                    if p.player_id == target_player.player_id:
+                        target_idx = i
+                        break
+                
+                if target_idx is not None and target_idx > 0:
+                    # Insert between previous and target
+                    new_adp = (players_without_dragged[target_idx - 1].adp + players_without_dragged[target_idx].adp) / 2.0
                 else:
-                    # At the beginning
+                    # Insert at beginning
                     new_adp = max(0.5, target_player.adp - 0.5)
+            
+            # Keep within round boundaries if moving within same round
+            if source_round == target_round:
+                round_min = (target_round - 1) * 10 + 1
+                round_max = target_round * 10
+                new_adp = max(round_min, min(new_adp, round_max - 0.01))
         else:
             # Dropped on empty slot - use the round's ADP range
             new_adp = (new_round - 1) * 10 + 5  # Middle of the round
@@ -589,8 +619,64 @@ class ADPPage(StyledFrame):
         if self.on_adp_change:
             self.on_adp_change()
         
-        # Refresh display
-        self.update_display()
+        # Quick refresh - only update the affected rounds
+        self.quick_update_rounds([old_round, new_round])
+    
+    def quick_update_rounds(self, rounds_to_update):
+        """Quickly update only specific rounds without full rebuild"""
+        # Sort players by ADP
+        sorted_players = sorted(self.all_players, key=lambda p: p.adp if p.adp else 999)
+        
+        # Group players by rounds
+        rounds = {}
+        for player in sorted_players:
+            if player.adp:
+                if player.adp <= 10:
+                    round_num = 1
+                elif player.adp <= 20:
+                    round_num = 2
+                elif player.adp <= 30:
+                    round_num = 3
+                else:
+                    round_num = int((player.adp - 1) / 10) + 1
+                
+                if round_num not in rounds:
+                    rounds[round_num] = []
+                rounds[round_num].append(player)
+        
+        # Update only the affected rounds
+        for round_num in set(rounds_to_update):
+            if round_num is None:
+                continue
+                
+            # Find the round frame
+            round_frame = None
+            for child in self.scrollable_frame.winfo_children():
+                if isinstance(child, StyledFrame) and hasattr(child, 'round_num') and child.round_num == round_num:
+                    round_frame = child
+                    break
+            
+            if round_frame:
+                # Clear existing player widgets in this round
+                for widget in round_frame.winfo_children():
+                    if isinstance(widget, tk.Frame) and hasattr(widget, 'player'):
+                        widget.destroy()
+                
+                # Re-create player widgets for this round
+                players_in_round = rounds.get(round_num, [])
+                total_in_round = len(players_in_round)
+                for i, player in enumerate(players_in_round):
+                    self.create_player_widget(round_frame, player, round_num, player.adp, i, 0, i, total_in_round)
+                
+                # Update the round header with new count
+                # Find and update the header
+                for child in self.scrollable_frame.winfo_children():
+                    if isinstance(child, tk.Frame) and child != round_frame:
+                        # Check if this is the header for our round
+                        for label in child.winfo_children():
+                            if isinstance(label, tk.Label) and f"ROUND {round_num}" in label.cget("text"):
+                                label.config(text=f"ROUND {round_num} ({total_in_round})")
+                                break
     
     def reset_adp(self):
         """Reset all custom ADP values"""
