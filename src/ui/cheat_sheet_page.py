@@ -30,15 +30,23 @@ class CheatSheetPage(StyledFrame):
     
     def load_tiers(self) -> Dict[str, List[str]]:
         """Load saved tiers from file or create default tiers"""
-        tier_file = os.path.join('data', 'cheat_sheet_tiers.json')
+        # Use absolute path to ensure consistency
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        tier_file = os.path.join(base_dir, 'data', 'cheat_sheet_tiers.json')
+        
         if os.path.exists(tier_file):
             try:
                 with open(tier_file, 'r') as f:
-                    return json.load(f)
-            except:
-                pass
+                    loaded_tiers = json.load(f)
+                    print(f"Loaded cheat sheet tiers from {tier_file}")
+                    # Ensure it's a dict with list values
+                    if isinstance(loaded_tiers, dict):
+                        return loaded_tiers
+            except Exception as e:
+                print(f"Error loading cheat sheet tiers: {e}")
         
         # Default tiers
+        print("Using default cheat sheet tiers")
         return {
             "Elite": [],
             "Tier 1": [],
@@ -52,10 +60,24 @@ class CheatSheetPage(StyledFrame):
     
     def save_tiers(self):
         """Save tiers to file"""
-        os.makedirs('data', exist_ok=True)
-        tier_file = os.path.join('data', 'cheat_sheet_tiers.json')
-        with open(tier_file, 'w') as f:
-            json.dump(self.tiers, f, indent=2)
+        # Use absolute path to ensure consistency
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        data_dir = os.path.join(base_dir, 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        
+        tier_file = os.path.join(data_dir, 'cheat_sheet_tiers.json')
+        try:
+            with open(tier_file, 'w') as f:
+                json.dump(self.tiers, f, indent=2)
+            print(f"Saved cheat sheet tiers to {tier_file}")
+        except Exception as e:
+            print(f"Error saving cheat sheet tiers: {e}")
+            # Try to show error to user
+            try:
+                from tkinter import messagebox
+                messagebox.showerror("Save Error", f"Failed to save cheat sheet: {e}")
+            except:
+                pass
     
     def setup_ui(self):
         # Header
@@ -368,22 +390,30 @@ class CheatSheetPage(StyledFrame):
         tier_frame.configure(height=max(min_height, ((len(player_ids) + 9) // 10) * 150))
         tier_frame.pack_propagate(False)
         
-        # Get player objects
+        # Get player objects in the order they appear in the tier
         players = []
         for player_id in player_ids:
             player = next((p for p in self.all_players if p.player_id == player_id), None)
             if player:
                 players.append(player)
         
-        # Create player widgets
+        # Create player widgets in order
         players_per_row = 10  # Same as ADP page
+        # Calculate starting rank based on previous tiers
+        starting_rank = 1
+        for t_name, t_players in self.tiers.items():
+            if t_name == tier_name:
+                break
+            starting_rank += len(t_players)
+        
         for i, player in enumerate(players):
             row = i // players_per_row
             col = i % players_per_row
-            self.create_player_widget(tier_frame, player, tier_name, row, col)
+            rank = starting_rank + i
+            self.create_player_widget(tier_frame, player, tier_name, row, col, rank=rank)
     
     def create_player_widget(self, parent: tk.Frame, player: Player, tier_name: Optional[str], 
-                           row: int, col: int, is_available: bool = False):
+                           row: int, col: int, is_available: bool = False, rank: Optional[int] = None):
         """Create a draggable player widget"""
         # Player container
         player_frame = tk.Frame(
@@ -458,7 +488,18 @@ class CheatSheetPage(StyledFrame):
             font=(DARK_THEME['font_family'], 10),
             wraplength=120 if is_available else 300
         )
-        name_label.pack(pady=(2, 5))
+        name_label.pack(pady=(2, 2))
+        
+        # Rank number (only for tiered players, not available)
+        if not is_available and rank is not None:
+            rank_label = tk.Label(
+                player_frame,
+                text=f"#{rank}",
+                bg=DARK_THEME['bg_tertiary'],
+                fg=DARK_THEME['text_secondary'],
+                font=(DARK_THEME['font_family'], 9, 'bold')
+            )
+            rank_label.pack(pady=(0, 3))
         
         # Make draggable
         self.make_draggable(player_frame)
@@ -705,6 +746,140 @@ class CheatSheetPage(StyledFrame):
         
         return None
     
+    def update_ranks_after_tier(self, starting_tier: str):
+        """Update only the rank labels for tiers after the given tier"""
+        # Find which tiers need updating
+        found_starting_tier = False
+        tiers_to_update = []
+        
+        for tier_name in self.tiers.keys():
+            if found_starting_tier:
+                tiers_to_update.append(tier_name)
+            elif tier_name == starting_tier:
+                found_starting_tier = True
+        
+        # Calculate the starting rank for the first tier to update
+        starting_rank = 1
+        for tier_name, player_ids in self.tiers.items():
+            if tier_name in tiers_to_update:
+                break
+            starting_rank += len(player_ids)
+        
+        # Update rank labels in each affected tier
+        current_rank = starting_rank
+        for tier_name in tiers_to_update:
+            # Find the tier frame
+            tier_frame = None
+            for widget in self.tiers_scrollable.winfo_children():
+                if isinstance(widget, StyledFrame) and hasattr(widget, 'tier_name') and widget.tier_name == tier_name:
+                    tier_frame = widget
+                    break
+            
+            if tier_frame:
+                # Update rank labels for all players in this tier
+                player_widgets = [w for w in tier_frame.winfo_children() if hasattr(w, 'player')]
+                for widget in player_widgets:
+                    # Find the rank label in this widget
+                    for child in widget.winfo_children():
+                        if isinstance(child, tk.Label) and child.cget('text').startswith('#'):
+                            child.config(text=f"#{current_rank}")
+                            current_rank += 1
+                            break
+    
+    def refresh_single_tier(self, tier_name: str):
+        """Refresh only a single tier without touching the rest of the UI"""
+        # Find the tier frame
+        tier_frame = None
+        for widget in self.tiers_scrollable.winfo_children():
+            if isinstance(widget, StyledFrame) and hasattr(widget, 'tier_name') and widget.tier_name == tier_name:
+                tier_frame = widget
+                break
+        
+        if not tier_frame:
+            return
+        
+        # Clear existing player widgets in this tier only
+        for widget in tier_frame.winfo_children():
+            if hasattr(widget, 'player'):
+                widget.destroy()
+                if widget.player.player_id in self.player_widgets:
+                    del self.player_widgets[widget.player.player_id]
+        
+        # Get the current player order from the tier
+        player_ids = self.tiers.get(tier_name, [])
+        
+        # Recreate player widgets in the correct order
+        players_per_row = 10
+        # Calculate starting rank based on previous tiers
+        starting_rank = 1
+        for t_name, t_players in self.tiers.items():
+            if t_name == tier_name:
+                break
+            starting_rank += len(t_players)
+        
+        for i, player_id in enumerate(player_ids):
+            player = next((p for p in self.all_players if p.player_id == player_id), None)
+            if player:
+                row = i // players_per_row
+                col = i % players_per_row
+                rank = starting_rank + i
+                self.create_player_widget(tier_frame, player, tier_name, row, col, rank=rank)
+        
+        # Update only the tier's scroll region if needed
+        self.tiers_scrollable.update_idletasks()
+        self.tiers_canvas.configure(scrollregion=self.tiers_canvas.bbox("all"))
+    
+    def smart_refresh_player(self, source_widget: tk.Widget, player: Player, source_tier: Optional[str], target_tier: Optional[str], target: tk.Widget):
+        """Smart refresh that only moves the specific player widget"""
+        # First, remove the source widget
+        source_widget.destroy()
+        if player.player_id in self.player_widgets:
+            del self.player_widgets[player.player_id]
+        
+        # Create new widget in the target location
+        if target_tier:
+            # Find the target tier frame
+            tier_frame = None
+            if hasattr(target, 'tier_name') and isinstance(target, StyledFrame):
+                tier_frame = target
+            else:
+                # Find the tier frame by name
+                for widget in self.tiers_scrollable.winfo_children():
+                    if isinstance(widget, StyledFrame) and hasattr(widget, 'tier_name') and widget.tier_name == target_tier:
+                        tier_frame = widget
+                        break
+            
+            if tier_frame:
+                # Count existing players in this tier
+                player_count = len([w for w in tier_frame.winfo_children() if hasattr(w, 'player')])
+                row = player_count // 10
+                col = player_count % 10
+                
+                # Calculate rank
+                starting_rank = 1
+                for t_name, t_players in self.tiers.items():
+                    if t_name == target_tier:
+                        break
+                    starting_rank += len(t_players)
+                rank = starting_rank + player_count
+                
+                self.create_player_widget(tier_frame, player, target_tier, row, col, rank=rank)
+        else:
+            # Moving to available players
+            # Find position in available list
+            available_widgets = [w for w in self.avail_scrollable.winfo_children() 
+                               if hasattr(w, 'player') and not isinstance(w, tk.Label)]
+            player_count = len(available_widgets)
+            row = player_count // 3
+            col = player_count % 3
+            self.create_player_widget(self.avail_scrollable, player, None, row, col, is_available=True)
+        
+        # Update scroll regions if needed
+        self.tiers_scrollable.update_idletasks()
+        self.tiers_canvas.configure(scrollregion=self.tiers_canvas.bbox("all"))
+        self.avail_scrollable.update_idletasks()
+        self.avail_canvas.configure(scrollregion=self.avail_canvas.bbox("all"))
+    
     def handle_drop(self, source: tk.Widget, target: tk.Widget):
         """Handle dropping a player"""
         if not hasattr(source, 'player'):
@@ -713,32 +888,63 @@ class CheatSheetPage(StyledFrame):
         player = source.player
         source_tier = source.tier_name if hasattr(source, 'tier_name') else None
         
-        # Determine target tier
+        # Determine target tier and position
+        target_tier = None
+        insert_position = None
+        
         if hasattr(target, 'tier_name'):
-            # Dropped on a tier frame
+            # Dropped on a tier frame or another player in a tier
             target_tier = target.tier_name
-        elif hasattr(target, 'player') and hasattr(target, 'tier_name'):
-            # Dropped on another player
-            target_tier = target.tier_name
+            if hasattr(target, 'player'):
+                # Dropped on another player - find its position
+                if target_tier in self.tiers:
+                    try:
+                        insert_position = self.tiers[target_tier].index(target.player.player_id)
+                    except ValueError:
+                        insert_position = len(self.tiers[target_tier])
         elif target == self.avail_scrollable:
             # Dropped back to available
             target_tier = None
         else:
             return
         
-        # Remove from source tier
+        # Remove from source tier (but remember the position if same tier)
+        old_position = None
         if source_tier:
             if player.player_id in self.tiers[source_tier]:
+                old_position = self.tiers[source_tier].index(player.player_id)
                 self.tiers[source_tier].remove(player.player_id)
         
-        # Add to target tier
+        # Add to target tier at the correct position
         if target_tier:
-            if player.player_id not in self.tiers[target_tier]:
+            if source_tier == target_tier and old_position is not None and insert_position is not None:
+                # Same tier reordering - adjust position if needed
+                if old_position < insert_position:
+                    insert_position -= 1  # Adjust for removal
+            
+            # Insert at specific position or append
+            if insert_position is not None:
+                self.tiers[target_tier].insert(insert_position, player.player_id)
+            else:
                 self.tiers[target_tier].append(player.player_id)
         
         # Save and refresh
         self.save_tiers()
-        self.update_display()
+        
+        # For same-tier moves, only refresh that tier
+        if source_tier == target_tier:
+            self.refresh_single_tier(target_tier)
+        else:
+            # Different tier - use smart refresh but also update ranks in subsequent tiers
+            self.smart_refresh_player(source, player, source_tier, target_tier, target)
+            
+            # Update ranks in all tiers after the affected tier
+            if target_tier:
+                # Moving to a tier - update tiers after target
+                self.update_ranks_after_tier(target_tier)
+            elif source_tier:
+                # Moving from a tier to available - update tiers after source
+                self.update_ranks_after_tier(source_tier)
     
     def add_tier(self):
         """Add a new tier"""
