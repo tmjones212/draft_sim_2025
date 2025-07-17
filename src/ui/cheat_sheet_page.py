@@ -209,15 +209,61 @@ class CheatSheetPage(StyledFrame):
         avail_frame = StyledFrame(parent, bg_type='secondary')
         parent.add(avail_frame)
         
-        # Header
+        # Header with controls
+        header_frame = tk.Frame(avail_frame, bg=DARK_THEME['bg_secondary'])
+        header_frame.pack(fill='x', pady=(5, 5))
+        
         header = tk.Label(
-            avail_frame,
+            header_frame,
             text="AVAILABLE PLAYERS",
             bg=DARK_THEME['bg_secondary'],
             fg=DARK_THEME['text_primary'],
             font=(DARK_THEME['font_family'], 12, 'bold')
         )
-        header.pack(pady=10)
+        header.pack(pady=5)
+        
+        # Controls frame
+        controls_frame = tk.Frame(header_frame, bg=DARK_THEME['bg_secondary'])
+        controls_frame.pack(fill='x', padx=10, pady=(0, 5))
+        
+        # Reorganize button
+        reorganize_btn = StyledButton(
+            controls_frame,
+            text="REORGANIZE",
+            command=self.reorganize_available_players,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 9),
+            padx=10,
+            pady=3
+        )
+        reorganize_btn.pack(side='left', padx=2)
+        
+        # Position filter buttons
+        self.avail_position_var = tk.StringVar(value="ALL")
+        positions = ["ALL", "QB", "RB", "WR", "TE"]
+        
+        tk.Label(
+            controls_frame,
+            text="Filter:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 9)
+        ).pack(side='left', padx=(10, 5))
+        
+        for pos in positions:
+            btn = tk.Button(
+                controls_frame,
+                text=pos,
+                command=lambda p=pos: self.filter_available_position(p),
+                bg=DARK_THEME['button_bg'] if pos == "ALL" else get_position_color(pos),
+                fg=DARK_THEME['text_primary'] if pos == "ALL" else 'white',
+                font=(DARK_THEME['font_family'], 8),
+                bd=0,
+                padx=8,
+                pady=2,
+                cursor='hand2'
+            )
+            btn.pack(side='left', padx=1)
         
         # Canvas for scrolling
         self.avail_canvas = tk.Canvas(
@@ -256,9 +302,19 @@ class CheatSheetPage(StyledFrame):
             self.avail_canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
             return "break"
         
+        # Bind to canvas and scrollable frame
         self.avail_canvas.bind('<MouseWheel>', on_mousewheel)
         self.avail_canvas.bind('<Button-4>', lambda e: self.avail_canvas.yview_scroll(-1, 'units'))
         self.avail_canvas.bind('<Button-5>', lambda e: self.avail_canvas.yview_scroll(1, 'units'))
+        
+        # Also bind to the scrollable frame and set focus on enter
+        self.avail_scrollable.bind('<MouseWheel>', on_mousewheel)
+        self.avail_scrollable.bind('<Button-4>', lambda e: self.avail_canvas.yview_scroll(-1, 'units'))
+        self.avail_scrollable.bind('<Button-5>', lambda e: self.avail_canvas.yview_scroll(1, 'units'))
+        
+        # Set focus when mouse enters
+        self.avail_canvas.bind('<Enter>', lambda e: self.avail_canvas.focus_set())
+        self.avail_scrollable.bind('<Enter>', lambda e: self.avail_canvas.focus_set())
     
     def get_player_image(self, player: Player) -> Optional[ImageTk.PhotoImage]:
         """Get or create player image"""
@@ -314,6 +370,12 @@ class CheatSheetPage(StyledFrame):
         
         # Display available players (not in any tier)
         available_players = [p for p in self.all_players if p.player_id not in tiered_player_ids]
+        
+        # Apply position filter if active
+        if hasattr(self, 'avail_position_var') and self.avail_position_var.get() != "ALL":
+            pos_filter = self.avail_position_var.get()
+            available_players = [p for p in available_players if p.position == pos_filter]
+        
         # Sort by ADP
         available_players.sort(key=lambda p: p.adp if p.adp else 999)
         
@@ -975,6 +1037,54 @@ class CheatSheetPage(StyledFrame):
             self.tiers[tier_name] = []
             self.save_tiers()
             self.update_display()
+    
+    def reorganize_available_players(self):
+        """Reorganize available players to remove gaps"""
+        # Clear and recreate all available player widgets
+        for widget in self.avail_scrollable.winfo_children():
+            if hasattr(widget, 'player') and not isinstance(widget, tk.Label):
+                widget.destroy()
+                if widget.player.player_id in self.player_widgets:
+                    del self.player_widgets[widget.player.player_id]
+        
+        # Get all available players (not in any tier)
+        tiered_player_ids = set()
+        for tier_players in self.tiers.values():
+            tiered_player_ids.update(tier_players)
+        
+        available_players = [p for p in self.all_players if p.player_id not in tiered_player_ids]
+        
+        # Apply position filter if active
+        if hasattr(self, 'avail_position_var') and self.avail_position_var.get() != "ALL":
+            pos_filter = self.avail_position_var.get()
+            available_players = [p for p in available_players if p.position == pos_filter]
+        
+        # Sort by ADP
+        available_players.sort(key=lambda p: p.adp if p.adp else 999)
+        
+        # Recreate widgets in proper grid positions
+        players_per_row = 3
+        widget_height = 145
+        spacing = 5
+        
+        if available_players:
+            total_rows = (len(available_players) + players_per_row - 1) // players_per_row
+            min_height = total_rows * (widget_height + spacing) + 20
+            self.avail_scrollable.configure(height=min_height)
+            
+            for i, player in enumerate(available_players):
+                row = i // players_per_row
+                col = i % players_per_row
+                self.create_player_widget(self.avail_scrollable, player, None, row, col, is_available=True)
+        
+        # Update scroll region
+        self.avail_scrollable.update_idletasks()
+        self.avail_canvas.configure(scrollregion=self.avail_canvas.bbox("all"))
+    
+    def filter_available_position(self, position: str):
+        """Filter available players by position"""
+        self.avail_position_var.set(position)
+        self.reorganize_available_players()
     
     def reset_tiers(self):
         """Reset to default tiers"""
