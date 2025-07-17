@@ -1687,7 +1687,8 @@ class MockDraftApp:
             if self.cheat_sheet is None and self.players_loaded:
                 self.cheat_sheet = CheatSheetPage(
                     self.cheat_sheet_container,
-                    self.all_players
+                    self.all_players,
+                    draft_app=self
                 )
                 self.cheat_sheet.pack(fill='both', expand=True)
             

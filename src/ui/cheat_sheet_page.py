@@ -10,9 +10,10 @@ import json
 
 
 class CheatSheetPage(StyledFrame):
-    def __init__(self, parent, players: List[Player], **kwargs):
+    def __init__(self, parent, players: List[Player], draft_app=None, **kwargs):
         super().__init__(parent, bg_type='primary', **kwargs)
         self.all_players = players
+        self.draft_app = draft_app
         
         # Configuration
         self.image_size = (90, 72)  # Same as ADP page
@@ -41,22 +42,67 @@ class CheatSheetPage(StyledFrame):
                     print(f"Loaded cheat sheet tiers from {tier_file}")
                     # Ensure it's a dict with list values
                     if isinstance(loaded_tiers, dict):
+                        # Check if we need to migrate from old tier names
+                        if "Elite" in loaded_tiers or "Tier 1" in loaded_tiers:
+                            print("Migrating from old tier names to round names")
+                            return self.migrate_old_tiers(loaded_tiers)
                         return loaded_tiers
             except Exception as e:
                 print(f"Error loading cheat sheet tiers: {e}")
         
-        # Default tiers
+        # Default tiers - named by rounds
         print("Using default cheat sheet tiers")
         return {
-            "Elite": [],
-            "Tier 1": [],
-            "Tier 2": [],
-            "Tier 3": [],
-            "Tier 4": [],
-            "Tier 5": [],
-            "Sleepers": [],
-            "Avoid": []
+            "Round 1": [],
+            "Round 2": [],
+            "Round 3": [],
+            "Round 4": [],
+            "Round 5": [],
+            "Round 6": [],
+            "Round 7": [],
+            "Round 8": [],
+            "Round 9": [],
+            "Round 10": [],
+            "Round 11": [],
+            "Round 12": [],
+            "Round 13": [],
+            "Round 14": [],
+            "Round 15": []
         }
+    
+    def migrate_old_tiers(self, old_tiers: Dict[str, List[str]]) -> Dict[str, List[str]]:
+        """Migrate from old tier names to round names"""
+        new_tiers = {}
+        
+        # Mapping of old names to new names
+        name_mapping = {
+            "Elite": "Round 1",
+            "Tier 1": "Round 2", 
+            "Tier 2": "Round 3",
+            "Tier 3": "Round 4",
+            "Tier 4": "Round 5",
+            "Tier 5": "Round 6",
+            "Sleepers": "Round 7",
+            "Avoid": "Round 8"
+        }
+        
+        # Migrate existing data
+        for old_name, players in old_tiers.items():
+            new_name = name_mapping.get(old_name, old_name)
+            if new_name.startswith("Round"):
+                new_tiers[new_name] = players
+        
+        # Add any missing rounds
+        for i in range(1, 16):
+            round_name = f"Round {i}"
+            if round_name not in new_tiers:
+                new_tiers[round_name] = []
+        
+        # Save the migrated data
+        self.tiers = new_tiers
+        self.save_tiers()
+        
+        return new_tiers
     
     def save_tiers(self):
         """Save tiers to file"""
@@ -130,6 +176,21 @@ class CheatSheetPage(StyledFrame):
             pady=5
         )
         reset_btn.pack(side='left', padx=5)
+        
+        # Show available only checkbox
+        self.show_available_only = tk.BooleanVar(value=False)
+        available_check = tk.Checkbutton(
+            header_frame,
+            text="Show Available Only",
+            variable=self.show_available_only,
+            command=self.update_display,
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            selectcolor=DARK_THEME['bg_tertiary'],
+            activebackground=DARK_THEME['bg_secondary']
+        )
+        available_check.pack(side='right', padx=(5, 20))
         
         # Main content area with scrolling
         content_frame = StyledFrame(self, bg_type='primary')
@@ -316,6 +377,17 @@ class CheatSheetPage(StyledFrame):
         self.avail_canvas.bind('<Enter>', lambda e: self.avail_canvas.focus_set())
         self.avail_scrollable.bind('<Enter>', lambda e: self.avail_canvas.focus_set())
     
+    def calculate_snake_draft_picks(self, draft_position: int, num_teams: int, num_rounds: int) -> List[int]:
+        """Calculate all picks for a given draft position in a snake draft"""
+        picks = []
+        for round_num in range(1, num_rounds + 1):
+            if round_num % 2 == 1:  # Odd rounds go forward
+                pick = (round_num - 1) * num_teams + draft_position
+            else:  # Even rounds go backward
+                pick = round_num * num_teams - draft_position + 1
+            picks.append(pick)
+        return picks
+    
     def get_player_image(self, player: Player) -> Optional[ImageTk.PhotoImage]:
         """Get or create player image"""
         if player.player_id in self.player_images:
@@ -353,16 +425,23 @@ class CheatSheetPage(StyledFrame):
         for tier_players in self.tiers.values():
             tiered_player_ids.update(tier_players)
         
-        # Display tiers
+        # Display tiers - colors for rounds
         tier_colors = {
-            "Elite": '#FF5E5B',      # Red
-            "Tier 1": '#FFB347',     # Orange
-            "Tier 2": '#FFD700',     # Gold
-            "Tier 3": '#4ECDC4',     # Teal
-            "Tier 4": '#7B68EE',     # Purple
-            "Tier 5": '#87CEEB',     # Sky Blue
-            "Sleepers": '#90EE90',   # Light Green
-            "Avoid": '#DC143C'       # Crimson
+            "Round 1": '#FF5E5B',      # Red
+            "Round 2": '#FFB347',      # Orange
+            "Round 3": '#FFD700',      # Gold
+            "Round 4": '#4ECDC4',      # Teal
+            "Round 5": '#7B68EE',      # Purple
+            "Round 6": '#87CEEB',      # Sky Blue
+            "Round 7": '#90EE90',      # Light Green
+            "Round 8": '#FF69B4',      # Hot Pink
+            "Round 9": '#DDA0DD',      # Plum
+            "Round 10": '#F0E68C',     # Khaki
+            "Round 11": '#B0C4DE',     # Light Steel Blue
+            "Round 12": '#F4A460',     # Sandy Brown
+            "Round 13": '#D3D3D3',     # Light Gray
+            "Round 14": '#98FB98',     # Pale Green
+            "Round 15": '#FFE4B5'      # Moccasin
         }
         
         for tier_name, player_ids in self.tiers.items():
@@ -370,6 +449,15 @@ class CheatSheetPage(StyledFrame):
         
         # Display available players (not in any tier)
         available_players = [p for p in self.all_players if p.player_id not in tiered_player_ids]
+        
+        # Filter out drafted players if show_available_only is checked
+        if hasattr(self, 'show_available_only') and self.show_available_only.get():
+            try:
+                if self.draft_app and hasattr(self.draft_app, 'draft_engine'):
+                    drafted_ids = {pick.player.player_id for pick in self.draft_app.draft_engine.draft_history}
+                    available_players = [p for p in available_players if p.player_id not in drafted_ids]
+            except:
+                pass
         
         # Apply position filter if active
         if hasattr(self, 'avail_position_var') and self.avail_position_var.get() != "ALL":
@@ -412,15 +500,49 @@ class CheatSheetPage(StyledFrame):
         self.avail_canvas.configure(scrollregion=self.avail_canvas.bbox("all"))
     
     def create_tier_section(self, tier_name: str, player_ids: List[str], color: str):
-        """Create a tier section with header and players"""
-        # Tier header
+        """Create a round section with header and players"""
+        # Round header
         header_frame = tk.Frame(self.tiers_scrollable, bg=DARK_THEME['bg_primary'], height=35)
         header_frame.pack(fill='x', padx=0, pady=(5, 2))
         
-        # Tier label
+        # Get the specific pick number for this round
+        my_pick_num = None
+        try:
+            # Extract round number from tier name (e.g., "Round 1" -> 1)
+            if tier_name.startswith("Round "):
+                round_num = int(tier_name.split(" ")[1])
+                
+                # Try to get draft position from draft app
+                draft_pos = None
+                
+                if self.draft_app and hasattr(self.draft_app, 'user_team_id') and self.draft_app.user_team_id is not None:
+                    # Teams dict uses integer keys, user_team_id is an integer
+                    # Find the position based on sorted team IDs
+                    sorted_team_ids = sorted(self.draft_app.teams.keys())
+                    for i, team_id in enumerate(sorted_team_ids):
+                        if team_id == self.draft_app.user_team_id:
+                            draft_pos = i + 1  # 1-based position
+                            break
+                else:
+                    # Default to position 8 if no team selected
+                    draft_pos = 8
+                    
+                if draft_pos:
+                        # Calculate snake draft picks (10 team league)
+                        my_picks = self.calculate_snake_draft_picks(draft_pos, 10, 20)
+                        if round_num <= len(my_picks):
+                            my_pick_num = my_picks[round_num - 1]  # 0-based index
+        except Exception as e:
+            print(f"Error getting pick number: {e}")
+        
+        # Round label with pick info
+        tier_text = f"{tier_name} ({len(player_ids)})"
+        if my_pick_num:
+            tier_text = f"{tier_name} - Pick {my_pick_num}"
+        
         tier_label = tk.Label(
             header_frame,
-            text=f"{tier_name.upper()} ({len(player_ids)})",
+            text=tier_text,
             bg=color,
             fg='white',
             font=(DARK_THEME['font_family'], 12, 'bold'),
@@ -454,7 +576,20 @@ class CheatSheetPage(StyledFrame):
         
         # Get player objects in the order they appear in the tier
         players = []
+        # Get list of drafted players if needed
+        drafted_ids = set()
+        if hasattr(self, 'show_available_only') and self.show_available_only.get():
+            # Get drafted player IDs from draft app if available
+            try:
+                if self.draft_app and hasattr(self.draft_app, 'draft_engine'):
+                    drafted_ids = {pick.player.player_id for pick in self.draft_app.draft_engine.draft_history}
+            except:
+                pass
+        
         for player_id in player_ids:
+            # Skip drafted players if show_available_only is checked
+            if player_id in drafted_ids:
+                continue
             player = next((p for p in self.all_players if p.player_id == player_id), None)
             if player:
                 players.append(player)
@@ -1090,14 +1225,21 @@ class CheatSheetPage(StyledFrame):
         """Reset to default tiers"""
         if messagebox.askyesno("Reset Tiers", "Reset to default tiers? This will clear all custom rankings."):
             self.tiers = {
-                "Elite": [],
-                "Tier 1": [],
-                "Tier 2": [],
-                "Tier 3": [],
-                "Tier 4": [],
-                "Tier 5": [],
-                "Sleepers": [],
-                "Avoid": []
+                "Round 1": [],
+                "Round 2": [],
+                "Round 3": [],
+                "Round 4": [],
+                "Round 5": [],
+                "Round 6": [],
+                "Round 7": [],
+                "Round 8": [],
+                "Round 9": [],
+                "Round 10": [],
+                "Round 11": [],
+                "Round 12": [],
+                "Round 13": [],
+                "Round 14": [],
+                "Round 15": []
             }
             self.save_tiers()
             self.update_display()
