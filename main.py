@@ -11,15 +11,17 @@ sys.path.insert(0, current_dir)
 
 import config
 from src.models import Team, Player
+from src.models.draft_preset import PlayerExclusion
 from src.core import DraftEngine, DraftPick
 from src.core.template_manager import TemplateManager
 from src.ui import DraftBoard, PlayerList, RosterView, GameHistory, DraftHistory
-from src.ui.cheat_sheet import CheatSheet
+from src.ui.cheat_sheet_page import CheatSheetPage
 from src.ui.theme import DARK_THEME
 from src.ui.styled_widgets import StyledFrame, StyledButton
 from src.utils import generate_mock_players
 from src.services.player_pool_service import PlayerPoolService
 from src.services.draft_save_manager import DraftSaveManager
+from src.services.draft_preset_manager import DraftPresetManager
 
 
 class MockDraftApp:
@@ -35,6 +37,12 @@ class MockDraftApp:
         
         # Center the window on screen after UI loads
         self.root.after(100, self.center_window)
+        
+        # Initialize draft preset manager first (needed by _create_teams)
+        self.draft_preset_manager = DraftPresetManager()
+        # Create default preset if no presets exist
+        if not self.draft_preset_manager.list_preset_names():
+            self.draft_preset_manager.create_default_preset()
         
         # Initialize draft components
         self.teams = self._create_teams()
@@ -109,10 +117,18 @@ class MockDraftApp:
     
     def _create_teams(self):
         teams = {}
+        active_preset = self.draft_preset_manager.get_active_preset()
+        
         for i in range(1, config.num_teams + 1):
+            # Get team name from preset if available
+            if active_preset and active_preset.enabled:
+                team_name = active_preset.get_team_name(i - 1)  # 0-based index
+            else:
+                team_name = f"Team {i}"
+            
             teams[i] = Team(
                 team_id=i,
-                name=f"Team {i}",
+                name=team_name,
                 roster_spots=config.roster_spots
             )
         return teams
@@ -211,6 +227,18 @@ class MockDraftApp:
             pady=10
         )
         self.view_saved_button.pack(side='left', padx=(0, 10))
+        
+        # Preset button
+        self.preset_button = StyledButton(
+            button_container,
+            text="PRESETS",
+            command=self.show_preset_dialog,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            padx=20,
+            pady=10
+        )
+        self.preset_button.pack(side='left', padx=(0, 10))
         
         # Repick Spot button
         self.repick_button = StyledButton(
@@ -560,19 +588,23 @@ class MockDraftApp:
         """Handle team selection for user control"""
         self.user_team_id = team_id
         
-        # Rename other teams to league member names
-        league_names = ["Luan", "Joey", "Jerwan", "Karwan", "Johnson", "Erich", "Stan", "Pat", "Peter"]
-        random.shuffle(league_names)  # Randomize the assignment
-        
-        name_index = 0
-        for tid, team in self.teams.items():
-            if tid != team_id:  # Don't rename the user's team
-                if name_index < len(league_names):
-                    team.name = league_names[name_index]
-                    name_index += 1
-        
-        # Update the draft board with new team names
-        self.draft_board.update_team_names(self.teams)
+        # Check if preset is active - if so, don't rename teams
+        active_preset = self.draft_preset_manager.get_active_preset()
+        if not active_preset or not active_preset.enabled:
+            # Only rename teams if no preset is active
+            # Rename other teams to league member names
+            league_names = ["Luan", "Joey", "Jerwan", "Karwan", "Johnson", "Erich", "Stan", "Pat", "Peter"]
+            random.shuffle(league_names)  # Randomize the assignment
+            
+            name_index = 0
+            for tid, team in self.teams.items():
+                if tid != team_id:  # Don't rename the user's team
+                    if name_index < len(league_names):
+                        team.name = league_names[name_index]
+                        name_index += 1
+            
+            # Update the draft board with new team names
+            self.draft_board.update_team_names(self.teams)
         
         # Hide the banner when team is selected
         self.draft_spot_banner.pack_forget()
@@ -819,10 +851,17 @@ class MockDraftApp:
     
     def _select_computer_pick(self, team, pick_num):
         """Select a player for computer team based on smart drafting logic"""
+        # Check preset exclusions first
+        active_preset = self.draft_preset_manager.get_active_preset()
+        
         # Quick path for very early picks
         if pick_num <= 3:
-            # Just take best available for first 3 picks
-            return self.available_players[0] if self.available_players else None
+            # Check preset exclusions even for early picks
+            for player in self.available_players:
+                if active_preset and active_preset.is_player_excluded(team.name, player.name):
+                    continue  # Skip excluded player
+                return player  # Return first non-excluded player
+            return None
         
         # Get cached position counts or calculate
         if team.id in self._position_counts_cache:
@@ -862,6 +901,10 @@ class MockDraftApp:
         for i, player in enumerate(self.available_players[:consider_range]):
             pos = player.position
             
+            # Check preset exclusions
+            if active_preset and active_preset.is_player_excluded(team.name, player.name):
+                continue  # Skip excluded player
+            
             # Check if pick is too much of a reach
             if player.adp > pick_num + max_adp_reach:
                 continue  # Don't reach too far
@@ -893,6 +936,9 @@ class MockDraftApp:
         if not eligible_players:
             # If no eligible players, take best available non-K/DEF
             for player in self.available_players:
+                # Check preset exclusions even in fallback
+                if active_preset and active_preset.is_player_excluded(team.name, player.name):
+                    continue  # Skip excluded player
                 if player.position not in ['K', 'DEF'] or pick_num >= 120:
                     return player
             return self.available_players[0] if self.available_players else None
@@ -1606,6 +1652,21 @@ class MockDraftApp:
         # Update display with loaded players
         self.update_display(full_update=True)
         
+        # Check if preset should set user team
+        active_preset = self.draft_preset_manager.get_active_preset()
+        if active_preset and active_preset.enabled:
+            user_team_name = active_preset.get_user_team_name()
+            if user_team_name:
+                # Find the team ID for the user's team
+                for team_id, team in self.teams.items():
+                    if team.name == user_team_name:
+                        self.user_team_id = team_id
+                        # Update draft board to show user control
+                        self.draft_board.set_user_team(team_id)
+                        # Hide the draft spot banner since preset handles it
+                        self.draft_spot_banner.pack_forget()
+                        break
+        
         # Don't auto-draft immediately - wait for user to select a team
         # Only show a message prompting user to select a team
         if not self.user_team_id:
@@ -1624,10 +1685,9 @@ class MockDraftApp:
         if tab_text == "Cheat Sheet":
             # Create cheat sheet on first access
             if self.cheat_sheet is None and self.players_loaded:
-                self.cheat_sheet = CheatSheet(
+                self.cheat_sheet = CheatSheetPage(
                     self.cheat_sheet_container,
-                    self.all_players,
-                    on_rankings_update=self.on_cheat_sheet_update
+                    self.all_players
                 )
                 self.cheat_sheet.pack(fill='both', expand=True)
             
@@ -1726,7 +1786,7 @@ class MockDraftApp:
         elif tab_text == "Draft" and self._cheat_sheet_needs_sync and self.cheat_sheet:
             # Sync rankings when switching back to draft tab
             self._cheat_sheet_needs_sync = False
-            self.on_cheat_sheet_update(self.cheat_sheet.custom_rankings, self.cheat_sheet.player_tiers)
+            # No longer needed with new cheat sheet implementation
     
     def show_pick_quality(self, player, pick_num):
         """Show a notification about pick quality"""
@@ -2358,6 +2418,267 @@ class MockDraftApp:
                 f"Failed to load draft details: {str(e)}",
                 parent=self.root
             )
+    
+    def show_preset_dialog(self):
+        """Show dialog for managing draft presets"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Draft Presets")
+        dialog.geometry("600x500")
+        dialog.configure(bg=DARK_THEME['bg_primary'])
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # Header
+        header = tk.Label(
+            dialog,
+            text="Draft Presets",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 14, 'bold')
+        )
+        header.pack(pady=10)
+        
+        # Active preset display
+        active_preset = self.draft_preset_manager.get_active_preset()
+        active_name = self.draft_preset_manager.active_preset_name or "None"
+        
+        active_frame = StyledFrame(dialog, bg_type='secondary')
+        active_frame.pack(fill='x', padx=20, pady=(0, 10))
+        
+        active_label = tk.Label(
+            active_frame,
+            text=f"Active Preset: {active_name}",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 11)
+        )
+        active_label.pack(pady=5)
+        
+        # Preset list
+        list_frame = StyledFrame(dialog, bg_type='secondary')
+        list_frame.pack(fill='both', expand=True, padx=20, pady=10)
+        
+        # Listbox for presets
+        listbox = tk.Listbox(
+            list_frame,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            selectbackground=DARK_THEME['bg_secondary'],
+            selectforeground=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            height=10
+        )
+        listbox.pack(fill='both', expand=True, padx=10, pady=10)
+        
+        # Populate listbox
+        preset_names = self.draft_preset_manager.list_preset_names()
+        for name in preset_names:
+            listbox.insert(tk.END, name)
+        
+        # Button frame
+        button_frame = StyledFrame(dialog, bg_type='primary')
+        button_frame.pack(fill='x', padx=20, pady=10)
+        
+        def activate_preset():
+            selection = listbox.curselection()
+            if selection:
+                preset_name = listbox.get(selection[0])
+                preset = self.draft_preset_manager.get_preset(preset_name)
+                if preset:
+                    preset.enabled = True
+                    self.draft_preset_manager.create_preset(preset_name, preset)
+                    self.draft_preset_manager.set_active_preset(preset_name)
+                    active_label.config(text=f"Active Preset: {preset_name}")
+                    messagebox.showinfo(
+                        "Preset Activated",
+                        f"'{preset_name}' is now active. Restart the draft to apply changes.",
+                        parent=dialog
+                    )
+        
+        def deactivate_preset():
+            self.draft_preset_manager.set_active_preset(None)
+            active_label.config(text="Active Preset: None")
+            messagebox.showinfo(
+                "Preset Deactivated",
+                "No preset is active. Restart the draft to apply changes.",
+                parent=dialog
+            )
+        
+        def edit_preset():
+            selection = listbox.curselection()
+            if selection:
+                preset_name = listbox.get(selection[0])
+                preset = self.draft_preset_manager.get_preset(preset_name)
+                if preset:
+                    self.show_preset_editor(preset_name, preset, dialog)
+        
+        # Buttons
+        activate_btn = StyledButton(
+            button_frame,
+            text="ACTIVATE",
+            command=activate_preset,
+            bg=DARK_THEME['button_active'],
+            font=(DARK_THEME['font_family'], 10),
+            padx=15,
+            pady=5
+        )
+        activate_btn.pack(side='left', padx=5)
+        
+        deactivate_btn = StyledButton(
+            button_frame,
+            text="DEACTIVATE",
+            command=deactivate_preset,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 10),
+            padx=15,
+            pady=5
+        )
+        deactivate_btn.pack(side='left', padx=5)
+        
+        edit_btn = StyledButton(
+            button_frame,
+            text="EDIT",
+            command=edit_preset,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 10),
+            padx=15,
+            pady=5
+        )
+        edit_btn.pack(side='left', padx=5)
+        
+        # Close button
+        close_btn = StyledButton(
+            dialog,
+            text="CLOSE",
+            command=dialog.destroy,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 11),
+            padx=30,
+            pady=10
+        )
+        close_btn.pack(pady=(0, 20))
+    
+    def show_preset_editor(self, preset_name, preset, parent_dialog):
+        """Show preset editor dialog"""
+        editor = tk.Toplevel(parent_dialog)
+        editor.title(f"Edit Preset: {preset_name}")
+        editor.geometry("500x600")
+        editor.configure(bg=DARK_THEME['bg_primary'])
+        editor.transient(parent_dialog)
+        editor.grab_set()
+        
+        # Header
+        header = tk.Label(
+            editor,
+            text=f"Editing: {preset_name}",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 12, 'bold')
+        )
+        header.pack(pady=10)
+        
+        # Draft order section
+        order_label = tk.Label(
+            editor,
+            text="Draft Order (one name per line):",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        order_label.pack(pady=(10, 5))
+        
+        order_text = tk.Text(
+            editor,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            height=12,
+            width=40
+        )
+        order_text.pack(padx=20, pady=(0, 10))
+        
+        # Insert current draft order
+        for name in preset.draft_order:
+            order_text.insert(tk.END, name + '\n')
+        
+        # User position
+        pos_frame = StyledFrame(editor, bg_type='secondary')
+        pos_frame.pack(fill='x', padx=20, pady=10)
+        
+        pos_label = tk.Label(
+            pos_frame,
+            text=f"Your Position: {preset.user_position + 1} ({preset.draft_order[preset.user_position] if preset.user_position < len(preset.draft_order) else 'N/A'})",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        pos_label.pack(pady=5)
+        
+        # Exclusions section
+        exc_label = tk.Label(
+            editor,
+            text="Player Exclusions:",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        exc_label.pack(pady=(10, 5))
+        
+        exc_text = tk.Text(
+            editor,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            height=6,
+            width=40
+        )
+        exc_text.pack(padx=20, pady=(0, 10))
+        
+        # Insert current exclusions
+        for exc in preset.player_exclusions:
+            if exc.enabled:
+                exc_text.insert(tk.END, f"{exc.team_name}: {exc.player_name}\n")
+        
+        # Save button
+        def save_preset():
+            # Parse draft order
+            draft_order = [line.strip() for line in order_text.get(1.0, tk.END).split('\n') if line.strip()]
+            
+            # Parse exclusions
+            exclusions = []
+            for line in exc_text.get(1.0, tk.END).split('\n'):
+                if ':' in line:
+                    parts = line.split(':', 1)
+                    if len(parts) == 2:
+                        team_name = parts[0].strip()
+                        player_name = parts[1].strip()
+                        if team_name and player_name:
+                            exclusions.append(PlayerExclusion(team_name, player_name, True))
+            
+            # Update preset
+            preset.draft_order = draft_order
+            preset.player_exclusions = exclusions
+            
+            # Save
+            self.draft_preset_manager.create_preset(preset_name, preset)
+            
+            messagebox.showinfo(
+                "Preset Saved",
+                f"'{preset_name}' has been updated.",
+                parent=editor
+            )
+            editor.destroy()
+        
+        save_btn = StyledButton(
+            editor,
+            text="SAVE",
+            command=save_preset,
+            bg=DARK_THEME['button_active'],
+            font=(DARK_THEME['font_family'], 11),
+            padx=30,
+            pady=10
+        )
+        save_btn.pack(pady=(0, 20))
 
 
 def main():

@@ -660,3 +660,7 @@ class DraftBoard(StyledFrame):
         for team_id, team in teams.items():
             if team_id in self.team_labels:
                 self.team_labels[team_id].config(text=team.name)
+    
+    def set_user_team(self, team_id: int):
+        """Set the user's team and update the UI accordingly"""
+        self.select_team(team_id)

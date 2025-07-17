@@ -4,6 +4,7 @@ from .roster_management_service import RosterManagementService
 from .player_image_service import PlayerImageService
 from .custom_adp_manager import CustomADPManager
 from .custom_round_manager import CustomRoundManager
+from .draft_preset_manager import DraftPresetManager
 
 __all__ = [
     'DraftOrderService',
@@ -11,5 +12,6 @@ __all__ = [
     'RosterManagementService',
     'PlayerImageService',
     'CustomADPManager',
-    'CustomRoundManager'
+    'CustomRoundManager',
+    'DraftPresetManager'
 ]
