@@ -18,6 +18,57 @@ class CheatSheetPage(StyledFrame):
         # Configuration
         self.image_size = (90, 72)  # Same as ADP page
         
+        # Nickname mappings
+        self.nicknames = {
+            'AMON-RA ST. BROWN': 'Sun God',
+            'AMON RA ST BROWN': 'Sun God',
+            'JAMESON WILLIAMS': 'Jamo',
+            'JUSTIN JEFFERSON': 'JJ',
+            'JA\'MARR CHASE': 'Chase',
+            'CEEDEE LAMB': 'CD',
+            'TYREEK HILL': 'Cheetah',
+            'CHRISTIAN MCCAFFREY': 'CMC',
+            'JONATHAN TAYLOR': 'JT',
+            'BREECE HALL': 'Breece',
+            'BIJAN ROBINSON': 'Bijan',
+            'JAHMYR GIBBS': 'Gibbs',
+            'CHRIS OLAVE': 'Olave',
+            'BRANDON AIYUK': 'Aiyuk',
+            'DEEBO SAMUEL': 'Deebo',
+            'AJ BROWN': 'AJB',
+            'DAVANTE ADAMS': 'Tae',
+            'STEFON DIGGS': 'Diggs',
+            'CALVIN RIDLEY': 'Ridley',
+            'DK METCALF': 'DK',
+            'MIKE EVANS': 'Evans',
+            'AMARI COOPER': 'Coop',
+            'JAYLEN WADDLE': 'Waddle',
+            'CHRISTIAN WATSON': 'Watson',
+            'TEE HIGGINS': 'Tee',
+            'MICHAEL PITTMAN': 'MPJ',
+            'JAHAN DOTSON': 'JD',
+            'TRAVIS KELCE': 'Kelce',
+            'MARK ANDREWS': 'Mandrews',
+            'TJ HOCKENSON': 'Hock',
+            'KYLE PITTS': 'Pitts',
+            'DARREN WALLER': 'Waller',
+            'GEORGE KITTLE': 'Kittle',
+            'DALLAS GOEDERT': 'Goedert',
+            'JOSH ALLEN': 'JA17',
+            'JALEN HURTS': 'Hurts',
+            'PATRICK MAHOMES': 'Mahomes',
+            'LAMAR JACKSON': 'Lamar',
+            'JOE BURROW': 'Joey B',
+            'JUSTIN HERBERT': 'Herbie',
+            'TREVOR LAWRENCE': 'TLaw',
+            'DANIEL JONES': 'Danny Dimes',
+            'JORDAN LOVE': 'Love',
+            'CJ STROUD': 'CJ',
+            'ANTHONY RICHARDSON': 'AR',
+            'BRYCE YOUNG': 'BY',
+            'WILL LEVIS': 'Levis'
+        }
+        
         # State
         self.player_images = {}  # Cache player images
         self.player_widgets = {}  # Map player_id to widget
@@ -28,6 +79,62 @@ class CheatSheetPage(StyledFrame):
         self.setup_ui()
         # Delay initial display to ensure UI is ready
         self.after(10, self.update_display)
+        
+        # Set up recursive mouse wheel binding after initial display
+        self.after(100, self.setup_recursive_mousewheel)
+    
+    def get_short_name(self, player: Player) -> str:
+        """Get short name (nickname or last name) for a player"""
+        # First check for nicknames using formatted name
+        formatted = player.format_name() if hasattr(player, 'format_name') else player.name.upper()
+        
+        # Check if we have a nickname for this player
+        if formatted in self.nicknames:
+            return self.nicknames[formatted]
+        
+        # Otherwise, extract last name
+        # Remove any parenthetical info first
+        name = player.name.split('(')[0].strip()
+        
+        # Handle special suffixes
+        name = name.replace(' JR', '').replace(' SR', '').replace(' III', '').replace(' II', '').replace(' IV', '').replace(' V', '')
+        
+        # Split and get last part
+        parts = name.split()
+        if len(parts) > 1:
+            # For names like "Amon-Ra St. Brown", we want "St. Brown"
+            if len(parts) >= 3 and parts[-2].lower() in ['st', 'st.', 'de', 'van', 'von']:
+                return f"{parts[-2]} {parts[-1]}"
+            else:
+                return parts[-1]
+        else:
+            return name
+    
+    def setup_recursive_mousewheel(self):
+        """Recursively bind mouse wheel events to all widgets"""
+        def bind_mousewheel_to_widget(widget, canvas):
+            """Bind mouse wheel events to a widget and all its children"""
+            def on_mousewheel(event):
+                canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
+                return "break"
+            
+            # Bind to this widget
+            widget.bind('<MouseWheel>', on_mousewheel)
+            widget.bind('<Button-4>', lambda e: canvas.yview_scroll(-1, 'units'))
+            widget.bind('<Button-5>', lambda e: canvas.yview_scroll(1, 'units'))
+            widget.bind('<Enter>', lambda e: canvas.focus_set())
+            
+            # Recursively bind to all children
+            for child in widget.winfo_children():
+                bind_mousewheel_to_widget(child, canvas)
+        
+        # Bind to tiers area
+        if hasattr(self, 'tiers_scrollable') and hasattr(self, 'tiers_canvas'):
+            bind_mousewheel_to_widget(self.tiers_scrollable, self.tiers_canvas)
+        
+        # Bind to available players area
+        if hasattr(self, 'avail_scrollable') and hasattr(self, 'avail_canvas'):
+            bind_mousewheel_to_widget(self.avail_scrollable, self.avail_canvas)
     
     def load_tiers(self) -> Dict[str, List[str]]:
         """Load saved tiers from file or create default tiers"""
@@ -261,9 +368,18 @@ class CheatSheetPage(StyledFrame):
             self.tiers_canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
             return "break"
         
+        # Bind to canvas, scrollable frame, and all children
         self.tiers_canvas.bind('<MouseWheel>', on_mousewheel)
         self.tiers_canvas.bind('<Button-4>', lambda e: self.tiers_canvas.yview_scroll(-1, 'units'))
         self.tiers_canvas.bind('<Button-5>', lambda e: self.tiers_canvas.yview_scroll(1, 'units'))
+        
+        self.tiers_scrollable.bind('<MouseWheel>', on_mousewheel)
+        self.tiers_scrollable.bind('<Button-4>', lambda e: self.tiers_canvas.yview_scroll(-1, 'units'))
+        self.tiers_scrollable.bind('<Button-5>', lambda e: self.tiers_canvas.yview_scroll(1, 'units'))
+        
+        # Set focus when mouse enters
+        self.tiers_canvas.bind('<Enter>', lambda e: self.tiers_canvas.focus_set())
+        self.tiers_scrollable.bind('<Enter>', lambda e: self.tiers_canvas.focus_set())
     
     def create_available_panel(self, parent):
         """Create the available players panel"""
@@ -378,13 +494,24 @@ class CheatSheetPage(StyledFrame):
         self.avail_scrollable.bind('<Enter>', lambda e: self.avail_canvas.focus_set())
     
     def calculate_snake_draft_picks(self, draft_position: int, num_teams: int, num_rounds: int) -> List[int]:
-        """Calculate all picks for a given draft position in a snake draft"""
+        """Calculate all picks for a given draft position in a snake draft with 3rd round reversal"""
         picks = []
         for round_num in range(1, num_rounds + 1):
-            if round_num % 2 == 1:  # Odd rounds go forward
-                pick = (round_num - 1) * num_teams + draft_position
-            else:  # Even rounds go backward
-                pick = round_num * num_teams - draft_position + 1
+            if round_num == 1:
+                # Round 1: Normal order (1-10)
+                pick = draft_position
+            elif round_num == 2:
+                # Round 2: Reverse order (10-1)
+                pick = num_teams + (num_teams - draft_position + 1)
+            elif round_num == 3:
+                # Round 3: Same as round 2 (3rd round reversal)
+                pick = 2 * num_teams + (num_teams - draft_position + 1)
+            else:
+                # Rounds 4+: Continue normal snake pattern
+                if round_num % 2 == 0:  # Even rounds (4, 6, 8, etc.)
+                    pick = (round_num - 1) * num_teams + draft_position
+                else:  # Odd rounds (5, 7, 9, etc.)
+                    pick = round_num * num_teams - draft_position + 1
             picks.append(pick)
         return picks
     
@@ -498,6 +625,9 @@ class CheatSheetPage(StyledFrame):
         self.tiers_canvas.configure(scrollregion=self.tiers_canvas.bbox("all"))
         self.avail_scrollable.update_idletasks()
         self.avail_canvas.configure(scrollregion=self.avail_canvas.bbox("all"))
+        
+        # Re-bind mouse wheel events to new widgets
+        self.after(10, self.setup_recursive_mousewheel)
     
     def create_tier_section(self, tier_name: str, player_ids: List[str], color: str):
         """Create a round section with header and players"""
@@ -569,11 +699,6 @@ class CheatSheetPage(StyledFrame):
         tier_frame.pack(fill='x', padx=0, pady=(0, 5))
         tier_frame.tier_name = tier_name
         
-        # Minimum height to show drop zone even when empty
-        min_height = 150
-        tier_frame.configure(height=max(min_height, ((len(player_ids) + 9) // 10) * 150))
-        tier_frame.pack_propagate(False)
-        
         # Get player objects in the order they appear in the tier
         players = []
         # Get list of drafted players if needed
@@ -594,8 +719,16 @@ class CheatSheetPage(StyledFrame):
             if player:
                 players.append(player)
         
-        # Create player widgets in order
+        # Calculate height based on number of rows needed
         players_per_row = 10  # Same as ADP page
+        num_rows = max(1, (len(players) + players_per_row - 1) // players_per_row)
+        row_height = 150
+        frame_height = num_rows * row_height + 10  # Add padding
+        
+        tier_frame.configure(height=frame_height)
+        tier_frame.pack_propagate(False)
+        
+        # Create player widgets in order
         # Calculate starting rank based on previous tiers
         starting_rank = 1
         for t_name, t_players in self.tiers.items():
@@ -637,7 +770,7 @@ class CheatSheetPage(StyledFrame):
             )
         else:
             # Tier panel - 10 per row
-            widget_width = 1.0 / 10 - 0.001
+            widget_width = 1.0 / 10 - 0.005  # Slightly smaller to create more gap
             widget_height = 145
             player_frame.place(
                 relx=col / 10,
@@ -676,13 +809,19 @@ class CheatSheetPage(StyledFrame):
             )
             badge.pack(pady=(15, 5))
         
-        # Player name
+        # Player name - use short name (nickname or last name)
+        if is_available:
+            # For available players, show name with ADP
+            name_text = f"{self.get_short_name(player)}\n({int(player.adp) if player.adp else 'N/A'})"
+        else:
+            name_text = self.get_short_name(player)
+        
         name_label = tk.Label(
             player_frame,
-            text=player.format_name() if hasattr(player, 'format_name') else player.name,
+            text=name_text,
             bg=DARK_THEME['bg_tertiary'],
             fg=DARK_THEME['text_primary'],
-            font=(DARK_THEME['font_family'], 10),
+            font=(DARK_THEME['font_family'], 10 if not is_available else 9),
             wraplength=120 if is_available else 300
         )
         name_label.pack(pady=(2, 2))
@@ -853,10 +992,10 @@ class CheatSheetPage(StyledFrame):
             )
             badge.pack(pady=(5, 2))
         
-        # Player name
+        # Player name - use short name (nickname or last name)
         name_label = tk.Label(
             float_frame,
-            text=player.format_name() if hasattr(player, 'format_name') else player.name,
+            text=self.get_short_name(player),
             bg=DARK_THEME['bg_tertiary'],
             fg=DARK_THEME['text_primary'],
             font=(DARK_THEME['font_family'], 9),
@@ -1014,17 +1153,29 @@ class CheatSheetPage(StyledFrame):
                 break
             starting_rank += len(t_players)
         
+        # Collect actual player objects
+        actual_players = []
         for i, player_id in enumerate(player_ids):
             player = next((p for p in self.all_players if p.player_id == player_id), None)
             if player:
+                actual_players.append(player)
                 row = i // players_per_row
                 col = i % players_per_row
                 rank = starting_rank + i
                 self.create_player_widget(tier_frame, player, tier_name, row, col, rank=rank)
         
+        # Update tier frame height based on actual number of players
+        num_rows = max(1, (len(actual_players) + players_per_row - 1) // players_per_row)
+        row_height = 150
+        frame_height = num_rows * row_height + 10
+        tier_frame.configure(height=frame_height)
+        
         # Update only the tier's scroll region if needed
         self.tiers_scrollable.update_idletasks()
         self.tiers_canvas.configure(scrollregion=self.tiers_canvas.bbox("all"))
+        
+        # Re-bind mouse wheel events
+        self.after(10, self.setup_recursive_mousewheel)
     
     def smart_refresh_player(self, source_widget: tk.Widget, player: Player, source_tier: Optional[str], target_tier: Optional[str], target: tk.Widget):
         """Smart refresh that only moves the specific player widget"""
@@ -1061,6 +1212,12 @@ class CheatSheetPage(StyledFrame):
                 rank = starting_rank + player_count
                 
                 self.create_player_widget(tier_frame, player, target_tier, row, col, rank=rank)
+                
+                # Update tier frame height
+                num_rows = max(1, ((player_count + 1) + 9) // 10)
+                row_height = 150
+                frame_height = num_rows * row_height + 10
+                tier_frame.configure(height=frame_height)
         else:
             # Moving to available players
             # Find position in available list
@@ -1076,6 +1233,9 @@ class CheatSheetPage(StyledFrame):
         self.tiers_canvas.configure(scrollregion=self.tiers_canvas.bbox("all"))
         self.avail_scrollable.update_idletasks()
         self.avail_canvas.configure(scrollregion=self.avail_canvas.bbox("all"))
+        
+        # Re-bind mouse wheel events
+        self.after(10, self.setup_recursive_mousewheel)
     
     def handle_drop(self, source: tk.Widget, target: tk.Widget):
         """Handle dropping a player"""
@@ -1215,6 +1375,9 @@ class CheatSheetPage(StyledFrame):
         # Update scroll region
         self.avail_scrollable.update_idletasks()
         self.avail_canvas.configure(scrollregion=self.avail_canvas.bbox("all"))
+        
+        # Re-bind mouse wheel events
+        self.after(10, self.setup_recursive_mousewheel)
     
     def filter_available_position(self, position: str):
         """Filter available players by position"""
