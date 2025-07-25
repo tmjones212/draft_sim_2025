@@ -50,7 +50,9 @@ MAKE SURE TO COMMIT WHEN YOU MAKE A CHANGE.
 
 Windows local path: `C:\Users\alaba\source\repos\Python\draft_sim_2025`
 
-**Important**: The sync script excludes `data/custom_adp.json` to preserve your custom ADP values on the Windows side.
+**Important**: The sync script excludes:
+- `data/custom_adp.json` - to preserve your custom ADP values
+- `data/manager_notes.json` - to preserve your manager draft habit notes
 
 ### Misc
 Also use the formatted player name (the format_name function in player_extensions.py)
@@ -172,3 +174,20 @@ When you learn useful things that would be helpful in the future, memorialize th
 - LB/DB players restricted from being drafted before round 10
 - Position filters in UI already support LB/DB selection
 - Game History tab shows defensive snaps (def_snp) for LB/DB players
+
+### Manager Draft Habit Notes (2025-07-20)
+- Added ability to track draft habit notes for each manager
+- Access via "Manager Notes" button in "Prev. Drafts" tab (renamed from Archive)
+- Notes appear as tooltips when hovering over manager names in Draft tab
+- Manager name mappings:
+  - KARWAN ↔ HE HATE ME
+  - JOEY ↔ Joey
+  - PETER ↔ P-Nasty
+  - ERIC ↔ Erich
+  - JERWAN ↔ champ
+  - STAN ↔ Stan
+  - PAT ↔ PatrickS
+  - ME ↔ Trent
+  - JOHNSON ↔ johnson
+  - LUAN ↔ luan
+- Notes saved in `data/manager_notes.json` (excluded from sync)

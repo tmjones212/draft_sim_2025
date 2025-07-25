@@ -28,6 +28,7 @@ rsync -av --delete \
     --exclude='.vscode/' \
     --exclude='data/custom_adp.json' \
     --exclude='data/cheat_sheet_tiers.json' \
+    --exclude='data/manager_notes.json' \
     --exclude='templates/' \
     "$SOURCE_DIR" "$DEST_DIR"
 

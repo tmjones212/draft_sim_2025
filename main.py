@@ -14,11 +14,12 @@ from src.models import Team, Player
 from src.models.draft_preset import PlayerExclusion
 from src.core import DraftEngine, DraftPick
 from src.core.template_manager import TemplateManager
-from src.ui import DraftBoard, PlayerList, RosterView, GameHistory, DraftHistory
+from src.ui import DraftBoard, PlayerList, RosterView, GameHistory, DraftHistory, DraftHistoryPage
 from src.ui.cheat_sheet_page import CheatSheetPage
 from src.ui.theme import DARK_THEME
 from src.ui.styled_widgets import StyledFrame, StyledButton
 from src.utils import generate_mock_players
+from src.utils.player_extensions import format_name
 from src.services.player_pool_service import PlayerPoolService
 from src.services.draft_save_manager import DraftSaveManager
 from src.services.draft_preset_manager import DraftPresetManager
@@ -449,6 +450,11 @@ class MockDraftApp:
         self.adp_container = StyledFrame(self.notebook, bg_type='primary')
         self.notebook.add(self.adp_container, text="ADP")
         self.adp_page = None  # Will be created on first access
+        
+        # Draft History Archive tab
+        self.draft_history_archive_container = StyledFrame(self.notebook, bg_type='primary')
+        self.notebook.add(self.draft_history_archive_container, text="Prev. Drafts")
+        self.draft_history_archive = None  # Will be created on first access
     
     def update_display(self, full_update=True, force_refresh=False):
         # Update status
@@ -886,6 +892,12 @@ class MockDraftApp:
                 return player  # Top 3 players shouldn't fall more than 1 spot
             elif player.adp <= 10 and pick_num >= player.adp + 3:
                 return player  # Top 10 players shouldn't fall more than 3 spots
+        
+        # Special handling for Joe Burrow - must be taken by pick 21
+        if pick_num >= 21:
+            for player in self.available_players:
+                if format_name(player.name) == "JOE BURROW":
+                    return player
         
         # Determine how many players to consider based on pick
         if is_early_round:
@@ -1691,6 +1703,10 @@ class MockDraftApp:
                     draft_app=self
                 )
                 self.cheat_sheet.pack(fill='both', expand=True)
+                
+                # Connect cheat sheet to player list for round display
+                if hasattr(self, 'player_list'):
+                    self.player_list.set_cheat_sheet_ref(self.cheat_sheet)
             
             if self.cheat_sheet:
                 # Force focus to cheat sheet for mouse wheel scrolling
@@ -1722,6 +1738,15 @@ class MockDraftApp:
                 self.draft_history.update_draft_history(self.draft_engine.draft_results, self.teams)
                 # Force focus for scrolling
                 self.root.after(10, lambda: self.draft_history.focus_set())
+        elif tab_text == "Prev. Drafts":
+            # Create draft history archive on first access
+            if self.draft_history_archive is None:
+                self.draft_history_archive = DraftHistoryPage(self.draft_history_archive_container)
+                self.draft_history_archive.pack(fill='both', expand=True)
+            
+            if self.draft_history_archive:
+                # Force focus for scrolling
+                self.root.after(10, lambda: self.draft_history_archive.focus_set())
         elif tab_text == "ADP":
             # Check if players are loaded
             if not self.players_loaded:
@@ -1784,10 +1809,17 @@ class MockDraftApp:
                 self.adp_page.update_display()
                 # Force focus for scrolling
                 self.root.after(10, lambda: self.adp_page.focus_set())
-        elif tab_text == "Draft" and self._cheat_sheet_needs_sync and self.cheat_sheet:
-            # Sync rankings when switching back to draft tab
-            self._cheat_sheet_needs_sync = False
-            # No longer needed with new cheat sheet implementation
+        elif tab_text == "Draft":
+            # Update player list with cheat sheet rounds when switching back
+            if self.cheat_sheet and hasattr(self, 'player_list'):
+                self.player_list.set_cheat_sheet_ref(self.cheat_sheet)
+            
+            if self._cheat_sheet_needs_sync and self.cheat_sheet:
+                # Sync rankings when switching back to draft tab
+                self._cheat_sheet_needs_sync = False
+                # Update the display to show updated rounds
+                if hasattr(self, 'player_list'):
+                    self.player_list.update_table_view()
     
     def show_pick_quality(self, player, pick_num):
         """Show a notification about pick quality"""

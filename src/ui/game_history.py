@@ -1960,11 +1960,51 @@ class GameHistory(StyledFrame):
                            color=data['color'], 
                            label=label)
             
+            # Calculate correlation if exactly 2 players
+            legend_title = None
+            if len(self.graph_players) == 2:
+                player_ids = list(self.graph_players.keys())
+                p1_data = self.graph_players[player_ids[0]]
+                p2_data = self.graph_players[player_ids[1]]
+                
+                # Get data and snaps for both players
+                p1_metric = p1_data.get('metric_data', p1_data['points'])
+                p2_metric = p2_data.get('metric_data', p2_data['points'])
+                p1_snaps = p1_data.get('snaps', [])
+                p2_snaps = p2_data.get('snaps', [])
+                
+                # Find weeks where both players had 15+ snaps
+                valid_weeks = []
+                p1_valid = []
+                p2_valid = []
+                
+                for i in range(len(p1_metric)):
+                    if i < len(p1_snaps) and i < len(p2_snaps):
+                        if p1_snaps[i] >= 15 and p2_snaps[i] >= 15:
+                            valid_weeks.append(i + 1)  # Week number
+                            p1_valid.append(p1_metric[i])
+                            p2_valid.append(p2_metric[i])
+                
+                # Calculate correlation if we have at least 3 valid weeks
+                if len(p1_valid) >= 3:
+                    try:
+                        correlation = statistics.correlation(p1_valid, p2_valid)
+                        legend_title = f'Correlation: {correlation:.3f} ({len(valid_weeks)} weeks)'
+                    except:
+                        # If correlation fails (e.g., constant values), no title
+                        pass
+            
             # Add legend with proper marker sizes
             legend = self.ax.legend(loc='upper left', frameon=True, 
                                   facecolor=DARK_THEME['bg_secondary'],
                                   edgecolor=DARK_THEME['text_secondary'],
-                                  markerscale=1.2)  # Make markers in legend slightly larger
+                                  markerscale=1.2,  # Make markers in legend slightly larger
+                                  title=legend_title)
+            
+            # Set legend title color if we have one
+            if legend_title:
+                legend.get_title().set_color(DARK_THEME['text_primary'])
+            
             for text in legend.get_texts():
                 text.set_color(DARK_THEME['text_primary'])
             

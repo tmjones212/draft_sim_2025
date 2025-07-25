@@ -223,6 +223,10 @@ class CheatSheetPage(StyledFrame):
             with open(tier_file, 'w') as f:
                 json.dump(self.tiers, f, indent=2)
             print(f"Saved cheat sheet tiers to {tier_file}")
+            
+            # Notify draft app that tiers have changed
+            if hasattr(self, 'draft_app') and self.draft_app:
+                self.draft_app._cheat_sheet_needs_sync = True
         except Exception as e:
             print(f"Error saving cheat sheet tiers: {e}")
             # Try to show error to user
@@ -1406,3 +1410,15 @@ class CheatSheetPage(StyledFrame):
             }
             self.save_tiers()
             self.update_display()
+    
+    def get_player_round(self, player_id: str) -> Optional[int]:
+        """Get the round number for a player based on their tier assignment"""
+        for tier_name, player_ids in self.tiers.items():
+            if player_id in player_ids:
+                # Extract round number from tier name (e.g., "Round 1" -> 1)
+                if tier_name.startswith("Round "):
+                    try:
+                        return int(tier_name.split(" ")[1])
+                    except (ValueError, IndexError):
+                        pass
+        return None

@@ -49,6 +49,9 @@ class PlayerList(StyledFrame):
         # Initialize custom round manager
         self.custom_round_manager = CustomRoundManager()
         
+        # Reference to cheat sheet page for round assignments
+        self.cheat_sheet_ref = None
+        
         # Row management for performance
         self.row_frames = []  # Active row frames
         self.hidden_rows = []  # Hidden rows for reuse
@@ -1868,6 +1871,13 @@ class PlayerList(StyledFrame):
             # Sync watched player IDs
             self.watched_player_ids = watch_list.watched_player_ids
     
+    def set_cheat_sheet_ref(self, cheat_sheet):
+        """Set reference to cheat sheet page"""
+        self.cheat_sheet_ref = cheat_sheet
+        # Update the display to show cheat sheet rounds
+        if hasattr(self, 'players') and self.players:
+            self.update_table_view()
+    
     def calculate_player_tier(self, player):
         """Calculate player tier based on ADP or VAR"""
         # Use ADP for tier calculation
@@ -1893,7 +1903,14 @@ class PlayerList(StyledFrame):
             return 8
     
     def calculate_draft_round(self, player):
-        """Calculate which round the player is expected to be drafted based on ADP"""
+        """Calculate which round the player is expected to be drafted"""
+        # First check if player has a cheat sheet round assignment
+        if self.cheat_sheet_ref:
+            cheat_sheet_round = self.cheat_sheet_ref.get_player_round(player.player_id)
+            if cheat_sheet_round is not None:
+                return str(cheat_sheet_round)
+        
+        # Fall back to ADP-based calculation
         if not player.adp:
             return None
         

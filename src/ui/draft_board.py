@@ -5,6 +5,7 @@ from ..core import DraftPick
 from ..models import Team
 from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
+from ..services.manager_notes_service import ManagerNotesService
 
 
 class DraftBoard(StyledFrame):
@@ -27,6 +28,8 @@ class DraftBoard(StyledFrame):
         self.glow_animation_running = False
         self.canvas = None
         self.scrollable_frame = None
+        self.manager_notes_service = ManagerNotesService()
+        self.tooltip = None
         self.setup_ui()
         # Start glowing animation if no team selected
         if not self.selected_team_id:
@@ -135,14 +138,19 @@ class DraftBoard(StyledFrame):
             header_frame.grid(row=1, column=team_id - 1, sticky='nsew', padx=2, pady=2)
             header_frame.grid_propagate(False)
             
+            # Don't uppercase the team name so mappings work correctly
             team_label = tk.Label(
                 header_frame,
-                text=team.name.upper(),
+                text=team.name,
                 bg=DARK_THEME['bg_tertiary'],
                 fg=DARK_THEME['text_primary'],
                 font=(DARK_THEME['font_family'], 11, 'bold')
             )
             team_label.place(relx=0.5, rely=0.5, anchor='center')
+            
+            # Add hover functionality for manager notes
+            team_label.bind("<Enter>", lambda e, name=team.name: self.show_manager_tooltip(e, name))
+            team_label.bind("<Leave>", lambda e: self.hide_manager_tooltip())
             
             # Store reference to team label
             self.team_labels[team_id] = team_label
@@ -660,7 +668,55 @@ class DraftBoard(StyledFrame):
         for team_id, team in teams.items():
             if team_id in self.team_labels:
                 self.team_labels[team_id].config(text=team.name)
+                # Re-bind hover events with new team name
+                self.team_labels[team_id].bind("<Enter>", lambda e, name=team.name: self.show_manager_tooltip(e, name))
+                self.team_labels[team_id].bind("<Leave>", lambda e: self.hide_manager_tooltip())
     
     def set_user_team(self, team_id: int):
         """Set the user's team and update the UI accordingly"""
         self.select_team(team_id)
+    
+    def show_manager_tooltip(self, event, team_name):
+        """Show tooltip with manager notes"""
+        # Get the note for this manager
+        note = self.manager_notes_service.get_note(team_name)
+        
+        if not note:
+            return
+        
+        # Destroy any existing tooltip
+        self.hide_manager_tooltip()
+        
+        # Create tooltip window
+        self.tooltip = tk.Toplevel(self)
+        self.tooltip.wm_overrideredirect(True)
+        
+        # Create label with note
+        label = tk.Label(
+            self.tooltip,
+            text=note,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            relief="solid",
+            borderwidth=1,
+            padx=10,
+            pady=5,
+            wraplength=300,
+            justify="left"
+        )
+        label.pack()
+        
+        # Position tooltip near the cursor
+        x = event.widget.winfo_rootx() + event.x + 10
+        y = event.widget.winfo_rooty() + event.y + 10
+        self.tooltip.geometry(f"+{x}+{y}")
+        
+        # Ensure tooltip stays on top
+        self.tooltip.lift()
+    
+    def hide_manager_tooltip(self):
+        """Hide the manager tooltip"""
+        if self.tooltip:
+            self.tooltip.destroy()
+            self.tooltip = None
