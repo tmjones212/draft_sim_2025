@@ -13,6 +13,7 @@ from .theme import DARK_THEME, get_position_color, get_team_color
 from .styled_widgets import StyledFrame
 from ..utils.player_extensions import format_name
 from ..config.scoring import SCORING_CONFIG
+from ..services.vegas_props_service import VegasPropsService
 
 # Teams with dome stadiums
 DOME_TEAMS = {'ATL', 'DET', 'MIN', 'NO', 'LV', 'ARI', 'AZ', 'DAL', 'HOU', 'IND'}
@@ -37,6 +38,13 @@ class GameHistory(StyledFrame):
         self.view_mode = "summarized"  # "detailed" or "summarized"
         self.min_games_var = tk.IntVar(value=1)  # Minimum games filter
         
+        # Vegas props columns checkboxes
+        self.show_vegas_yards_var = tk.BooleanVar(value=False)  # Smart yards (position-specific)
+        self.show_vegas_pass_var = tk.BooleanVar(value=False)
+        self.show_vegas_rush_var = tk.BooleanVar(value=False)
+        self.show_vegas_rec_var = tk.BooleanVar(value=False)
+        self.vegas_props_service = VegasPropsService()
+        
         # Filter history for back button
         self.filter_history = []
         self.current_filter_state = None
@@ -54,6 +62,8 @@ class GameHistory(StyledFrame):
         self.update_column_visibility()  # Set initial column visibility
         self.update_sort_arrows()  # Show initial sort direction
         self.load_weekly_stats()
+        # Store original sash position (will be set by default paned window behavior)
+        self._original_sash_pos = None
         
     def setup_ui(self):
         # Main container
@@ -72,6 +82,81 @@ class GameHistory(StyledFrame):
             font=(DARK_THEME['font_family'], 14, 'bold')
         )
         title.pack(side='left')
+        
+        # Vegas props checkboxes in header (only show in summarized mode)
+        self.vegas_frame = tk.Frame(header_frame, bg=DARK_THEME['bg_secondary'])
+        
+        vegas_separator = tk.Frame(self.vegas_frame, width=30, bg=DARK_THEME['bg_secondary'])
+        vegas_separator.pack(side='left')
+        
+        vegas_label = tk.Label(
+            self.vegas_frame,
+            text="Vegas:",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 11)
+        )
+        vegas_label.pack(side='left', padx=(0, 8))
+        
+        self.vegas_yards_check = tk.Checkbutton(
+            self.vegas_frame,
+            text="Yards",
+            variable=self.show_vegas_yards_var,
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            selectcolor=DARK_THEME['bg_tertiary'],
+            activebackground=DARK_THEME['bg_secondary'],
+            activeforeground=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            command=self.update_vegas_columns
+        )
+        self.vegas_yards_check.pack(side='left', padx=5)
+        
+        self.vegas_pass_check = tk.Checkbutton(
+            self.vegas_frame,
+            text="Pass",
+            variable=self.show_vegas_pass_var,
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            selectcolor=DARK_THEME['bg_tertiary'],
+            activebackground=DARK_THEME['bg_secondary'],
+            activeforeground=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            command=self.update_vegas_columns
+        )
+        self.vegas_pass_check.pack(side='left', padx=5)
+        
+        self.vegas_rush_check = tk.Checkbutton(
+            self.vegas_frame,
+            text="Rush",
+            variable=self.show_vegas_rush_var,
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            selectcolor=DARK_THEME['bg_tertiary'],
+            activebackground=DARK_THEME['bg_secondary'],
+            activeforeground=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            command=self.update_vegas_columns
+        )
+        self.vegas_rush_check.pack(side='left', padx=5)
+        
+        self.vegas_rec_check = tk.Checkbutton(
+            self.vegas_frame,
+            text="Rec",
+            variable=self.show_vegas_rec_var,
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            selectcolor=DARK_THEME['bg_tertiary'],
+            activebackground=DARK_THEME['bg_secondary'],
+            activeforeground=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            command=self.update_vegas_columns
+        )
+        self.vegas_rec_check.pack(side='left', padx=5)
+        
+        # Show Vegas frame only in summarized mode
+        if self.view_mode == "summarized":
+            self.vegas_frame.pack(side='left')
         
         # Filters row
         filter_frame = StyledFrame(container, bg_type='secondary')
@@ -328,7 +413,7 @@ class GameHistory(StyledFrame):
         self.games_filter_frame.pack_forget()
         
         # Create paned window for table and graph
-        paned_window = tk.PanedWindow(
+        self.paned_window = tk.PanedWindow(
             container,
             orient='horizontal',
             bg=DARK_THEME['bg_secondary'],
@@ -336,19 +421,19 @@ class GameHistory(StyledFrame):
             sashrelief='flat',
             borderwidth=0
         )
-        paned_window.pack(fill='both', expand=True)
+        self.paned_window.pack(fill='both', expand=True)
         
         # Table container (left side)
-        table_container = StyledFrame(paned_window, bg_type='secondary')
-        paned_window.add(table_container, minsize=600)
+        table_container = StyledFrame(self.paned_window, bg_type='secondary')
+        self.paned_window.add(table_container, minsize=600)
         
         # Graph container (right side)
-        graph_container = StyledFrame(paned_window, bg_type='secondary')
-        paned_window.add(graph_container, minsize=400)
+        graph_container = StyledFrame(self.paned_window, bg_type='secondary')
+        self.paned_window.add(graph_container, minsize=400)
         
         # Create treeview for table
         columns = ('player', 'pos', 'rank', 'team', 'week', 'opp', 'pts', 'median', 'avg', 'snaps', 'pts_per_snap', 'comp', 'pass_yd', 'pass_td', 
-                  'rush_yd', 'rush_td', 'tgt', 'rec', 'rec_yd', 'rec_td')
+                  'rush_yd', 'rush_td', 'tgt', 'rec', 'rec_yd', 'rec_td', 'vegas_yards', 'vegas_pass', 'vegas_rush', 'vegas_rec')
         
         self.tree = ttk.Treeview(
             table_container,
@@ -379,6 +464,10 @@ class GameHistory(StyledFrame):
         self.tree.column('rec', width=45, anchor='center', stretch=False)
         self.tree.column('rec_yd', width=65, anchor='center', stretch=False)
         self.tree.column('rec_td', width=60, anchor='center', stretch=False)
+        self.tree.column('vegas_yards', width=80, anchor='center', stretch=False)
+        self.tree.column('vegas_pass', width=80, anchor='center', stretch=False)
+        self.tree.column('vegas_rush', width=80, anchor='center', stretch=False)
+        self.tree.column('vegas_rec', width=80, anchor='center', stretch=False)
         
         # Configure headings
         self.tree.heading('player', text='Player', command=lambda: self.sort_by('player'))
@@ -401,6 +490,10 @@ class GameHistory(StyledFrame):
         self.tree.heading('rec', text='Rec', command=lambda: self.sort_by('rec'))
         self.tree.heading('rec_yd', text='Rec Yds', command=lambda: self.sort_by('rec_yd'))
         self.tree.heading('rec_td', text='Rec TD', command=lambda: self.sort_by('rec_td'))
+        self.tree.heading('vegas_yards', text='Vegas Yds', command=lambda: self.sort_by('vegas_yards'))
+        self.tree.heading('vegas_pass', text='Vegas Pass', command=lambda: self.sort_by('vegas_pass'))
+        self.tree.heading('vegas_rush', text='Vegas Rush', command=lambda: self.sort_by('vegas_rush'))
+        self.tree.heading('vegas_rec', text='Vegas Rec', command=lambda: self.sort_by('vegas_rec'))
         
         # Style configuration
         style = ttk.Style()
@@ -599,9 +692,36 @@ class GameHistory(StyledFrame):
         
         # Add to tree
         for row in rows:
+            # Get Vegas props if in summarized mode
+            vegas_yards = '-'
+            vegas_pass = '-'
+            vegas_rush = '-'
+            vegas_rec = '-'
+            
+            if self.view_mode == "summarized":
+                player_name = row['player']
+                position = row['pos']
+                props = self.vegas_props_service.get_player_props(player_name)
+                
+                # Smart yards - position-specific
+                if position == 'QB' and 'passing_yards' in props:
+                    vegas_yards = f"{props['passing_yards'].prop_value:.0f}"
+                elif position == 'RB' and 'rushing_yards' in props:
+                    vegas_yards = f"{props['rushing_yards'].prop_value:.0f}"
+                elif position in ['WR', 'TE'] and 'receiving_yards' in props:
+                    vegas_yards = f"{props['receiving_yards'].prop_value:.0f}"
+                
+                # Individual columns
+                if 'passing_yards' in props:
+                    vegas_pass = f"{props['passing_yards'].prop_value:.0f}"
+                if 'rushing_yards' in props:
+                    vegas_rush = f"{props['rushing_yards'].prop_value:.0f}"
+                if 'receiving_yards' in props:
+                    vegas_rec = f"{props['receiving_yards'].prop_value:.0f}"
+            
             values = (row['player'], row['pos'], row.get('rank', '-'), row['team'], row['week'], row['opp'],
                      row['pts'], row.get('median', '-'), row.get('avg', '-'), row['snaps'], row.get('pts_per_snap', '-'), row['comp'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
-                     row['rush_td'], row.get('tgt', '-'), row['rec'], row['rec_yd'], row['rec_td'])
+                     row['rush_td'], row.get('tgt', '-'), row['rec'], row['rec_yd'], row['rec_td'], vegas_yards, vegas_pass, vegas_rush, vegas_rec)
             
             # Add row with position-based colors
             position = row['pos']
@@ -1218,6 +1338,69 @@ class GameHistory(StyledFrame):
         self.update_column_visibility()
         self.apply_filters()
     
+    def update_vegas_columns(self):
+        """Update Vegas column visibility based on checkboxes"""
+        # Update column visibility
+        self.update_column_visibility()
+        # Adjust table width based on visible columns
+        self.adjust_table_width()
+        # Refresh data to show Vegas values
+        if self.view_mode == "summarized":
+            self.apply_filters()
+    
+    def adjust_table_width(self):
+        """Adjust the paned window sash position based on visible Vegas columns"""
+        # Store original position on first call
+        if self._original_sash_pos is None:
+            try:
+                # Wait a bit for the UI to settle, then get the default position
+                self.after(100, self._store_and_adjust_width)
+                return
+            except:
+                pass
+        
+        # Count Vegas columns
+        vegas_columns_count = 0
+        if self.view_mode == "summarized":
+            if self.show_vegas_yards_var.get():
+                vegas_columns_count += 1
+            if self.show_vegas_pass_var.get():
+                vegas_columns_count += 1
+            if self.show_vegas_rush_var.get():
+                vegas_columns_count += 1
+            if self.show_vegas_rec_var.get():
+                vegas_columns_count += 1
+        
+        # Calculate new width
+        if self._original_sash_pos and self._original_sash_pos > 0:
+            additional_width = vegas_columns_count * 80
+            new_table_width = self._original_sash_pos + additional_width
+            self._update_sash_position(new_table_width)
+    
+    def _store_and_adjust_width(self):
+        """Store original width and then adjust"""
+        try:
+            current_pos = self.paned_window.sash_coord(0)[0]
+            if current_pos > 100:  # Valid position
+                self._original_sash_pos = current_pos
+                self.adjust_table_width()  # Now adjust with stored position
+        except:
+            self._original_sash_pos = 850  # Fallback default
+    
+    def _update_sash_position(self, table_width):
+        """Internal method to update sash position"""
+        try:
+            # Get the current window width
+            window_width = self.paned_window.winfo_width()
+            if window_width > 100:  # Make sure window is rendered
+                # Set the sash position to give the table the desired width
+                # Leave at least 400 pixels for the graph
+                max_table_width = window_width - 400
+                actual_table_width = min(table_width, max_table_width)
+                self.paned_window.sash_place(0, actual_table_width, 0)
+        except:
+            pass  # Ignore errors if window not ready
+    
     def set_view_mode(self, mode):
         """Set the view mode (detailed or summarized)"""
         self.view_mode = mode
@@ -1226,16 +1409,25 @@ class GameHistory(StyledFrame):
         if mode == "detailed":
             self.detailed_btn.config(bg=DARK_THEME['button_active'])
             self.summarized_btn.config(bg=DARK_THEME['button_bg'])
-            # Hide games filter
+            # Hide games filter and Vegas checkboxes
             self.games_filter_frame.pack_forget()
+            self.vegas_frame.pack_forget()
         else:
             self.detailed_btn.config(bg=DARK_THEME['button_bg'])
             self.summarized_btn.config(bg=DARK_THEME['button_active'])
             # Show games filter
             self.games_filter_frame.pack(side='left', padx=(20, 0))
+            # Show Vegas checkboxes in header
+            self.vegas_frame.pack(side='left')
         
         # Update column visibility for new mode
         self.update_column_visibility()
+        # Only adjust table width if we have Vegas columns showing
+        if mode == "summarized" and any([self.show_vegas_yards_var.get(), 
+                                         self.show_vegas_pass_var.get(),
+                                         self.show_vegas_rush_var.get(),
+                                         self.show_vegas_rec_var.get()]):
+            self.adjust_table_width()
         self.apply_filters()
     
     def update_column_visibility(self):
@@ -1255,9 +1447,19 @@ class GameHistory(StyledFrame):
         if self.view_mode == "summarized":
             self.tree.column('median', width=55, stretch=False)
             self.tree.column('avg', width=55, stretch=False)
+            # Show/hide Vegas columns based on checkboxes
+            self.tree.column('vegas_yards', width=80 if self.show_vegas_yards_var.get() else 0, stretch=False)
+            self.tree.column('vegas_pass', width=80 if self.show_vegas_pass_var.get() else 0, stretch=False)
+            self.tree.column('vegas_rush', width=80 if self.show_vegas_rush_var.get() else 0, stretch=False)
+            self.tree.column('vegas_rec', width=80 if self.show_vegas_rec_var.get() else 0, stretch=False)
         else:
             self.tree.column('median', width=0, stretch=False)
             self.tree.column('avg', width=0, stretch=False)
+            # Hide Vegas columns in detailed view
+            self.tree.column('vegas_yards', width=0, stretch=False)
+            self.tree.column('vegas_pass', width=0, stretch=False)
+            self.tree.column('vegas_rush', width=0, stretch=False)
+            self.tree.column('vegas_rec', width=0, stretch=False)
         
         # Define which columns are relevant for each position
         qb_columns = ['comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td']
@@ -1551,11 +1753,15 @@ class GameHistory(StyledFrame):
             format_stat(totals['tgt']) if position != 'QB' else '-',  # Tgt
             format_stat(totals['rec']) if position != 'QB' else '-',  # Rec
             format_stat(totals['rec_yd']) if position != 'QB' else '-',  # Rec Yd
-            format_stat(totals['rec_td']) if position != 'QB' else '-'  # Rec TD
+            format_stat(totals['rec_td']) if position != 'QB' else '-',  # Rec TD
+            '-',  # Vegas Yards
+            '-',  # Vegas Pass
+            '-',  # Vegas Rush
+            '-'   # Vegas Rec
         )
         
         # Add separator row
-        self.tree.insert('', 'end', values=('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''), tags=('separator',))
+        self.tree.insert('', 'end', values=('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''), tags=('separator',))
         
         # Add totals row
         self.tree.insert('', 'end', values=values, tags=('totals',))
