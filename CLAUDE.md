@@ -37,6 +37,9 @@
 - `_select_computer_pick()` assumes `self.available_players[0]` has the best ADP
 - Early picks (1-3) just take `available_players[0]`
 - Later picks consider position needs but still rely on list order
+- Special player rules:
+  - Ja'Marr Chase must be drafted by pick 2
+  - Joe Burrow must be drafted by pick 21
 
 ## Important Reminders
 

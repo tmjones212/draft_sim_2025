@@ -31,7 +31,8 @@
       "Bash(else echo \"No cache file\")",
       "Bash(fi)",
       "Bash(git rm:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(pip3 install:*)"
     ],
     "deny": []
   }

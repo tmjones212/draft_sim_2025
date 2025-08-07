@@ -8,6 +8,7 @@ from .styled_widgets import StyledFrame
 from .player_stats_popup import PlayerStatsPopup
 from ..services.custom_adp_manager import CustomADPManager
 from ..services.custom_round_manager import CustomRoundManager
+from ..services.vegas_props_service import VegasPropsService
 
 
 class PlayerList(StyledFrame):
@@ -51,6 +52,9 @@ class PlayerList(StyledFrame):
         
         # Reference to cheat sheet page for round assignments
         self.cheat_sheet_ref = None
+        
+        # Initialize Vegas props service
+        self.vegas_props_service = VegasPropsService()
         
         # Row management for performance
         self.row_frames = []  # Active row frames
@@ -196,7 +200,8 @@ class PlayerList(StyledFrame):
             ('2024 Pts', 75, 'points_2024'),  # Added 10px
             ('Proj Rank', 85, 'position_rank_proj'),  # Added 10px
             ('Proj Pts', 75, 'points_2025_proj'),  # Added 10px
-            ('VAR', 60, 'var')  # Added 10px
+            ('VAR', 60, 'var'),  # Added 10px
+            ('Vegas', 130, None)  # Vegas props column
         ]
         
         for text, width, sort_key in headers:
@@ -677,6 +682,9 @@ class PlayerList(StyledFrame):
             menu.add_command(label="View Stats",
                             command=lambda: self._show_player_stats(player))
             
+            menu.add_command(label="View Vegas Props",
+                            command=lambda: self._show_vegas_props(player))
+            
             # Show menu
             menu.post(e.x_root, e.y_root)
             return "break"
@@ -872,6 +880,16 @@ class PlayerList(StyledFrame):
         # VAR
         var_text = f"{player.var:.0f}" if hasattr(player, 'var') and player.var is not None else '-'
         self.create_cell(row, var_text, 60, bg, select_row, field_type='var')
+        
+        # Vegas Props
+        vegas_text = self.vegas_props_service.get_summary_string(player.name)
+        if not vegas_text:
+            vegas_text = "-"
+        vegas_cell = self.create_cell(row, vegas_text, 130, bg, select_row, field_type='vegas')
+        
+        # Add tooltip with full Vegas props on hover
+        if vegas_text != "-":
+            self._add_vegas_tooltip(vegas_cell, player)
         
         # No more draft button - users can double-click or right-click to draft
     
@@ -1070,6 +1088,137 @@ class PlayerList(StyledFrame):
     def _show_player_stats(self, player: Player):
         """Show the player stats popup"""
         PlayerStatsPopup(self.winfo_toplevel(), player, self.image_service, self.all_players)
+    
+    def _add_vegas_tooltip(self, widget, player):
+        """Add tooltip showing full Vegas props on hover"""
+        tooltip = None
+        
+        def show_tooltip(event):
+            nonlocal tooltip
+            if tooltip:
+                return
+            
+            # Get full props for player
+            props = self.vegas_props_service.get_player_props(player.name)
+            if not props:
+                return
+            
+            # Create tooltip window
+            tooltip = tk.Toplevel(self)
+            tooltip.wm_overrideredirect(True)
+            tooltip.wm_geometry(f"+{event.x_root + 10}+{event.y_root + 10}")
+            
+            frame = tk.Frame(tooltip, bg=DARK_THEME['bg_tertiary'], 
+                           highlightbackground=DARK_THEME['border'], 
+                           highlightthickness=1)
+            frame.pack()
+            
+            # Title
+            title = tk.Label(frame, text=f"Vegas Props - {player.format_name()}",
+                           bg=DARK_THEME['bg_tertiary'], fg='white',
+                           font=(DARK_THEME['font_family'], 11, 'bold'))
+            title.pack(padx=10, pady=(5, 3))
+            
+            # Props data
+            prop_labels = {
+                'passing_yards': 'Passing Yards',
+                'passing_tds': 'Passing TDs',
+                'rushing_yards': 'Rushing Yards',
+                'rushing_tds': 'Rushing TDs',
+                'receiving_yards': 'Receiving Yards',
+                'receiving_tds': 'Receiving TDs',
+                'receptions': 'Receptions'
+            }
+            
+            for prop_key, label in prop_labels.items():
+                if prop_key in props:
+                    prop = props[prop_key]
+                    text = f"{label}: {prop.prop_value:.1f} (O{prop.over_line}/U{prop.under_line})"
+                    lbl = tk.Label(frame, text=text,
+                                 bg=DARK_THEME['bg_tertiary'], 
+                                 fg=DARK_THEME['text_primary'],
+                                 font=(DARK_THEME['font_family'], 10))
+                    lbl.pack(padx=10, pady=2, anchor='w')
+        
+        def hide_tooltip(event):
+            nonlocal tooltip
+            if tooltip:
+                tooltip.destroy()
+                tooltip = None
+        
+        widget.bind('<Enter>', show_tooltip)
+        widget.bind('<Leave>', hide_tooltip)
+    
+    def _show_vegas_props(self, player: Player):
+        """Show detailed Vegas props in a popup"""
+        props = self.vegas_props_service.get_player_props(player.name)
+        if not props:
+            messagebox.showinfo("No Vegas Props", 
+                              f"No Vegas props available for {player.format_name()}")
+            return
+        
+        # Create popup window
+        popup = tk.Toplevel(self.winfo_toplevel())
+        popup.title(f"Vegas Props - {player.format_name()}")
+        popup.configure(bg=DARK_THEME['bg_primary'])
+        popup.geometry("500x400")
+        
+        # Main frame
+        main_frame = StyledFrame(popup, bg_type='primary')
+        main_frame.pack(fill='both', expand=True, padx=10, pady=10)
+        
+        # Title
+        title = tk.Label(main_frame, 
+                        text=f"{player.format_name()} - {player.position} - {player.team}",
+                        bg=DARK_THEME['bg_primary'], fg='white',
+                        font=(DARK_THEME['font_family'], 14, 'bold'))
+        title.pack(pady=(0, 10))
+        
+        # Props frame
+        props_frame = StyledFrame(main_frame, bg_type='secondary')
+        props_frame.pack(fill='both', expand=True)
+        
+        # Display props
+        prop_labels = {
+            'passing_yards': ('Passing Yards', '#FF69B4'),
+            'passing_tds': ('Passing TDs', '#FF69B4'),
+            'rushing_yards': ('Rushing Yards', '#00CED1'),
+            'rushing_tds': ('Rushing TDs', '#00CED1'),
+            'receiving_yards': ('Receiving Yards', '#4169E1'),
+            'receiving_tds': ('Receiving TDs', '#4169E1'),
+            'receptions': ('Receptions', '#4169E1')
+        }
+        
+        for prop_key, (label, color) in prop_labels.items():
+            if prop_key in props:
+                prop = props[prop_key]
+                
+                # Prop row
+                row_frame = tk.Frame(props_frame, bg=DARK_THEME['bg_secondary'])
+                row_frame.pack(fill='x', padx=10, pady=5)
+                
+                # Label
+                lbl = tk.Label(row_frame, text=label + ":",
+                             bg=DARK_THEME['bg_secondary'], fg=color,
+                             font=(DARK_THEME['font_family'], 11, 'bold'),
+                             width=15, anchor='w')
+                lbl.pack(side='left')
+                
+                # Value
+                value_text = f"{prop.prop_value:.1f}"
+                value_lbl = tk.Label(row_frame, text=value_text,
+                                   bg=DARK_THEME['bg_secondary'], fg='white',
+                                   font=(DARK_THEME['font_family'], 11, 'bold'),
+                                   width=8)
+                value_lbl.pack(side='left', padx=(10, 20))
+                
+                # Odds
+                odds_text = f"Over {prop.over_line}  /  Under {prop.under_line}"
+                odds_lbl = tk.Label(row_frame, text=odds_text,
+                                  bg=DARK_THEME['bg_secondary'], 
+                                  fg=DARK_THEME['text_secondary'],
+                                  font=(DARK_THEME['font_family'], 10))
+                odds_lbl.pack(side='left')
     
     def filter_by_position(self, position: str):
         """Filter players by position"""

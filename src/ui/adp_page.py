@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from typing import List, Dict, Tuple, Optional
 from ..models import Player
 from .theme import DARK_THEME, get_position_color
@@ -110,12 +110,19 @@ class ADPPage(StyledFrame):
             self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
             return "break"
         
-        self.canvas.bind('<MouseWheel>', on_mousewheel)
-        self.canvas.bind('<Button-4>', lambda e: self.canvas.yview_scroll(-1, 'units'))
-        self.canvas.bind('<Button-5>', lambda e: self.canvas.yview_scroll(1, 'units'))
+        # Bind mousewheel to everything
+        def bind_mousewheel_to_all(widget):
+            widget.bind('<MouseWheel>', on_mousewheel)
+            widget.bind('<Button-4>', lambda e: self.canvas.yview_scroll(-1, 'units'))
+            widget.bind('<Button-5>', lambda e: self.canvas.yview_scroll(1, 'units'))
         
-        # Set focus when mouse enters
-        self.canvas.bind('<Enter>', lambda e: self.canvas.focus_set())
+        # Bind to self (the entire ADP page)
+        bind_mousewheel_to_all(self)
+        bind_mousewheel_to_all(self.canvas)
+        bind_mousewheel_to_all(self.scrollable_frame)
+        
+        # Store the binding function so we can use it on dynamically created widgets
+        self.bind_mousewheel = bind_mousewheel_to_all
     
     def load_player_images(self):
         """Pre-load player images for better performance"""
@@ -222,6 +229,10 @@ class ADPPage(StyledFrame):
                 round_frame.configure(height=frame_height)
                 round_frame.pack_propagate(False)
                 round_frame.round_num = round_num
+                
+                # Bind mouse wheel to round frame
+                if hasattr(self, 'bind_mousewheel'):
+                    self.bind_mousewheel(round_frame)
             else:
                 # Find existing round frame
                 round_frame = None
@@ -244,8 +255,25 @@ class ADPPage(StyledFrame):
             
             # Pass total count so widgets can size properly
             total_in_round = len(players_in_round)
-            for i, player in enumerate(players_in_round):
-                self.create_player_widget(round_frame, player, round_num, player.adp, i, 0, i, total_in_round)
+            
+            # Determine if this round goes left-to-right or right-to-left
+            if round_num == 1:
+                reverse_order = False  # Forward
+            elif round_num == 2 or round_num == 3:
+                reverse_order = True  # Reverse (both rounds 2 and 3)
+            else:
+                # After round 3, normal snake draft
+                reverse_order = (round_num % 2 == 1)  # Odd rounds reverse
+            
+            # Create player widgets in the appropriate order
+            if reverse_order:
+                # Right to left - reverse the player order
+                for i, player in enumerate(reversed(players_in_round)):
+                    self.create_player_widget(round_frame, player, round_num, player.adp, i, 0, i, total_in_round)
+            else:
+                # Left to right - normal order
+                for i, player in enumerate(players_in_round):
+                    self.create_player_widget(round_frame, player, round_num, player.adp, i, 0, i, total_in_round)
         
         # Update the canvas scroll region after adding all content
         self.scrollable_frame.update_idletasks()
@@ -280,9 +308,21 @@ class ADPPage(StyledFrame):
         )
         round_label.pack(side='left', padx=10)
         
-        # ADP range label
+        # ADP range label with direction arrow
         adp_start = (round_num - 1) * 10 + 1
         adp_end = round_num * 10
+        
+        # Determine draft direction based on 3rd round reversal rules
+        if round_num == 1:
+            direction_arrow = "→"  # Forward
+        elif round_num == 2 or round_num == 3:
+            direction_arrow = "←"  # Reverse (both rounds 2 and 3)
+        else:
+            # After round 3, normal snake draft
+            if round_num % 2 == 0:
+                direction_arrow = "→"  # Forward
+            else:
+                direction_arrow = "←"  # Reverse
         
         adp_label = tk.Label(
             header_frame,
@@ -291,7 +331,24 @@ class ADPPage(StyledFrame):
             fg=DARK_THEME['text_secondary'],
             font=(DARK_THEME['font_family'], 10)
         )
-        adp_label.pack(side='left', padx=20)
+        adp_label.pack(side='left', padx=10)
+        
+        # Larger arrow label
+        arrow_label = tk.Label(
+            header_frame,
+            text=direction_arrow,
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 16, 'bold')
+        )
+        arrow_label.pack(side='left', padx=5)
+        
+        # Bind mouse wheel to header elements
+        if hasattr(self, 'bind_mousewheel'):
+            self.bind_mousewheel(header_frame)
+            self.bind_mousewheel(round_label)
+            self.bind_mousewheel(adp_label)
+            self.bind_mousewheel(arrow_label)
     
     def create_player_widget(self, parent: tk.Frame, player: Player, round_num: int, pick_num: int, position: int, row: int = 0, col: int = 0, total_in_round: int = None):
         """Create a draggable player widget"""
@@ -369,6 +426,32 @@ class ADPPage(StyledFrame):
         
         # Make draggable
         self.make_draggable(player_frame)
+        
+        # Right-click context menu
+        def on_right_click(event):
+            # Create context menu
+            context_menu = tk.Menu(player_frame, tearoff=0, bg=DARK_THEME['bg_tertiary'], fg=DARK_THEME['text_primary'])
+            context_menu.add_command(
+                label=f"Edit ADP ({int(player.adp) if player.adp else 'N/A'})",
+                command=lambda: self.edit_player_adp(player)
+            )
+            context_menu.post(event.x_root, event.y_root)
+        
+        # Bind right-click to player frame and all its children
+        def bind_right_click(widget):
+            widget.bind('<Button-3>', on_right_click)  # Button-3 is right-click
+            for child in widget.winfo_children():
+                bind_right_click(child)
+        
+        bind_right_click(player_frame)
+        
+        # Bind mouse wheel scrolling to this widget and all children
+        if hasattr(self, 'bind_mousewheel'):
+            def bind_wheel_recursive(w):
+                self.bind_mousewheel(w)
+                for child in w.winfo_children():
+                    bind_wheel_recursive(child)
+            bind_wheel_recursive(player_frame)
         
         # Hover effect
         def on_enter(e):
@@ -665,8 +748,25 @@ class ADPPage(StyledFrame):
                 # Re-create player widgets for this round
                 players_in_round = rounds.get(round_num, [])
                 total_in_round = len(players_in_round)
-                for i, player in enumerate(players_in_round):
-                    self.create_player_widget(round_frame, player, round_num, player.adp, i, 0, i, total_in_round)
+                
+                # Determine if this round goes left-to-right or right-to-left
+                if round_num == 1:
+                    reverse_order = False  # Forward
+                elif round_num == 2 or round_num == 3:
+                    reverse_order = True  # Reverse (both rounds 2 and 3)
+                else:
+                    # After round 3, normal snake draft
+                    reverse_order = (round_num % 2 == 1)  # Odd rounds reverse
+                
+                # Create player widgets in the appropriate order
+                if reverse_order:
+                    # Right to left - reverse the player order
+                    for i, player in enumerate(reversed(players_in_round)):
+                        self.create_player_widget(round_frame, player, round_num, player.adp, i, 0, i, total_in_round)
+                else:
+                    # Left to right - normal order
+                    for i, player in enumerate(players_in_round):
+                        self.create_player_widget(round_frame, player, round_num, player.adp, i, 0, i, total_in_round)
                 
                 # Update the round header with new count
                 # Find and update the header
@@ -677,6 +777,50 @@ class ADPPage(StyledFrame):
                             if isinstance(label, tk.Label) and f"ROUND {round_num}" in label.cget("text"):
                                 label.config(text=f"ROUND {round_num} ({total_in_round})")
                                 break
+    
+    def edit_player_adp(self, player: Player):
+        """Show dialog to edit player's ADP value"""
+        current_adp = player.adp if player.adp else 999
+        
+        # Determine current round
+        old_round = self._get_round_from_adp(current_adp)
+        
+        # Create a simple dialog to input new ADP
+        new_adp = simpledialog.askfloat(
+            "Edit ADP",
+            f"Enter new ADP for {player.format_name()}\n(Current: {current_adp:.1f})",
+            initialvalue=current_adp,
+            minvalue=1.0,
+            maxvalue=300.0,
+            parent=self
+        )
+        
+        if new_adp is not None and new_adp != current_adp:
+            # Update the player's ADP
+            player.adp = new_adp
+            self.custom_adp_manager.set_custom_adp(player.player_id, new_adp)
+            
+            # Notify callback
+            if self.on_adp_change:
+                self.on_adp_change()
+            
+            # Determine new round
+            new_round = self._get_round_from_adp(new_adp)
+            
+            # Only refresh affected rounds
+            rounds_to_update = [old_round, new_round] if old_round != new_round else [old_round]
+            self.quick_update_rounds(rounds_to_update)
+    
+    def _get_round_from_adp(self, adp: float) -> int:
+        """Get the round number from an ADP value"""
+        if adp <= 10:
+            return 1
+        elif adp <= 20:
+            return 2
+        elif adp <= 30:
+            return 3
+        else:
+            return int((adp - 1) / 10) + 1
     
     def reset_adp(self):
         """Reset all custom ADP values"""
