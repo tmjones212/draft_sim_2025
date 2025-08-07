@@ -3,6 +3,43 @@ from ..models import Player
 from .player_data_fetcher import get_players_with_fallback
 from .player_extensions import format_name
 
+# 2025 NFL Team Bye Weeks
+TEAM_BYE_WEEKS = {
+    'CLE': 5,
+    'GB': 5,
+    'LV': 5,
+    'SEA': 5,
+    'DEN': 6,
+    'DET': 6,
+    'JAX': 6,
+    'NYG': 6,
+    'PIT': 6,
+    'SF': 6,
+    'CAR': 7,
+    'CIN': 7,
+    'DAL': 7,
+    'HOU': 7,
+    'NYJ': 7,
+    'TEN': 7,
+    'CHI': 8,
+    'LA': 8,  # Rams
+    'LAR': 8,  # Rams alternate
+    'ARI': 9,
+    'BAL': 9,
+    'LAC': 9,
+    'MIN': 9,
+    'BUF': 10,
+    'IND': 10,
+    'MIA': 10,
+    'NE': 10,
+    'NO': 10,
+    'PHI': 10,
+    'ATL': 11,
+    'KC': 11,
+    'TB': 11,
+    'WAS': 11,
+}
+
 
 def calculate_position_ranks(players: List[Player]):
     """Calculate position ranks based on 2024 stats and projections"""
@@ -96,12 +133,16 @@ def generate_mock_players() -> List[Player]:
     
     players = []
     for data in player_data:
+        team = data.get('team')
+        bye_week = data.get('bye_week') or TEAM_BYE_WEEKS.get(team) if team else None
+        
         player = Player(
             name=format_name(data['name']),
             position=data['position'],
             rank=data['rank'],
             adp=data['adp'],
-            team=data.get('team'),
+            team=team,
+            bye_week=bye_week,
             player_id=data.get('player_id'),
             games_2024=data.get('games_2024'),
             points_2024=data.get('points_2024'),

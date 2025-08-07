@@ -2102,7 +2102,7 @@ class MockDraftApp:
                 name=p_data['name'],
                 position=p_data['position'],
                 team=p_data.get('team', ''),
-                bye_week=p_data.get('bye_week', 0),
+                bye_week=p_data.get('bye_week'),
                 points_2024=p_data.get('points_2024', 0),
                 points_2025_proj=p_data.get('points_2025_proj', 0),
                 var=p_data.get('var', 0),

@@ -194,6 +194,7 @@ class PlayerList(StyledFrame):
             ('', 25, None),      # Info button column
             ('Name', 155, 'name'),
             ('Team', 45, 'team'),
+            ('Bye', 35, 'bye_week'),  # Bye week column
             ('ADP', 55, 'adp'),  # Editable column
             ('Rd', 35, None),    # Round tag column
             ('GP', 40, 'games_2024'),  # Added 5px
@@ -354,6 +355,8 @@ class PlayerList(StyledFrame):
             filtered_players.sort(key=lambda p: p.name if p.name else 'ZZZ', reverse=not self.sort_ascending)
         elif self.sort_by == "team":
             filtered_players.sort(key=lambda p: p.team if p.team else 'ZZZ', reverse=not self.sort_ascending)
+        elif self.sort_by == "bye_week":
+            filtered_players.sort(key=lambda p: p.bye_week if p.bye_week else 999, reverse=not self.sort_ascending)
         else:
             filtered_players.sort(key=lambda p: p.rank, reverse=not self.sort_ascending)
         
@@ -844,6 +847,10 @@ class PlayerList(StyledFrame):
         
         # Team Logo
         self._create_team_logo_cell(row, player, bg, select_row)
+        
+        # Bye Week
+        bye_text = str(player.bye_week) if player.bye_week else '-'
+        self.create_cell(row, bye_text, 35, bg, select_row, field_type='bye')
         
         # ADP (editable)
         adp_text = f"{int(player.adp)}" if player.adp else '-'

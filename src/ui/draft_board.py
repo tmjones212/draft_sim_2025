@@ -487,6 +487,21 @@ class DraftBoard(StyledFrame):
         pos_label.pack()
         pos_label.bind("<Button-1>", handle_pick_click)
         pos_label.bind("<Button-3>", handle_right_click)
+        
+        # Add bye week indicator in bottom right
+        if pick.player.bye_week:
+            bye_label = tk.Label(
+                pick_frame,
+                text=str(pick.player.bye_week),
+                bg=DARK_THEME['bg_secondary'],
+                fg=DARK_THEME['text_secondary'],
+                font=(DARK_THEME['font_family'], 7),
+                padx=2,
+                pady=0
+            )
+            bye_label.place(relx=1.0, rely=1.0, anchor='se', x=-2, y=-2)
+            bye_label.bind("<Button-1>", handle_pick_click)
+            bye_label.bind("<Button-3>", handle_right_click)
     
     def highlight_current_pick(self):
         # Remove previous highlights
