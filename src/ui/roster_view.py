@@ -133,6 +133,10 @@ class RosterView(StyledFrame):
         for widget in self.roster_frame.winfo_children():
             widget.destroy()
         
+        # If no team selected, don't try to display roster
+        if self.current_team_id is None:
+            return
+        
         team = self.teams[self.current_team_id]
         roster = team.get_roster_summary()
         

@@ -10,7 +10,7 @@ from ..services.manager_notes_service import ManagerNotesService
 
 
 class DraftBoard(StyledFrame):
-    def __init__(self, parent, teams: Dict[int, Team], total_rounds: int, max_visible_rounds: int = 9, on_team_select=None, on_pick_click=None, image_service=None, on_pick_change=None, get_top_players=None, **kwargs):
+    def __init__(self, parent, teams: Dict[int, Team], total_rounds: int, max_visible_rounds: int = 9, on_team_select=None, on_pick_click=None, image_service=None, on_pick_change=None, get_top_players=None, on_draft_name_change=None, on_draft_load=None, get_draft_list=None, **kwargs):
         super().__init__(parent, bg_type='secondary', **kwargs)
         self.teams = teams
         self.num_teams = len(teams)
@@ -22,6 +22,9 @@ class DraftBoard(StyledFrame):
         self.on_pick_click = on_pick_click
         self.on_pick_change = on_pick_change
         self.get_top_players = get_top_players
+        self.on_draft_name_change = on_draft_name_change
+        self.on_draft_load = on_draft_load
+        self.get_draft_list = get_draft_list
         self.selected_team_id = None
         self.team_buttons = {}  # team_id -> button widget
         self.draft_results = []  # Store draft picks
@@ -31,6 +34,8 @@ class DraftBoard(StyledFrame):
         self.scrollable_frame = None
         self.manager_notes_service = ManagerNotesService()
         self.tooltip = None
+        self.draft_name_var = tk.StringVar()
+        self.draft_dropdown = None
         self.setup_ui()
         # Start glowing animation if no team selected
         if not self.selected_team_id:

@@ -80,6 +80,8 @@ class MockDraftApp:
         # Cheat sheet data
         self.custom_rankings = {}
         self.player_tiers = {}
+        self.cheat_sheet = None
+        self._cheat_sheet_needs_sync = False
         
         # Template manager
         self.template_manager = TemplateManager()
@@ -1776,26 +1778,29 @@ class MockDraftApp:
         if hasattr(self, 'player_list'):
             self.update_display(full_update=True)
         
-        # Check if preset should set user team
-        active_preset = self.draft_preset_manager.get_active_preset()
-        if active_preset and active_preset.enabled:
-            user_team_name = active_preset.get_user_team_name()
-            if user_team_name:
-                # Find the team ID for the user's team
-                for team_id, team in self.teams.items():
-                    if team.name == user_team_name:
-                        self.user_team_id = team_id
-                        # Update draft board to show user control
-                        self.draft_board.set_user_team(team_id)
-                        # Hide the draft spot banner since preset handles it
-                        self.draft_spot_banner.pack_forget()
-                        break
+        # Check if preset should set user team (only if UI is ready)
+        if hasattr(self, 'draft_board'):
+            active_preset = self.draft_preset_manager.get_active_preset()
+            if active_preset and active_preset.enabled:
+                user_team_name = active_preset.get_user_team_name()
+                if user_team_name:
+                    # Find the team ID for the user's team
+                    for team_id, team in self.teams.items():
+                        if team.name == user_team_name:
+                            self.user_team_id = team_id
+                            # Update draft board to show user control
+                            self.draft_board.set_user_team(team_id)
+                            # Hide the draft spot banner since preset handles it
+                            if hasattr(self, 'draft_spot_banner'):
+                                self.draft_spot_banner.pack_forget()
+                            break
         
         # Don't auto-draft immediately - wait for user to select a team
         # Only show a message prompting user to select a team
-        if not self.user_team_id:
+        if hasattr(self, 'status_label') and not self.user_team_id:
             self.status_label.config(text="Select a team to control")
-            self.on_clock_label.config(text="Click on a team name in the draft board")
+            if hasattr(self, 'on_clock_label'):
+                self.on_clock_label.config(text="Click on a team name in the draft board")
     
     def on_tab_changed(self, event):
         """Handle tab change events"""
@@ -1924,10 +1929,10 @@ class MockDraftApp:
                 self.root.after(10, lambda: self.adp_page.focus_set())
         elif tab_text == "Draft":
             # Update player list with cheat sheet rounds when switching back
-            if self.cheat_sheet and hasattr(self, 'player_list'):
+            if hasattr(self, 'cheat_sheet') and self.cheat_sheet and hasattr(self, 'player_list'):
                 self.player_list.set_cheat_sheet_ref(self.cheat_sheet)
             
-            if self._cheat_sheet_needs_sync and self.cheat_sheet:
+            if hasattr(self, '_cheat_sheet_needs_sync') and self._cheat_sheet_needs_sync and hasattr(self, 'cheat_sheet') and self.cheat_sheet:
                 # Sync rankings when switching back to draft tab
                 self._cheat_sheet_needs_sync = False
                 # Update the display to show updated rounds
@@ -2360,12 +2365,16 @@ class MockDraftApp:
     
     def view_saved_drafts(self):
         """View saved draft files"""
+        # Get draft history (ongoing drafts)
+        draft_history = self.draft_history_manager.get_draft_list()
+        
+        # Also get completed drafts
         saved_drafts = self.draft_save_manager.get_saved_drafts()
         
-        if not saved_drafts:
+        if not draft_history and not saved_drafts:
             messagebox.showinfo(
                 "No Saved Drafts",
-                "No saved drafts found.\n\nDrafts are automatically saved when completed.",
+                "No drafts found.\n\nDrafts are automatically saved as you make picks.",
                 parent=self.root
             )
             return
@@ -2410,8 +2419,35 @@ class MockDraftApp:
         canvas.pack(side='left', fill='both', expand=True)
         scrollbar.pack(side='right', fill='y')
         
-        # Display saved drafts
-        for i, draft_info in enumerate(saved_drafts):
+        # Combine and display all drafts
+        all_drafts = []
+        
+        # Add draft history (ongoing drafts)
+        for draft in draft_history:
+            all_drafts.append({
+                'type': 'history',
+                'name': draft['name'],
+                'id': draft['id'],
+                'modified': draft.get('modified', ''),
+                'picks': draft.get('picks_count', 0),
+                'user_team': draft.get('user_team', 'No Team')
+            })
+        
+        # Add completed drafts
+        for draft in saved_drafts:
+            all_drafts.append({
+                'type': 'completed',
+                'name': draft.get('filename', 'Unknown'),
+                'timestamp': draft.get('timestamp', ''),
+                'picks': draft.get('total_picks', 0),
+                'user_team': draft.get('user_team', 'Observer')
+            })
+        
+        # Sort by date (most recent first)
+        all_drafts.sort(key=lambda x: x.get('modified') or x.get('timestamp', ''), reverse=True)
+        
+        # Display all drafts
+        for i, draft_info in enumerate(all_drafts):
             # Row background
             row_bg = DARK_THEME['bg_tertiary'] if i % 2 == 0 else DARK_THEME['bg_secondary']
             
@@ -2447,11 +2483,18 @@ class MockDraftApp:
             )
             info_label.pack(anchor='w')
             
-            # View button
+            # View/Load button
+            if draft_info.get('type') == 'history':
+                btn_text = "LOAD"
+                btn_command = lambda d=draft_info: self.load_draft_history(d['id'])
+            else:
+                btn_text = "VIEW"
+                btn_command = lambda f=draft_info.get('name', draft_info.get('filename')): self.view_draft_details(f)
+            
             view_btn = StyledButton(
                 row,
-                text="VIEW",
-                command=lambda f=draft_info['filename']: self.view_draft_details(f),
+                text=btn_text,
+                command=btn_command,
                 bg=DARK_THEME['button_bg'],
                 font=(DARK_THEME['font_family'], 9),
                 padx=15,
