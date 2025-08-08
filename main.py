@@ -34,8 +34,8 @@ class MockDraftApp:
         self.root.geometry("1920x1080")
         self.root.configure(bg=DARK_THEME['bg_primary'])
         
-        # Set minimum window size
-        self.root.minsize(1800, 900)
+        # Set minimum window size - reduced for better compatibility
+        self.root.minsize(1400, 800)
         
         # Center the window on screen after UI loads
         self.root.after(100, self.center_window)
