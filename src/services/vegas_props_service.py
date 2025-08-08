@@ -119,7 +119,9 @@ class VegasPropsService:
         if "receiving_yards" in props:
             # WR/TE/RB
             summary_parts.append(f"Rec: {props['receiving_yards'].prop_value:.0f} yds")
-            if "receptions" in props:
+            if "receiving_tds" in props:
+                summary_parts.append(f"RecTDs: {props['receiving_tds'].prop_value:.1f}")
+            elif "receptions" in props:
                 summary_parts.append(f"Recs: {props['receptions'].prop_value:.1f}")
         
         return " | ".join(summary_parts[:2])  # Limit to 2 most relevant props

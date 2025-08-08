@@ -9,6 +9,7 @@ from .player_stats_popup import PlayerStatsPopup
 from ..services.custom_adp_manager import CustomADPManager
 from ..services.custom_round_manager import CustomRoundManager
 from ..services.vegas_props_service import VegasPropsService
+from ..nfc_adp_fetcher import NFCADPFetcher
 
 
 class PlayerList(StyledFrame):
@@ -55,6 +56,10 @@ class PlayerList(StyledFrame):
         
         # Initialize Vegas props service
         self.vegas_props_service = VegasPropsService()
+        
+        # Initialize NFC ADP fetcher
+        self.nfc_adp_fetcher = NFCADPFetcher()
+        self.nfc_adp_data = self.nfc_adp_fetcher.load_nfc_adp()
         
         # Row management for performance
         self.row_frames = []  # Active row frames
@@ -196,13 +201,14 @@ class PlayerList(StyledFrame):
             ('Team', 45, 'team'),
             ('Bye', 35, 'bye_week'),  # Bye week column
             ('ADP', 55, 'adp'),  # Editable column
+            ('NFC ADP', 70, 'nfc_adp'),  # NFC ADP column
             ('Rd', 35, None),    # Round tag column
             ('GP', 40, 'games_2024'),  # Added 5px
             ('2024 Pts', 75, 'points_2024'),  # Added 10px
             ('Proj Rank', 85, 'position_rank_proj'),  # Added 10px
             ('Proj Pts', 75, 'points_2025_proj'),  # Added 10px
             ('VAR', 60, 'var'),  # Added 10px
-            ('Vegas', 130, None)  # Vegas props column
+            ('Vegas', 180, None)  # Vegas props column - increased width
         ]
         
         for text, width, sort_key in headers:
@@ -859,6 +865,14 @@ class PlayerList(StyledFrame):
         if player.adp:
             adp_cell.config(fg=DARK_THEME['text_accent'], cursor='hand2')
         
+        # NFC ADP
+        nfc_adp = self.nfc_adp_fetcher.get_player_nfc_adp(player.name)
+        if nfc_adp:
+            nfc_adp_text = f"{nfc_adp:.1f}"
+        else:
+            nfc_adp_text = "999"
+        self.create_cell(row, nfc_adp_text, 70, bg, select_row, field_type='nfc_adp')
+        
         # Round tag (check for custom round first)
         custom_round = self.custom_round_manager.get_custom_round(player.player_id)
         if custom_round:
@@ -892,7 +906,7 @@ class PlayerList(StyledFrame):
         vegas_text = self.vegas_props_service.get_summary_string(player.name)
         if not vegas_text:
             vegas_text = "-"
-        vegas_cell = self.create_cell(row, vegas_text, 130, bg, select_row, field_type='vegas')
+        vegas_cell = self.create_cell(row, vegas_text, 180, bg, select_row, field_type='vegas')
         
         # Add tooltip with full Vegas props on hover
         if vegas_text != "-":
@@ -2023,9 +2037,15 @@ class PlayerList(StyledFrame):
     def set_watch_list_ref(self, watch_list):
         """Set reference to watch list widget"""
         self.watch_list_ref = watch_list
-        if watch_list:
-            # Sync watched player IDs
-            self.watched_player_ids = watch_list.watched_player_ids
+    
+    def update_nfc_adp(self):
+        """Fetch and update NFC ADP data"""
+        self.nfc_adp_data = self.nfc_adp_fetcher.fetch_nfc_adp()
+        if self.nfc_adp_data:
+            # Refresh the display
+            self.update_players(self.all_players, force_refresh=True)
+            return True
+        return False
     
     def set_cheat_sheet_ref(self, cheat_sheet):
         """Set reference to cheat sheet page"""

@@ -32,7 +32,8 @@
       "Bash(fi)",
       "Bash(git rm:*)",
       "Bash(sed:*)",
-      "Bash(pip3 install:*)"
+      "Bash(pip3 install:*)",
+      "Bash(/dev/null)"
     ],
     "deny": []
   }

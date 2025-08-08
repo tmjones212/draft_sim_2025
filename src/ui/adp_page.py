@@ -11,10 +11,11 @@ import math
 
 
 class ADPPage(StyledFrame):
-    def __init__(self, parent, players: List[Player], on_adp_change: Optional[callable] = None, **kwargs):
+    def __init__(self, parent, players: List[Player], on_adp_change: Optional[callable] = None, player_list_ref=None, **kwargs):
         super().__init__(parent, bg_type='primary', **kwargs)
         self.all_players = players
         self.on_adp_change = on_adp_change
+        self.player_list_ref = player_list_ref
         self.custom_adp_manager = CustomADPManager()
         
         # Configuration

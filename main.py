@@ -253,6 +253,18 @@ class MockDraftApp:
         )
         self.repick_button.pack(side='left', padx=(0, 10))
         
+        # Update NFC ADP button
+        self.update_nfc_button = StyledButton(
+            button_container,
+            text="UPDATE NFC ADP",
+            command=self.update_nfc_adp,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            padx=20,
+            pady=10
+        )
+        self.update_nfc_button.pack(side='left', padx=(0, 10))
+        
         # Draft button (disabled until team selected)
         self.draft_button = StyledButton(
             button_container,
@@ -1094,6 +1106,41 @@ class MockDraftApp:
         # Re-sort available players by ADP to maintain proper draft order
         self.available_players.sort(key=lambda p: p.adp if p.adp else 999)
     
+    def update_nfc_adp(self):
+        """Fetch and update NFC ADP data"""
+        try:
+            from tkinter import messagebox
+            
+            # Update NFC ADP data via player list
+            if hasattr(self, 'player_list') and self.player_list:
+                success = self.player_list.update_nfc_adp()
+                
+                if success:
+                    messagebox.showinfo(
+                        "NFC ADP Updated",
+                        "Successfully updated NFC ADP data from the last 10 days.",
+                        parent=self.root
+                    )
+                else:
+                    messagebox.showwarning(
+                        "Update Failed",
+                        "Failed to fetch NFC ADP data. Please check your internet connection.",
+                        parent=self.root
+                    )
+            else:
+                messagebox.showwarning(
+                    "Not Ready",
+                    "Please wait for players to load before updating NFC ADP.",
+                    parent=self.root
+                )
+        except Exception as e:
+            from tkinter import messagebox
+            messagebox.showerror(
+                "Error",
+                f"An error occurred while updating NFC ADP: {str(e)}",
+                parent=self.root
+            )
+    
     def restart_draft(self):
         """Reset the draft but keep user team selection"""
         # Save current user team selection
@@ -1799,7 +1846,8 @@ class MockDraftApp:
                 self.adp_page = ADPPage(
                     self.adp_container,
                     self.all_players,
-                    on_adp_change=self.on_adp_change
+                    on_adp_change=self.on_adp_change,
+                    player_list_ref=self.player_list
                 )
                 self.adp_page.pack(fill='both', expand=True)
             
@@ -2143,13 +2191,19 @@ class MockDraftApp:
                             if pid in player_lookup
                         ]
         
-        # Restore draft picks
+        # Clear and restore ALL draft picks from template
+        self.draft_engine.draft_results = []
         for pick_data in template.draft_results:
             if pick_data['player_id'] and pick_data['player_id'] in player_lookup:
                 player = player_lookup[pick_data['player_id']]
-                team_id = pick_data['team_id']
-                if team_id in self.teams:
-                    self.draft_engine.make_pick(self.teams[team_id], player)
+                pick = DraftPick(
+                    pick_number=pick_data['pick_number'],
+                    round=pick_data['round'],
+                    pick_in_round=pick_data['pick_in_round'],
+                    team_id=pick_data['team_id'],
+                    player=player
+                )
+                self.draft_engine.draft_results.append(pick)
         
         # Restore user settings
         user_settings = template.user_settings
