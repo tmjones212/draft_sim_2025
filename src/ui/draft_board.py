@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from datetime import datetime
 from typing import List, Dict, Optional
 from ..core import DraftPick
 from ..models import Team
@@ -735,3 +736,12 @@ class DraftBoard(StyledFrame):
         if self.tooltip:
             self.tooltip.destroy()
             self.tooltip = None
+    
+    def set_draft_name(self, name: str):
+        """Set the draft name in the UI"""
+        self.draft_name_var.set(name)
+    
+    def set_manual_mode(self, enabled: bool):
+        """Set manual mode state in the UI"""
+        # This could be used to show an indicator if needed
+        pass

@@ -23,6 +23,7 @@ from src.utils.player_extensions import format_name
 from src.services.player_pool_service import PlayerPoolService
 from src.services.draft_save_manager import DraftSaveManager
 from src.services.draft_preset_manager import DraftPresetManager
+from src.services.draft_history_manager import DraftHistoryManager
 
 
 class MockDraftApp:
@@ -85,6 +86,9 @@ class MockDraftApp:
         
         # Draft save manager
         self.draft_save_manager = DraftSaveManager()
+        
+        # Draft history manager for ongoing drafts
+        self.draft_history_manager = DraftHistoryManager()
         
         # Quick loading indicator
         loading_label = tk.Label(
@@ -204,6 +208,18 @@ class MockDraftApp:
             state='disabled'
         )
         self.undo_button.pack(side='left', padx=(0, 10))
+        
+        # New Draft button
+        self.new_draft_button = StyledButton(
+            button_container,
+            text="NEW DRAFT",
+            command=self.start_new_draft,
+            bg=DARK_THEME['button_active'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            padx=20,
+            pady=10
+        )
+        self.new_draft_button.pack(side='left', padx=(0, 10))
         
         # Restart button
         self.restart_button = StyledButton(
@@ -412,7 +428,10 @@ class MockDraftApp:
             on_pick_click=self.on_pick_clicked,
             on_pick_change=self.on_pick_changed,
             get_top_players=self.get_top_available_players,
-            image_service=self.image_service
+            image_service=self.image_service,
+            on_draft_name_change=self.on_draft_name_change,
+            on_draft_load=self.load_draft_history,
+            get_draft_list=self.get_draft_list
         )
         self.draft_board.pack(fill='both', expand=True, padx=10, pady=10)
         
@@ -624,6 +643,13 @@ class MockDraftApp:
             # Update the draft board with new team names
             self.draft_board.update_team_names(self.teams)
         
+        # Save team configuration to draft history
+        self.draft_history_manager.save_team_config(
+            self.teams,
+            user_team_id=self.user_team_id,
+            manual_mode=self.manual_mode
+        )
+        
         # Hide the banner when team is selected
         self.draft_spot_banner.pack_forget()
         # Enable draft button
@@ -701,20 +727,15 @@ class MockDraftApp:
     
     def _make_pick(self, player):
         """Make a draft pick for the given player"""
-        import time
-        start_time = time.time()
-        
         # Get current pick info
         current_pick, current_round, pick_in_round, team_on_clock = self.draft_engine.get_current_pick_info()
         current_team = self.teams[team_on_clock]
         
         try:
             # First make the pick in the engine
-            print(f"[{time.time()-start_time:.3f}s] Making pick in engine...")
             self.draft_engine.make_pick(current_team, player)
             
             # Remove from available players list
-            print(f"[{time.time()-start_time:.3f}s] Removing from available list...")
             if player in self.available_players:
                 self.available_players.remove(player)
             
@@ -723,36 +744,29 @@ class MockDraftApp:
                 self.player_pool.draft_player(player)
             
             # Remove player from UI immediately
-            print(f"[{time.time()-start_time:.3f}s] Removing from UI...")
             self._remove_drafted_player(player)
-            print(f"[{time.time()-start_time:.3f}s] UI removal complete")
             
             # Update draft board immediately
-            print(f"[{time.time()-start_time:.3f}s] Updating draft board...")
             pick_info = self.draft_engine.get_current_pick_info()
             self.draft_board.update_picks(
                 self.draft_engine.get_draft_results(),
                 pick_info[0]
             )
-            print(f"[{time.time()-start_time:.3f}s] Draft board updated")
             
             # Update roster view to show the new pick
-            print(f"[{time.time()-start_time:.3f}s] Updating roster view...")
             self.roster_view.update_roster_display()
-            print(f"[{time.time()-start_time:.3f}s] Roster view updated")
             
             # Update draft history if it exists
             if self.draft_history:
                 last_pick = self.draft_engine.draft_results[-1]
                 self.draft_history.add_pick(last_pick)
             
-            # Check if we need to auto-draft next
-            print(f"[{time.time()-start_time:.3f}s] Checking auto-draft...")
+            # Save to draft history manager
+            last_pick = self.draft_engine.draft_results[-1]
+            self._save_draft_history_pick(last_pick)
             
-            # Schedule auto-draft to run after UI updates
+            # Schedule auto-draft to run immediately
             self.root.after(1, self.check_auto_draft)
-            
-            print(f"[{time.time()-start_time:.3f}s] Draft player complete (scheduled auto-draft)")
         except ValueError as e:
             messagebox.showerror(
                 "Invalid Pick", 
@@ -792,6 +806,7 @@ class MockDraftApp:
         """Automatically draft for all teams until it's the user's turn"""
         picks_made = []
         
+        # Pre-calculate all picks in a batch for speed
         while not self.draft_engine.is_draft_complete():
             _, _, _, team_on_clock = self.draft_engine.get_current_pick_info()
             
@@ -823,11 +838,11 @@ class MockDraftApp:
                     # Pick failed, try next player
                     continue
         
-        # Update everything at once after all auto-picks
+        # Batch update everything at once for better performance
         if picks_made:
-            # Remove auto-drafted players from the UI
+            # Remove all auto-drafted players from the UI in one batch
             players_to_remove = [player for _, _, player in picks_made]
-            self.player_list.remove_players(players_to_remove)
+            self.player_list.remove_players(players_to_remove, force_refresh=False)
             
             # Update player pool service
             if self.player_pool:
@@ -841,11 +856,11 @@ class MockDraftApp:
                     if player.player_id:
                         watch_list.remove_drafted_player(player.player_id)
             
-            # Check if it's the user's turn
+            # Get final pick info
             pick_num, round_num, pick_in_round, team_on_clock = self.draft_engine.get_current_pick_info()
             is_user_turn = self.user_team_id and team_on_clock == self.user_team_id
             
-            # Always update draft board after auto-drafting (especially for reversion)
+            # Update draft board once
             self.draft_board.update_picks(
                 self.draft_engine.get_draft_results(),
                 pick_num
@@ -861,11 +876,8 @@ class MockDraftApp:
             else:
                 self.draft_button.config(state="disabled", bg=DARK_THEME['button_bg'])
             
-            # Update roster view to reflect all the auto-picks
+            # Update roster view once
             self.roster_view.update_roster_display()
-            
-            # Just update idle tasks, not full update
-            self.root.update_idletasks()
     
     def _select_computer_pick(self, team, pick_num):
         """Select a player for computer team based on smart drafting logic"""
@@ -1141,6 +1153,49 @@ class MockDraftApp:
                 parent=self.root
             )
     
+    def start_new_draft(self):
+        """Start a completely new draft - clear everything"""
+        # Confirm with user
+        if self.draft_engine.draft_results:
+            result = messagebox.askyesno(
+                "Start New Draft",
+                "Are you sure you want to start a new draft? Current draft will be saved in history.",
+                parent=self.root
+            )
+            if not result:
+                return
+        
+        # Reset everything
+        self.restart_draft()
+        
+        # Clear draft name
+        self.draft_board.set_draft_name("")
+        
+        # Clear user team selection
+        self.user_team_id = None
+        self.manual_mode = False
+        
+        # Reset UI elements
+        self.draft_board.selected_team_id = None
+        self.draft_board.stop_glow_animation()
+        self.draft_board.start_glow_animation()
+        
+        # Update team buttons to show "Sit" again
+        for team_id, button in self.draft_board.team_buttons.items():
+            button.config(
+                text="Sit",
+                bg=DARK_THEME['button_bg']
+            )
+        
+        # Show draft spot banner
+        self.draft_spot_banner.pack(fill='x', pady=(10, 0))
+        
+        # Disable draft button
+        self.draft_button.config(state='disabled', bg=DARK_THEME['button_disabled'])
+        
+        # Disable player draft buttons
+        self.player_list.disable_draft_buttons()
+    
     def restart_draft(self):
         """Reset the draft but keep user team selection"""
         # Save current user team selection
@@ -1172,6 +1227,9 @@ class MockDraftApp:
         else:
             # Still loading, wait for it to complete
             self.available_players = []
+        
+        # Start a new draft session
+        self.draft_history_manager.start_new_draft()
         
         # Restore user team selection
         self.user_team_id = saved_user_team
@@ -1525,6 +1583,9 @@ class MockDraftApp:
         for pick in picks_to_keep:
             self.teams[pick.team_id].add_player(pick.player)
         
+        # Update draft history to remove reverted picks
+        self.draft_history_manager.remove_picks_after(target_pick_number - 1)
+        
         # Clear position count cache since rosters changed
         self._position_counts_cache.clear()
         
@@ -1702,14 +1763,18 @@ class MockDraftApp:
         # Initialize player pool service
         self.player_pool = PlayerPoolService(players)
         
+        # Start a new draft session
+        self.draft_history_manager.start_new_draft()
+        
         # Remove loading label
         if hasattr(self, 'loading_label'):
             self.loading_label.destroy()
         
         # Don't create cheat sheet until tab is accessed
         
-        # Update display with loaded players
-        self.update_display(full_update=True)
+        # Update display with loaded players (only if UI is ready)
+        if hasattr(self, 'player_list'):
+            self.update_display(full_update=True)
         
         # Check if preset should set user team
         active_preset = self.draft_preset_manager.get_active_preset()
@@ -2766,6 +2831,96 @@ class MockDraftApp:
             pady=10
         )
         save_btn.pack(pady=(0, 20))
+    
+    def on_draft_name_change(self, draft_name):
+        """Handle draft name change from UI"""
+        self.draft_history_manager.update_draft_name(draft_name)
+    
+    def get_draft_list(self):
+        """Get list of saved drafts for dropdown"""
+        return self.draft_history_manager.get_draft_list()
+    
+    def load_draft_history(self, draft_id):
+        """Load a saved draft from history"""
+        draft_data = self.draft_history_manager.load_draft(draft_id)
+        if not draft_data:
+            messagebox.showerror("Error", "Could not load draft", parent=self.root)
+            return
+        
+        # Clear current draft
+        self.restart_draft()
+        
+        # Update draft name in UI
+        self.draft_board.set_draft_name(draft_data.get('name', ''))
+        
+        # Restore team names if saved
+        teams_data = draft_data.get('teams', {})
+        for team_id_str, team_data in teams_data.items():
+            team_id = int(team_id_str)
+            if team_id in self.teams:
+                self.teams[team_id].name = team_data['name']
+        self.draft_board.update_team_names(self.teams)
+        
+        # Restore user team selection
+        if draft_data.get('user_team_id'):
+            self.user_team_id = draft_data['user_team_id']
+            self.draft_board.select_team(self.user_team_id)
+            self.on_team_selected(self.user_team_id)
+        
+        # Restore manual mode
+        if draft_data.get('manual_mode'):
+            self.manual_mode = True
+            self.draft_board.set_manual_mode(True)
+        
+        # Restore picks
+        picks = draft_data.get('picks', [])
+        for pick_data in picks:
+            # Find the player
+            player = None
+            for p in self.all_players:
+                if p.player_id == pick_data['player']['player_id']:
+                    player = p
+                    break
+            
+            if player:
+                # Make the pick
+                team_id = pick_data['team_id']
+                team = self.teams[team_id]
+                self.draft_engine.make_pick(team, player)
+                
+                # Remove from available players
+                if player in self.available_players:
+                    self.available_players.remove(player)
+                
+                # Update player pool
+                if self.player_pool:
+                    self.player_pool.draft_player(player)
+                
+                # Remove from UI
+                self._remove_drafted_player(player)
+        
+        # Update UI
+        pick_info = self.draft_engine.get_current_pick_info()
+        self.draft_board.update_picks(
+            self.draft_engine.get_draft_results(),
+            pick_info[0]
+        )
+        self.roster_view.update_roster_display()
+        
+        # Update draft history display
+        if self.draft_history:
+            for pick in self.draft_engine.draft_results:
+                self.draft_history.add_pick(pick)
+        
+        messagebox.showinfo("Draft Loaded", f"Loaded draft: {draft_data.get('name', 'Untitled')}", parent=self.root)
+    
+    def _save_draft_history_pick(self, pick):
+        """Save a pick to draft history"""
+        self.draft_history_manager.save_pick(
+            pick,
+            user_team_id=self.user_team_id,
+            manual_mode=self.manual_mode
+        )
 
 
 def main():

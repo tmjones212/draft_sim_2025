@@ -70,6 +70,20 @@ class PlayerList(StyledFrame):
         self.row_height = 35  # Height of each row
         self.top_index = 0  # Index of first visible row
         
+        # Initialize position cache
+        self._position_cache = {
+            'players': None,
+            'ALL': [],
+            'OFF': [],
+            'QB': [],
+            'RB': [],
+            'WR': [],
+            'TE': [],
+            'FLEX': [],
+            'LB': [],
+            'DB': []
+        }
+        
         self.setup_ui()
         
     def setup_ui(self):
@@ -284,8 +298,14 @@ class PlayerList(StyledFrame):
         # Store all players
         self.all_players = players
         
-        # Apply custom ADP values to all players
-        self.custom_adp_manager.apply_custom_adp_to_players(players)
+        # Update position full indicators after updating players
+        if hasattr(self, 'row_frames') and self.row_frames and self.user_team:
+            self._update_position_full_indicators()
+        
+        # Apply custom ADP values to all players only if needed
+        if not hasattr(self, '_last_custom_adp_applied') or self._last_custom_adp_applied != id(players):
+            self.custom_adp_manager.apply_custom_adp_to_players(players)
+            self._last_custom_adp_applied = id(players)
         
         # Pre-compute position groups for faster filtering if players list changed
         if not hasattr(self, '_position_cache') or self._position_cache.get('players') != id(players):
@@ -327,53 +347,8 @@ class PlayerList(StyledFrame):
         # Use pre-computed lists
         filtered_players = self._position_cache.get(self.selected_position, [])[:]
         
-        # Apply sorting
-        if self.sort_by == "rank":
-            filtered_players.sort(key=lambda p: p.rank, reverse=not self.sort_ascending)
-        elif self.sort_by == "custom_rank":
-            filtered_players.sort(key=lambda p: self.custom_rankings.get(p.player_id, p.rank + 1000), reverse=not self.sort_ascending)
-        elif self.sort_by == "adp":
-            filtered_players.sort(key=lambda p: p.adp if p.adp else float('inf'), reverse=not self.sort_ascending)
-        elif self.sort_by == "games_2024":
-            filtered_players.sort(key=lambda p: getattr(p, 'games_2024', 0) or 0, reverse=not self.sort_ascending)
-        elif self.sort_by == "points_2024":
-            filtered_players.sort(key=lambda p: getattr(p, 'points_2024', 0) or 0, reverse=not self.sort_ascending)
-        elif self.sort_by == "points_2025_proj":
-            filtered_players.sort(key=lambda p: getattr(p, 'points_2025_proj', 0) or 0, reverse=not self.sort_ascending)
-        elif self.sort_by == "position_rank_proj":
-            # Sort by position rank (number first, then position)
-            def get_proj_rank_key(p):
-                proj_rank = getattr(p, 'position_rank_proj', '-')
-                if proj_rank == '-' or not proj_rank:
-                    return (999, 'ZZZ')
-                # Extract position and number from something like 'QB1' or 'RB12'
-                if isinstance(proj_rank, str):
-                    pos = ''.join(c for c in proj_rank if c.isalpha())
-                    num = ''.join(c for c in proj_rank if c.isdigit())
-                    return (int(num) if num else 999, pos)
-                return (999, 'ZZZ')
-            filtered_players.sort(key=get_proj_rank_key, reverse=not self.sort_ascending)
-        elif self.sort_by == "var":
-            filtered_players.sort(key=lambda p: getattr(p, 'var', -100) if getattr(p, 'var', None) is not None else -100, reverse=not self.sort_ascending)
-        elif self.sort_by == "position":
-            filtered_players.sort(key=lambda p: p.position if p.position else 'ZZZ', reverse=not self.sort_ascending)
-        elif self.sort_by == "name":
-            filtered_players.sort(key=lambda p: p.name if p.name else 'ZZZ', reverse=not self.sort_ascending)
-        elif self.sort_by == "team":
-            filtered_players.sort(key=lambda p: p.team if p.team else 'ZZZ', reverse=not self.sort_ascending)
-        elif self.sort_by == "bye_week":
-            filtered_players.sort(key=lambda p: p.bye_week if p.bye_week else 999, reverse=not self.sort_ascending)
-        else:
-            filtered_players.sort(key=lambda p: p.rank, reverse=not self.sort_ascending)
-        
-        self.players = filtered_players
-        self.selected_index = None
-        
-        # Use smart update by default, complete refresh only when forced
-        if force_refresh:
-            self._complete_refresh_table()
-        else:
-            self._smart_update_table()
+        # Apply sorting and update
+        self._apply_sort_and_update(filtered_players)
     
     def _complete_refresh_table(self):
         """Complete refresh of table"""
@@ -394,7 +369,7 @@ class PlayerList(StyledFrame):
             delattr(self, '_position_cache')
         
         # If force_refresh is requested or we have too few displayed rows, do a full refresh
-        if force_refresh or len(self.row_frames) < 10:
+        if force_refresh or len(self.row_frames) < 5:
             # Create a set of player IDs for O(1) lookup
             player_ids_to_remove = {p.player_id for p in players_to_remove if p.player_id}
             # Remove from data
@@ -431,9 +406,9 @@ class PlayerList(StyledFrame):
             # Now we need to fill in the gaps with players that weren't displayed
             num_removed = len(rows_to_remove)
             current_displayed = len(self.row_frames)
-            max_display = 30  # Match the limit in _smart_update_table
             
             # Add new rows from the remaining players if we have space
+            max_display = 25  # Match the limit in _smart_update_table  
             if current_displayed < max_display and current_displayed < len(self.players):
                 for i in range(current_displayed, min(current_displayed + num_removed, len(self.players), max_display)):
                     player = self.players[i]
@@ -481,6 +456,75 @@ class PlayerList(StyledFrame):
             self.table_frame.update_idletasks()
             self.canvas.configure(scrollregion=self.canvas.bbox('all'))
     
+    def _apply_sort_and_update(self, filtered_players=None):
+        """Apply sorting to filtered players and update display"""
+        if filtered_players is None:
+            # Initialize position cache if it doesn't exist
+            if not hasattr(self, '_position_cache'):
+                self._position_cache = {
+                    'players': None,
+                    'ALL': [],
+                    'OFF': [],
+                    'QB': [],
+                    'RB': [],
+                    'WR': [],
+                    'TE': [],
+                    'FLEX': [],
+                    'LB': [],
+                    'DB': []
+                }
+                # If we have players, populate the cache
+                if hasattr(self, 'players') and self.players:
+                    self._position_cache['ALL'] = self.players[:]
+            filtered_players = self._position_cache.get(self.selected_position, [])[:]
+        
+        # Cache sort keys to avoid repeated attribute lookups
+        if self.sort_by == "rank":
+            filtered_players.sort(key=lambda p: p.rank, reverse=not self.sort_ascending)
+        elif self.sort_by == "custom_rank":
+            filtered_players.sort(key=lambda p: self.custom_rankings.get(p.player_id, p.rank + 1000), reverse=not self.sort_ascending)
+        elif self.sort_by == "adp":
+            filtered_players.sort(key=lambda p: p.adp if p.adp else float('inf'), reverse=not self.sort_ascending)
+        elif self.sort_by == "nfc_adp":
+            filtered_players.sort(key=lambda p: getattr(p, 'nfc_adp', float('inf')), reverse=not self.sort_ascending)
+        elif self.sort_by == "games_2024":
+            filtered_players.sort(key=lambda p: getattr(p, 'games_2024', 0) or 0, reverse=not self.sort_ascending)
+        elif self.sort_by == "points_2024":
+            filtered_players.sort(key=lambda p: getattr(p, 'points_2024', 0) or 0, reverse=not self.sort_ascending)
+        elif self.sort_by == "points_2025_proj":
+            filtered_players.sort(key=lambda p: getattr(p, 'points_2025_proj', 0) or 0, reverse=not self.sort_ascending)
+        elif self.sort_by == "position_rank_proj":
+            # Sort by position rank (number first, then position)
+            def get_proj_rank_key(p):
+                proj_rank = getattr(p, 'position_rank_proj', '-')
+                if proj_rank == '-' or not proj_rank:
+                    return (999, 'ZZZ')
+                # Extract position and number from something like 'QB1' or 'RB12'
+                if isinstance(proj_rank, str):
+                    pos = ''.join(c for c in proj_rank if c.isalpha())
+                    num = ''.join(c for c in proj_rank if c.isdigit())
+                    return (int(num) if num else 999, pos)
+                return (999, 'ZZZ')
+            filtered_players.sort(key=get_proj_rank_key, reverse=not self.sort_ascending)
+        elif self.sort_by == "var":
+            filtered_players.sort(key=lambda p: getattr(p, 'var', -100) if getattr(p, 'var', None) is not None else -100, reverse=not self.sort_ascending)
+        elif self.sort_by == "position":
+            filtered_players.sort(key=lambda p: p.position if p.position else 'ZZZ', reverse=not self.sort_ascending)
+        elif self.sort_by == "name":
+            filtered_players.sort(key=lambda p: p.name if p.name else 'ZZZ', reverse=not self.sort_ascending)
+        elif self.sort_by == "team":
+            filtered_players.sort(key=lambda p: p.team if p.team else 'ZZZ', reverse=not self.sort_ascending)
+        elif self.sort_by == "bye_week":
+            filtered_players.sort(key=lambda p: p.bye_week if p.bye_week else 999, reverse=not self.sort_ascending)
+        else:
+            filtered_players.sort(key=lambda p: p.rank, reverse=not self.sort_ascending)
+        
+        self.players = filtered_players
+        self.selected_index = None
+        
+        # Always use smart update for performance
+        self._smart_update_table()
+    
     def _smart_update_table(self):
         """Smart update table - optimized but showing all players"""
         # Clear all rows first
@@ -491,7 +535,7 @@ class PlayerList(StyledFrame):
         self.player_id_to_row.clear()
         
         # Show only top players for performance
-        max_display = min(30, len(self.players))  # Only show top 30 players
+        max_display = min(25, len(self.players))  # Reduce to 25 for faster performance
         
         for i in range(max_display):
             player = self.players[i]
@@ -848,7 +892,8 @@ class PlayerList(StyledFrame):
         info_btn.pack(expand=True)
         info_btn._is_info_button = True
         
-        # Name
+        # Name - Store player reference on row for position checking
+        row.player = player  # Make sure player is attached to row BEFORE creating cells
         self.create_cell(row, player.format_name(), 155, bg, select_row, anchor='w', field_type='name')
         
         # Team Logo
@@ -998,11 +1043,18 @@ class PlayerList(StyledFrame):
         cell_frame.pack(side='left', fill='y')
         cell_frame.pack_propagate(False)
         
+        # Determine text color based on position limits
+        text_color = DARK_THEME['text_primary']
+        if field_type == 'name' and hasattr(parent, 'player'):
+            player = parent.player
+            if self._is_position_full(player):
+                text_color = '#FF5E5B'  # Red color for full positions
+        
         cell = tk.Label(
             cell_frame,
             text=text,
             bg=bg,
-            fg=DARK_THEME['text_primary'],
+            fg=text_color,
             font=(DARK_THEME['font_family'], 10),
             anchor=anchor
         )
@@ -1261,24 +1313,36 @@ class PlayerList(StyledFrame):
     
     def sort_players(self, sort_by: str):
         """Sort players by specified criteria"""
-        # Toggle sort direction if clicking the same column
-        if self.sort_by == sort_by:
-            self.sort_ascending = not self.sort_ascending
-        else:
-            # New column - set default sort direction
+        # Special columns that should only sort one way
+        always_ascending = ['adp', 'nfc_adp']  # Always show lowest first
+        always_descending = ['points_2024', 'points_2025_proj', 'var']  # Always show highest first
+        
+        # Check if this is a special column
+        if sort_by in always_ascending:
             self.sort_by = sort_by
-            # Ascending first for: Pos, Name, Team, ADP, Proj Rank, Custom Rank
-            if sort_by in ['position', 'name', 'team', 'adp', 'position_rank_proj', 'custom_rank']:
-                self.sort_ascending = True
+            self.sort_ascending = True
+        elif sort_by in always_descending:
+            self.sort_by = sort_by
+            self.sort_ascending = False
+        else:
+            # Normal toggle behavior for other columns
+            if self.sort_by == sort_by:
+                self.sort_ascending = not self.sort_ascending
             else:
-                # Descending first for stats columns and VAR
-                self.sort_ascending = False
+                # New column - set default sort direction
+                self.sort_by = sort_by
+                # Ascending first for: Pos, Name, Team, Proj Rank, Custom Rank
+                if sort_by in ['position', 'name', 'team', 'position_rank_proj', 'custom_rank']:
+                    self.sort_ascending = True
+                else:
+                    # Descending first for other columns
+                    self.sort_ascending = False
         
         # Update header indicators
         self.update_sort_indicators()
         
-        # Refresh the player list with the new sort
-        self.update_players(self.all_players)
+        # Use cached sorted list if available
+        self._apply_sort_and_update()
     
     def update_sort_indicators(self):
         """Update sort arrows on column headers"""
@@ -2329,8 +2393,90 @@ class PlayerList(StyledFrame):
         """Set draft context for BPA calculations"""
         self.current_pick = current_pick
         self.user_team = user_team
+        # Refresh the display to update position full indicators
+        if hasattr(self, 'row_frames') and self.row_frames:
+            self._update_position_full_indicators()
         # Don't update suggested picks here - let it be done explicitly when needed
+    
+    def _update_position_full_indicators(self):
+        """Update the color of player names based on position availability"""
+        for row in self.row_frames:
+            if not hasattr(row, 'player'):
+                continue
+            
+            player = row.player
+            is_full = self._is_position_full(player)
+            
+            # Find the name cell and update its color
+            for widget in row.winfo_children():
+                if isinstance(widget, tk.Frame):
+                    for child in widget.winfo_children():
+                        if isinstance(child, tk.Label) and hasattr(child, '_field_type') and child._field_type == 'name':
+                            if is_full:
+                                child.config(fg='#FF5E5B')  # Red for full positions
+                            else:
+                                child.config(fg=DARK_THEME['text_primary'])  # Normal color
+                            break
 
+    def _is_position_full(self, player):
+        """Check if the user's team is full at this player's position"""
+        if not self.user_team:
+            return False
+        
+        position = player.position.upper()
+        
+        # Get roster limits from config
+        import config
+        
+        # Count total players drafted so far
+        total_drafted = sum(len(players) for players in self.user_team.roster.values())
+        
+        # If roster is completely full, everything is full
+        max_roster_size = sum(config.roster_spots.values())
+        if total_drafted >= max_roster_size:
+            return True
+        
+        # Count how many of this specific position we have across all roster spots
+        position_count = 0
+        flex_used = 0
+        bench_available = config.roster_spots.get('bn', 0) - len(self.user_team.roster.get('bn', []))
+        
+        # Count position-specific slots
+        for spot, players in self.user_team.roster.items():
+            if spot == position.lower():
+                position_count = len(players)
+            elif spot == 'flex':
+                # Count how many flex spots are used
+                flex_used = len(players)
+        
+        max_position = config.roster_spots.get(position.lower(), 0)
+        max_flex = config.roster_spots.get('flex', 0)
+        
+        # Debug: Print for QB positions
+        if position == 'QB' and position_count >= max_position:
+            print(f"DEBUG: QB check - position_count={position_count}, max={max_position}, bench_available={bench_available}")
+        
+        # Check if position is full
+        if position == 'QB':
+            # QB can only go in QB spots or bench
+            if position_count >= max_position and bench_available <= 0:
+                print(f"DEBUG: QB IS FULL - returning True")
+                return True
+        elif position in ['RB', 'WR', 'TE']:
+            # These can go in their position spots, flex, or bench
+            # Check if all possible slots are full
+            position_slots_full = position_count >= max_position
+            flex_slots_available = flex_used < max_flex
+            
+            if position_slots_full and not flex_slots_available and bench_available <= 0:
+                return True
+        elif position in ['LB', 'DB']:
+            # Defensive players only go to bench
+            if bench_available <= 0:
+                return True
+        
+        return False
+    
     def calculate_bpa_indicator(self, player, index):
         """Calculate BPA indicator for a player"""
         if not self.current_pick or not player.adp:
