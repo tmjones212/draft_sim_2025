@@ -16,4 +16,4 @@ RUN pip install -r requirements.txt
 EXPOSE 8080
 
 # Start command
-CMD ["bash", "-c", "Xvfb :1 -screen 0 1280x720x24 & x11vnc -display :1 -nopw -listen 0.0.0.0 -xkb -forever & websockify --web /usr/share/novnc 8080 0.0.0.0:5900 & sleep 3 && DISPLAY=:1 python your_tkinter_app.py"]
+CMD ["bash", "-c", "Xvfb :1 -screen 0 1280x720x24 & x11vnc -display :1 -nopw -listen 0.0.0.0 -xkb -forever & websockify --web /usr/share/novnc 8080 0.0.0.0:5900 & sleep 3 && DISPLAY=:1 python main.py"]

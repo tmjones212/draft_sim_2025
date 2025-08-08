@@ -2459,15 +2459,16 @@ class MockDraftApp:
             info_frame = tk.Frame(row, bg=row_bg)
             info_frame.pack(side='left', fill='both', expand=True, padx=10)
             
-            # Filename and timestamp
-            filename_label = tk.Label(
+            # Draft name
+            draft_name = draft_info.get('name', draft_info.get('filename', 'Unknown Draft'))
+            name_label = tk.Label(
                 info_frame,
-                text=draft_info['filename'],
+                text=draft_name,
                 bg=row_bg,
                 fg=DARK_THEME['text_primary'],
                 font=(DARK_THEME['font_family'], 11, 'bold')
             )
-            filename_label.pack(anchor='w', pady=(5, 0))
+            name_label.pack(anchor='w', pady=(5, 0))
             
             # Team and mode info
             info_text = f"Team: {draft_info['user_team']} | "

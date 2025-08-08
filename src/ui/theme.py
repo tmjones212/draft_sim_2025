@@ -29,6 +29,7 @@ DARK_THEME = {
     'button_bg': '#5a6171',       # Button background
     'button_hover': '#6b7280',    # Button hover
     'button_active': '#2d7a4e',   # Active/success button (toned down green)
+    'button_disabled': '#3a3f48', # Disabled button
     'button_glow': '#58a7ff',     # Glowing button color
     'button_glow_alt': '#36ceb8', # Alternative glow color
     

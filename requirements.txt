@@ -1,13 +1,36 @@
-# Required packages
-requests>=2.31.0
-Pillow>=9.0.0
-matplotlib>=3.7.0
+# Core Python packages
+requests>=2.31.0          # For API calls to fetch player data
+Pillow>=9.0.0             # For image handling (player photos, team logos)
+matplotlib>=3.7.0         # For graphing in game history
 
-# Testing packages
+# Standard library (included with Python, but listed for clarity)
+# These don't need to be installed via pip:
+# tkinter                 # GUI framework (install python3-tk on Linux)
+# json                    # JSON data handling
+# os                      # Operating system interface
+# sys                     # System-specific parameters
+# datetime                # Date and time handling
+# random                  # Random number generation
+# threading               # Multi-threading support
+# shutil                  # File operations
+# typing                  # Type hints
+# collections             # Specialized container datatypes
+# copy                    # Deep and shallow copy operations
+# enum                    # Enumeration support
+# pathlib                 # Object-oriented filesystem paths
+# time                    # Time-related functions
+# re                      # Regular expressions
+# csv                     # CSV file reading/writing
+# urllib                  # URL handling modules
+
+# Testing packages (optional)
 pytest>=7.4.0
 pytest-timeout>=2.2.0
 
-# For systems without tkinter, install python3-tk:
-# Ubuntu/Debian: sudo apt-get install python3-tk
-# Mac: tkinter comes with Python
-# Windows: tkinter comes with Python
+# Installation notes:
+# 1. Install Python 3.8 or higher
+# 2. Install tkinter if not included:
+#    - Ubuntu/Debian: sudo apt-get install python3-tk
+#    - macOS: tkinter comes with Python from python.org
+#    - Windows: tkinter is included with Python installer
+# 3. Install packages: pip install -r requirements.txt
