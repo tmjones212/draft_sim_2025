@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mock Draft Simulator 2025</title>
+    <meta charset="utf-8">
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden;
+            background: #0e1117;
+        }
+        #screen {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Directly embed VNC viewer with auto-connect -->
+    <iframe id="screen" src="/vnc_lite.html?autoconnect=true&reconnect=true&reconnect_delay=5&resize=scale&view_only=false&path=websockify&host=window.location.hostname&port=window.location.port"></iframe>
+    
+    <script>
+        // Build the correct URL with current host
+        const host = window.location.hostname;
+        const port = window.location.port || '443';
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        
+        // Update iframe with correct parameters
+        const iframe = document.getElementById('screen');
+        const baseUrl = '/vnc_lite.html';
+        const params = new URLSearchParams({
+            autoconnect: 'true',
+            reconnect: 'true',
+            reconnect_delay: '5',
+            resize: 'scale',
+            view_only: 'false',
+            host: host,
+            port: port,
+            encrypt: (protocol === 'wss') ? '1' : '0',
+            path: 'websockify'
+        });
+        
+        iframe.src = baseUrl + '?' + params.toString();
+        
+        // Auto-reload if connection fails
+        setTimeout(() => {
+            if (!iframe.contentWindow.document.body) {
+                window.location.reload();
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
