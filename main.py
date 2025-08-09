@@ -450,6 +450,10 @@ class MockDraftApp:
         self.player_list = PlayerList(player_panel, on_draft=self.draft_player, on_adp_change=self.on_adp_change, image_service=self.image_service)
         self.player_list.pack(fill='both', expand=True, padx=10, pady=10)
         
+        # Apply custom rankings if they were already loaded
+        if hasattr(self, 'custom_rankings') and hasattr(self, 'player_tiers'):
+            self.player_list.set_custom_rankings(self.custom_rankings, self.player_tiers)
+        
         # Connect watch list to player list (bidirectional)
         if hasattr(self.roster_view, 'get_watch_list'):
             watch_list = self.roster_view.get_watch_list()
@@ -1099,6 +1103,106 @@ class MockDraftApp:
             needs.append('K')
         
         return needs
+    
+    def load_cheat_sheet_tiers(self):
+        """Load cheat sheet tiers and build custom rankings"""
+        import os
+        import json
+        
+        # Use absolute path to ensure consistency
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        tier_file = os.path.join(base_dir, 'data', 'cheat_sheet_tiers.json')
+        
+        custom_rankings = {}
+        player_tiers = {}
+        
+        if os.path.exists(tier_file):
+            try:
+                with open(tier_file, 'r') as f:
+                    tiers = json.load(f)
+                    
+                overall_rank = 1
+                
+                # Process each tier in order
+                for tier_num in range(1, 16):  # Support up to 15 tiers
+                    tier_name = f"Tier {tier_num}"
+                    if tier_name in tiers:
+                        players_in_tier = tiers[tier_name]
+                        for player_id in players_in_tier:
+                            custom_rankings[player_id] = overall_rank
+                            player_tiers[player_id] = tier_num
+                            overall_rank += 1
+                
+                # Also process round-based tiers
+                for round_num in range(1, 16):
+                    round_name = f"Round {round_num}"
+                    if round_name in tiers:
+                        players_in_round = tiers[round_name]
+                        for player_id in players_in_round:
+                            if player_id not in custom_rankings:  # Don't override tier rankings
+                                custom_rankings[player_id] = overall_rank
+                                # Assign to tier based on round (3 rounds per tier approximately)
+                                player_tiers[player_id] = min((round_num - 1) // 3 + 1, 8)
+                                overall_rank += 1
+                
+                self.custom_rankings = custom_rankings
+                self.player_tiers = player_tiers
+                
+                # Update player list if it exists
+                if hasattr(self, 'player_list'):
+                    self.player_list.set_custom_rankings(custom_rankings, player_tiers)
+                    
+            except Exception as e:
+                print(f"Error loading cheat sheet tiers: {e}")
+                self.custom_rankings = {}
+                self.player_tiers = {}
+        else:
+            # No saved tiers - create default rankings based on ADP
+            self._create_default_custom_rankings()
+    
+    def _create_default_custom_rankings(self):
+        """Create default custom rankings based on ADP when no tiers file exists"""
+        if not hasattr(self, 'all_players') or not self.all_players:
+            self.custom_rankings = {}
+            self.player_tiers = {}
+            return
+        
+        # Sort players by ADP
+        sorted_players = sorted(self.all_players, key=lambda p: p.adp if p.adp else 999)
+        
+        custom_rankings = {}
+        player_tiers = {}
+        
+        # Assign rankings and tiers based on ADP position
+        for rank, player in enumerate(sorted_players[:180], 1):  # Top 180 players (15 rounds * 12 teams)
+            custom_rankings[player.player_id] = rank
+            
+            # Assign tier based on rank (roughly 20-25 players per tier)
+            if rank <= 12:
+                tier = 1  # Elite
+            elif rank <= 30:
+                tier = 2
+            elif rank <= 50:
+                tier = 3
+            elif rank <= 75:
+                tier = 4
+            elif rank <= 100:
+                tier = 5
+            elif rank <= 130:
+                tier = 6
+            elif rank <= 160:
+                tier = 7
+            else:
+                tier = 8
+            
+            player_tiers[player.player_id] = tier
+        
+        self.custom_rankings = custom_rankings
+        self.player_tiers = player_tiers
+        
+        # Update player list if it exists
+        if hasattr(self, 'player_list'):
+            self.player_list.set_custom_rankings(custom_rankings, player_tiers)
     
     def on_cheat_sheet_update(self, custom_rankings, player_tiers):
         """Called when cheat sheet rankings are updated"""
@@ -1772,11 +1876,13 @@ class MockDraftApp:
         if hasattr(self, 'loading_label'):
             self.loading_label.destroy()
         
-        # Don't create cheat sheet until tab is accessed
+        # Load cheat sheet tiers to populate CR column
+        self.load_cheat_sheet_tiers()
         
         # Update display with loaded players (only if UI is ready)
         if hasattr(self, 'player_list'):
-            self.update_display(full_update=True)
+            # Force refresh to ensure custom rankings are displayed
+            self.update_display(full_update=True, force_refresh=True)
         
         # Check if preset should set user team (only if UI is ready)
         if hasattr(self, 'draft_board'):

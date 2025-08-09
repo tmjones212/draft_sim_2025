@@ -25,6 +25,7 @@ TEAM_BYE_WEEKS = {
     'LA': 8,  # Rams
     'LAR': 8,  # Rams alternate
     'ARI': 9,
+    'ARZ': 9,  # Arizona alternate
     'BAL': 9,
     'LAC': 9,
     'MIN': 9,

@@ -9,6 +9,7 @@ from .styled_widgets import StyledFrame
 from ..config.scoring import SCORING_CONFIG
 from .player_selection_dialog import PlayerSelectionDialog
 from .player_comparison_popup import PlayerComparisonPopup
+from ..services.sos_manager import SOSManager
 
 
 class PlayerStatsPopup:
@@ -20,6 +21,7 @@ class PlayerStatsPopup:
         self.sort_column = None
         self.sort_ascending = True
         self.weekly_data = []  # Store weekly data for sorting
+        self.sos_manager = SOSManager()  # Initialize SOS manager
         
         # Create popup window
         self.window = tk.Toplevel(parent)
@@ -106,6 +108,30 @@ class PlayerStatsPopup:
                 font=(DARK_THEME['font_family'], 14)
             )
             team_label.pack(side='left', padx=(10, 0))
+            
+            # Add SOS info
+            sos_value = self.sos_manager.get_sos(self.player.team, self.player.position)
+            if sos_value is not None:
+                sos_color = self.sos_manager.get_sos_color(sos_value)
+                sos_label = tk.Label(
+                    name_frame,
+                    text=f"• SOS: {sos_value}",
+                    bg=DARK_THEME['bg_secondary'],
+                    fg=sos_color,
+                    font=(DARK_THEME['font_family'], 12, 'bold')
+                )
+                sos_label.pack(side='left', padx=(10, 0))
+                
+                # Add tooltip explaining SOS
+                sos_tooltip_text = f"Strength of Schedule: {sos_value}/32\n"
+                if sos_value <= 10:
+                    sos_tooltip_text += "Easier schedule (favorable matchups)"
+                elif sos_value <= 20:
+                    sos_tooltip_text += "Moderate schedule"
+                else:
+                    sos_tooltip_text += "Difficult schedule (tough matchups)"
+                
+                self._add_tooltip(sos_label, sos_tooltip_text)
         
         # CENTER: Player image
         center_frame = tk.Frame(info_frame, bg=DARK_THEME['bg_secondary'])
@@ -354,6 +380,34 @@ class PlayerStatsPopup:
         )
         close_btn.pack(pady=(5, 0))
         
+    def _add_tooltip(self, widget, text):
+        """Add a tooltip to a widget"""
+        def on_enter(event):
+            tooltip = tk.Toplevel()
+            tooltip.wm_overrideredirect(True)
+            tooltip.wm_geometry(f"+{event.x_root+10}+{event.y_root+10}")
+            label = tk.Label(
+                tooltip,
+                text=text,
+                bg=DARK_THEME['bg_primary'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 10),
+                relief='solid',
+                borderwidth=1,
+                padx=5,
+                pady=3
+            )
+            label.pack()
+            widget.tooltip = tooltip
+        
+        def on_leave(event):
+            if hasattr(widget, 'tooltip'):
+                widget.tooltip.destroy()
+                del widget.tooltip
+        
+        widget.bind('<Enter>', on_enter)
+        widget.bind('<Leave>', on_leave)
+    
     def close(self):
         self.window.grab_release()
         self.window.destroy()

@@ -1,1 +1,3 @@
-the adp page sucks. the round width is not nearly wide enough. and each player needs to take up mor ewidth, i can't read the names. and the font is too big. look how bad this is @Screenshot 2025-07-13 111942.png
+when the app loads, all CR (custom rank) is blank on the available players table
+if i go to teh cheat sheetpage and just immediately come back, they are populated
+same thing w/ the vegas column. it starts empty, then populates if i move and come back

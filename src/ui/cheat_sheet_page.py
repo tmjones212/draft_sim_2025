@@ -82,6 +82,9 @@ class CheatSheetPage(StyledFrame):
         
         # Set up recursive mouse wheel binding after initial display
         self.after(100, self.setup_recursive_mousewheel)
+        
+        # Notify draft app of initial rankings
+        self.after(150, self.notify_rankings_update)
     
     def get_short_name(self, player: Player) -> str:
         """Get short name (nickname or last name) for a player"""
@@ -227,6 +230,8 @@ class CheatSheetPage(StyledFrame):
             # Notify draft app that tiers have changed
             if hasattr(self, 'draft_app') and self.draft_app:
                 self.draft_app._cheat_sheet_needs_sync = True
+                # Build and send custom rankings
+                self.notify_rankings_update()
         except Exception as e:
             print(f"Error saving cheat sheet tiers: {e}")
             # Try to show error to user
@@ -235,6 +240,40 @@ class CheatSheetPage(StyledFrame):
                 messagebox.showerror("Save Error", f"Failed to save cheat sheet: {e}")
             except:
                 pass
+    
+    def notify_rankings_update(self):
+        """Build custom rankings from tiers and notify the draft app"""
+        if not self.draft_app or not hasattr(self.draft_app, 'on_cheat_sheet_update'):
+            return
+        
+        custom_rankings = {}
+        player_tiers = {}
+        
+        overall_rank = 1
+        
+        # Process each tier in order
+        for tier_num in range(1, 16):  # Support up to 15 tiers
+            tier_name = f"Tier {tier_num}"
+            if tier_name in self.tiers:
+                players_in_tier = self.tiers[tier_name]
+                for player_id in players_in_tier:
+                    custom_rankings[player_id] = overall_rank
+                    player_tiers[player_id] = tier_num
+                    overall_rank += 1
+        
+        # Also process any round-based tiers
+        for round_num in range(1, 16):
+            round_name = f"Round {round_num}"
+            if round_name in self.tiers:
+                players_in_round = self.tiers[round_name]
+                for player_id in players_in_round:
+                    if player_id not in custom_rankings:  # Don't override tier rankings
+                        custom_rankings[player_id] = overall_rank
+                        player_tiers[player_id] = 0  # No tier color for round-based
+                        overall_rank += 1
+        
+        # Send to draft app
+        self.draft_app.on_cheat_sheet_update(custom_rankings, player_tiers)
     
     def setup_ui(self):
         # Header

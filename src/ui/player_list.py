@@ -9,6 +9,7 @@ from .player_stats_popup import PlayerStatsPopup
 from ..services.custom_adp_manager import CustomADPManager
 from ..services.custom_round_manager import CustomRoundManager
 from ..services.vegas_props_service import VegasPropsService
+from ..services.sos_manager import SOSManager
 from ..nfc_adp_fetcher import NFCADPFetcher
 
 
@@ -54,8 +55,13 @@ class PlayerList(StyledFrame):
         # Reference to cheat sheet page for round assignments
         self.cheat_sheet_ref = None
         
-        # Initialize Vegas props service
-        self.vegas_props_service = VegasPropsService()
+        # Initialize Vegas props service with callback to refresh when loaded
+        self.vegas_props_service = VegasPropsService(
+            on_props_loaded=lambda: self._on_vegas_props_loaded()
+        )
+        
+        # Initialize SOS manager
+        self.sos_manager = SOSManager()
         
         # Initialize NFC ADP fetcher
         self.nfc_adp_fetcher = NFCADPFetcher()
@@ -214,6 +220,7 @@ class PlayerList(StyledFrame):
             ('Name', 155, 'name'),
             ('Team', 45, 'team'),
             ('Bye', 35, 'bye_week'),  # Bye week column
+            ('SOS', 40, 'sos'),  # Strength of Schedule column
             ('ADP', 55, 'adp'),  # Editable column
             ('NFC ADP', 70, 'nfc_adp'),  # NFC ADP column
             ('Rd', 35, None),    # Round tag column
@@ -222,7 +229,7 @@ class PlayerList(StyledFrame):
             ('Proj Rank', 85, 'position_rank_proj'),  # Added 10px
             ('Proj Pts', 75, 'points_2025_proj'),  # Added 10px
             ('VAR', 60, 'var'),  # Added 10px
-            ('Vegas', 180, None)  # Vegas props column - increased width
+            ('Vegas', 160, None)  # Vegas props column - reduced to accommodate SOS
         ]
         
         for text, width, sort_key in headers:
@@ -508,6 +515,12 @@ class PlayerList(StyledFrame):
             filtered_players.sort(key=get_proj_rank_key, reverse=not self.sort_ascending)
         elif self.sort_by == "var":
             filtered_players.sort(key=lambda p: getattr(p, 'var', -100) if getattr(p, 'var', None) is not None else -100, reverse=not self.sort_ascending)
+        elif self.sort_by == "sos":
+            # Sort by SOS (lower is easier/better)
+            def get_sos_key(p):
+                sos = self.sos_manager.get_sos(p.team, p.position)
+                return sos if sos is not None else 999
+            filtered_players.sort(key=get_sos_key, reverse=not self.sort_ascending)
         elif self.sort_by == "position":
             filtered_players.sort(key=lambda p: p.position if p.position else 'ZZZ', reverse=not self.sort_ascending)
         elif self.sort_by == "name":
@@ -800,6 +813,11 @@ class PlayerList(StyledFrame):
             cr_label.pack(expand=True)
             cr_label.bind('<Button-1>', select_row)
         
+        # Add double-click handler for drafting to CR column
+        if hasattr(row, '_double_click_handler'):
+            cr_label.bind('<Double-Button-1>', row._double_click_handler)
+            cr_frame.bind('<Double-Button-1>', row._double_click_handler)
+        
         # Star button for watch list
         star_frame = tk.Frame(row, bg=bg, width=25)
         star_frame.pack(side='left', fill='y')
@@ -903,6 +921,36 @@ class PlayerList(StyledFrame):
         bye_text = str(player.bye_week) if player.bye_week else '-'
         self.create_cell(row, bye_text, 35, bg, select_row, field_type='bye')
         
+        # SOS (Strength of Schedule)
+        sos_value = self.sos_manager.get_sos(player.team, player.position)
+        sos_text = self.sos_manager.get_sos_display(player.team, player.position)
+        if not sos_text:
+            sos_text = '-'
+        
+        # Create SOS cell with custom color
+        sos_cell_frame = tk.Frame(row, bg=bg, width=40)
+        sos_cell_frame.pack(side='left', fill='y')
+        sos_cell_frame.pack_propagate(False)
+        
+        sos_color = self.sos_manager.get_sos_color(sos_value) if sos_value else DARK_THEME['text_muted']
+        sos_font = (DARK_THEME['font_family'], 9, 'bold') if sos_value else (DARK_THEME['font_family'], 10)
+        
+        sos_label = tk.Label(
+            sos_cell_frame,
+            text=sos_text,
+            bg=bg,
+            fg=sos_color,
+            font=sos_font,
+            anchor='center'
+        )
+        sos_label.pack(expand=True, fill='both')
+        sos_label.bind('<Button-1>', select_row)
+        
+        # Add double-click handler for drafting
+        if hasattr(row, '_double_click_handler'):
+            sos_label.bind('<Double-Button-1>', row._double_click_handler)
+            sos_cell_frame.bind('<Double-Button-1>', row._double_click_handler)
+        
         # ADP (editable)
         adp_text = f"{int(player.adp)}" if player.adp else '-'
         adp_cell = self.create_cell(row, adp_text, 55, bg, select_row, field_type='adp')
@@ -951,7 +999,7 @@ class PlayerList(StyledFrame):
         vegas_text = self.vegas_props_service.get_summary_string(player.name)
         if not vegas_text:
             vegas_text = "-"
-        vegas_cell = self.create_cell(row, vegas_text, 180, bg, select_row, field_type='vegas')
+        vegas_cell = self.create_cell(row, vegas_text, 160, bg, select_row, field_type='vegas')
         
         # Add tooltip with full Vegas props on hover
         if vegas_text != "-":
@@ -2116,7 +2164,19 @@ class PlayerList(StyledFrame):
         self.cheat_sheet_ref = cheat_sheet
         # Update the display to show cheat sheet rounds
         if hasattr(self, 'players') and self.players:
-            self.update_table_view()
+            self.update_players(self.players, force_refresh=True)
+    
+    def update_table_view(self):
+        """Update the table view without recreating all rows"""
+        # This method updates the display when custom rankings change
+        if hasattr(self, 'players') and self.players:
+            self.update_players(self.players, force_refresh=True)
+    
+    def _on_vegas_props_loaded(self):
+        """Called when Vegas props finish loading in background"""
+        # Schedule UI update on main thread
+        if hasattr(self, 'players') and self.players:
+            self.after(0, lambda: self.update_players(self.players, force_refresh=True))
     
     def calculate_player_tier(self, player):
         """Calculate player tier based on ADP or VAR"""

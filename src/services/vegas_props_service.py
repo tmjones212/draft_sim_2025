@@ -15,11 +15,12 @@ class CachedPropsData:
 class VegasPropsService:
     """Service to manage Vegas props data from DraftKings"""
     
-    def __init__(self):
+    def __init__(self, on_props_loaded=None):
         self.cache: Optional[CachedPropsData] = None
         self.cache_duration = timedelta(minutes=15)
         self.loading = False
         self.load_lock = threading.Lock()
+        self.on_props_loaded = on_props_loaded
         
         # Start background load on initialization
         self._start_background_load()
@@ -128,5 +129,11 @@ class VegasPropsService:
     
     def _start_background_load(self):
         """Start loading props in background thread"""
-        thread = threading.Thread(target=self._refresh_cache, daemon=True)
+        def load_and_notify():
+            self._refresh_cache()
+            # Notify when props are loaded
+            if self.on_props_loaded and self.cache and self.cache.data:
+                self.on_props_loaded()
+        
+        thread = threading.Thread(target=load_and_notify, daemon=True)
         thread.start()

@@ -194,3 +194,60 @@ When you learn useful things that would be helpful in the future, memorialize th
   - JOHNSON ↔ johnson
   - LUAN ↔ luan
 - Notes saved in `data/manager_notes.json` (excluded from sync)
+
+## Custom Color-Coded Cells in Player List (IMPORTANT TECHNIQUE)
+
+### How to Add Color-Coded Data to Player List Table
+
+Instead of using the standard `create_cell()` method which returns a frame (not the label), create a custom cell directly:
+
+```python
+# Example: SOS (Strength of Schedule) column with color coding
+# Don't use: self.create_cell(row, text, width, bg, handler)
+# Instead, create custom cell:
+
+# 1. Create the cell frame
+cell_frame = tk.Frame(row, bg=bg, width=40)
+cell_frame.pack(side='left', fill='y')
+cell_frame.pack_propagate(False)
+
+# 2. Determine the color based on value
+color = self.get_color_for_value(value)  # Custom logic
+font = (DARK_THEME['font_family'], 9, 'bold') if value else (DARK_THEME['font_family'], 10)
+
+# 3. Create the label with custom styling
+label = tk.Label(
+    cell_frame,
+    text=display_text,
+    bg=bg,
+    fg=color,  # Custom color!
+    font=font,  # Custom font!
+    anchor='center'
+)
+label.pack(expand=True, fill='both')
+label.bind('<Button-1>', select_row)  # Maintain row selection
+```
+
+### Color Schemes Used
+
+**SOS (Strength of Schedule)**:
+- Green (#4CAF50): Easy schedule (1-10)
+- Yellow (#FFC107): Moderate (11-20)  
+- Red (#F44336): Difficult (21-32)
+- Gray (#888888): No data
+
+**Custom Rank (CR) Tiers**:
+- Tier 1: Gold (#FFD700)
+- Tier 2: Silver (#C0C0C0)
+- Tier 3: Bronze (#CD7F32)
+- Tier 4: Royal Blue (#4169E1)
+- Tier 5: Lime Green (#32CD32)
+- Tier 6: Tomato (#FF6347)
+- Tier 7: Medium Purple (#9370DB)
+- Tier 8: Light Sea Green (#20B2AA)
+
+### Key Points
+- The standard `create_cell()` method returns the frame, not the label, so you can't configure text color on it
+- For custom styling, create the cell manually with Frame → Label hierarchy
+- Always bind click handlers to maintain row selection functionality
+- Set both `fg` (foreground/text color) and `font` for best visual effect
