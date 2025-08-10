@@ -1,10 +1,11 @@
 const CACHE_NAME = 'draft-sim-v1';
 const urlsToCache = [
-  '/',
-  '/web_static/players_data.json',
-  '/web_static/manifest.json',
-  '/web_static/service-worker.js',
-  '/web_static/draft-offline.js'
+  './',
+  './web_static/players_data.json',
+  './web_static/manifest.json',
+  './web_static/service-worker.js',
+  './web_static/draft-offline.js',
+  './draft-offline.html'
 ];
 
 // Install service worker and cache resources

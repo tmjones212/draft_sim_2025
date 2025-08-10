@@ -31,7 +31,7 @@ class DraftSimulator {
 
   async loadPlayers() {
     try {
-      const response = await fetch('/web_static/players_data.json');
+      const response = await fetch('web_static/players_data.json');
       const data = await response.json();
       this.allPlayers = data.players;
       this.availablePlayers = [...this.allPlayers];
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Register service worker
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/web_static/service-worker.js')
+    navigator.serviceWorker.register('web_static/service-worker.js')
       .then(reg => console.log('Service Worker registered'))
       .catch(err => console.error('Service Worker registration failed:', err));
   }
