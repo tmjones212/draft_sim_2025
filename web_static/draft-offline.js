@@ -516,9 +516,124 @@ class DraftSimulator {
         const padding = elementId === 'draft-board-mini' ? '2px' : '5px';
         html += `<td style="padding: ${padding}; border: 1px solid #333; font-size: ${fontSize};">`;
         if (pick) {
-          const lastName = pick.player.name.split(' ').pop();
-          const displayName = elementId === 'draft-board-mini' && lastName.length > 8 ? 
-            lastName.substring(0, 7) + '.' : lastName;
+          let displayName = '';
+          const fullName = pick.player.name.toUpperCase();
+          
+          // Special abbreviations for common players
+          if (fullName.includes('MCCAFFREY')) {
+            displayName = 'CMC';
+          } else if (fullName.includes('JUSTIN JEFFERSON')) {
+            displayName = 'JJ';
+          } else if (fullName.includes('BIJAN')) {
+            displayName = 'BIJAN';
+          } else if (fullName.includes('MCCONKEY')) {
+            displayName = 'LADD';
+          } else if (fullName.includes('BRIAN THOMAS')) {
+            displayName = 'BTJ';
+          } else if (fullName.includes('CALVIN RIDLEY')) {
+            displayName = 'RIDLY';
+          } else if (fullName.includes('MARVIN HARRISON')) {
+            displayName = 'MHJ';
+          } else if (fullName.includes('AMON-RA') || fullName.includes('AMON RA')) {
+            displayName = 'ARSB';
+          } else if (fullName.includes('DEANDRE HOPKINS')) {
+            displayName = 'DHOP';
+          } else if (fullName.includes('KENNETH WALKER')) {
+            displayName = 'KW3';
+          } else if (fullName.includes('TRAVIS ETIENNE')) {
+            displayName = 'ETN';
+          } else if (fullName.includes('RACHAAD WHITE')) {
+            displayName = 'RWHIT';
+          } else if (fullName.includes('TYREEK HILL')) {
+            displayName = 'HILL';
+          } else if (fullName.includes('DAVANTE ADAMS')) {
+            displayName = 'ADAMS';
+          } else if (fullName.includes('JAMARR CHASE') || fullName.includes("JA'MARR")) {
+            displayName = 'CHASE';
+          } else if (fullName.includes('GEORGE PICKENS')) {
+            displayName = 'PICK';
+          } else if (fullName.includes('JONATHAN TAYLOR')) {
+            displayName = 'JT';
+          } else if (fullName.includes('SAQUON')) {
+            displayName = 'SAQON';
+          } else if (fullName.includes('DERRICK HENRY')) {
+            displayName = 'HENRY';
+          } else if (fullName.includes('JOSH JACOBS')) {
+            displayName = 'JACBS';
+          } else if (fullName.includes('ALVIN KAMARA')) {
+            displayName = 'AK';
+          } else if (fullName.includes('BREECE HALL')) {
+            displayName = 'HALL';
+          } else if (fullName.includes('JAHMYR GIBBS')) {
+            displayName = 'GIBBS';
+          } else if (fullName.includes('DEVON ACHANE') || fullName.includes("DE'VON")) {
+            displayName = 'ACHAN';
+          } else if (fullName.includes('JAMES COOK')) {
+            displayName = 'COOK';
+          } else if (fullName.includes('JOE MIXON')) {
+            displayName = 'MIXON';
+          } else if (fullName.includes('GARRETT WILSON')) {
+            displayName = 'GWILS';
+          } else if (fullName.includes('CHRIS OLAVE')) {
+            displayName = 'OLAVE';
+          } else if (fullName.includes('MIKE EVANS')) {
+            displayName = 'EVANS';
+          } else if (fullName.includes('PUKA NACUA')) {
+            displayName = 'PUKA';
+          } else if (fullName.includes('NICO COLLINS')) {
+            displayName = 'NICO';
+          } else if (fullName.includes('BRANDON AIYUK')) {
+            displayName = 'AIYUK';
+          } else if (fullName.includes('DEEBO SAMUEL')) {
+            displayName = 'DEEBO';
+          } else if (fullName.includes('STEFON DIGGS')) {
+            displayName = 'DIGGS';
+          } else if (fullName.includes('COOPER KUPP')) {
+            displayName = 'KUPP';
+          } else if (fullName.includes('CEEDEE LAMB')) {
+            displayName = 'LAMB';
+          } else if (fullName.includes('AJ BROWN') || fullName.includes('A.J.')) {
+            displayName = 'AJB';
+          } else if (fullName.includes('DK METCALF')) {
+            displayName = 'DK';
+          } else if (fullName.includes('JAYLEN WADDLE')) {
+            displayName = 'WADL';
+          } else if (fullName.includes('DJ MOORE')) {
+            displayName = 'DJM';
+          } else if (fullName.includes('TRAVIS KELCE')) {
+            displayName = 'KELCE';
+          } else if (fullName.includes('SAM LAPORTA')) {
+            displayName = 'SAMMY';
+          } else if (fullName.includes('MARK ANDREWS')) {
+            displayName = 'MANDR';
+          } else if (fullName.includes('GEORGE KITTLE')) {
+            displayName = 'KITTL';
+          } else if (fullName.includes('TREY MCBRIDE')) {
+            displayName = 'MCBRD';
+          } else if (fullName.includes('DALTON KINCAID')) {
+            displayName = 'KINCA';
+          } else if (fullName.includes('TJ HOCKENSON') || fullName.includes('T.J.')) {
+            displayName = 'HOCK';
+          } else if (fullName.includes('KYLE PITTS')) {
+            displayName = 'PITTS';
+          } else if (fullName.includes('EVAN ENGRAM')) {
+            displayName = 'ENGRM';
+          } else if (fullName.includes('DALLAS GOEDERT')) {
+            displayName = 'GOED';
+          } else if (fullName.includes('D/ST') || fullName.includes('DST')) {
+            // For defenses, use team abbreviation
+            displayName = pick.player.team;
+          } else {
+            // Default: use last name, max 5 chars
+            const lastName = pick.player.name.split(' ').pop();
+            displayName = lastName.substring(0, 5).toUpperCase();
+          }
+          
+          // For mini board, ensure it's max 5 chars
+          if (elementId === 'draft-board-mini' && displayName.length > 5) {
+            displayName = displayName.substring(0, 5);
+          }
+          
           html += `${pick.player.position} ${displayName}`;
         }
         html += '</td>';
