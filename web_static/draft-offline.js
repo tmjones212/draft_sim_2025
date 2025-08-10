@@ -46,19 +46,24 @@ class DraftSimulator {
   
   toggleMode() {
     this.manualMode = !this.manualMode;
+    console.log('Mode toggled to:', this.manualMode ? 'Manual' : 'Auto');
     this.saveState();
     this.render();
     
     // If switching to auto mode and it's computer's turn, start auto-picking
-    if (!this.manualMode && this.getCurrentTeam() !== this.userTeamId) {
+    if (!this.manualMode && this.draftStarted && this.getCurrentTeam() !== this.userTeamId) {
+      console.log('Starting auto-pick for computer team');
       setTimeout(() => this.makeComputerPick(), 1000);
     }
   }
   
   makeAutoPick() {
-    // For manual mode - make one computer pick
+    // For manual mode - make one computer pick without triggering chain
     if (this.getCurrentTeam() !== this.userTeamId) {
+      const savedMode = this.manualMode;
+      this.manualMode = true; // Temporarily set to manual to prevent chain
       this.makeComputerPick();
+      this.manualMode = savedMode; // Restore original mode
     }
   }
 
@@ -127,8 +132,10 @@ class DraftSimulator {
       return false;
     }
     
-    // Only allow user to pick on their turn
-    if (this.getCurrentTeam() !== this.userTeamId) {
+    // In auto mode, only allow user to pick on their turn
+    // In manual mode, user can make all picks
+    if (!this.manualMode && this.getCurrentTeam() !== this.userTeamId) {
+      alert("It's not your turn! Switch to manual mode to make all picks.");
       return false;
     }
     
@@ -260,6 +267,7 @@ class DraftSimulator {
     this.currentPick = 1;
     this.userTeamId = null;
     this.draftStarted = false;
+    this.manualMode = true; // Reset to manual mode
     this.initializeTeams();
     localStorage.removeItem('draftState'); // Clear saved state
     this.render();

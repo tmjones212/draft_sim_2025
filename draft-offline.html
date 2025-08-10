@@ -204,7 +204,7 @@
     <div class="controls">
       <button onclick="draft.rollback()">↶ Undo</button>
       <button onclick="draft.restart()">↻ Restart</button>
-      <button onclick="draft.toggleMode()" id="mode-btn">Mode: Manual</button>
+      <button onclick="toggleMode()" id="mode-btn">Mode: Manual</button>
       <button onclick="simulateToEnd()">⏩ Simulate</button>
     </div>
   </div>
@@ -244,8 +244,13 @@
         modeBtn.textContent = `Mode: ${this.manualMode ? 'Manual' : 'Auto'}`;
       }
     };
-  </script>
-  <script>
+    
+    function toggleMode() {
+      if (draft && draft.toggleMode) {
+        draft.toggleMode();
+      }
+    }
+    
     function showTab(tabName) {
       // Hide all tabs
       document.querySelectorAll('.content-area').forEach(el => {

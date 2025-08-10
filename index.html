@@ -406,9 +406,10 @@
             
             const teamId = getCurrentTeam();
             
-            // Only allow user to pick on their turn
-            if (teamId !== draftState.userTeamId) {
-                alert("It's not your turn!");
+            // In auto mode, only allow user to pick on their turn
+            // In manual mode, user can make all picks
+            if (!draftState.manualMode && teamId !== draftState.userTeamId) {
+                alert("It's not your turn! Switch to manual mode to make all picks.");
                 return;
             }
             const team = draftState.teams[teamId];
