@@ -357,6 +357,11 @@ class DraftSimulator {
         // Create draft grid visualization
         const currentRound = Math.ceil(this.currentPick / this.numTeams);
         const pickInRound = ((this.currentPick - 1) % this.numTeams) + 1;
+        // Round 1: forward (1-10)
+        // Round 2: backward (10-1) 
+        // Round 3: backward (10-1) - 3rd round reversal
+        // Round 4: forward (1-10)
+        // etc.
         const isSnakeBack = (currentRound % 2 === 0 && currentRound !== 3) || (currentRound === 3);
         
         // Build grid for current and next round
@@ -367,12 +372,15 @@ class DraftSimulator {
         if (isSnakeBack) {
           gridHtml += '<span style="font-size: 10px; color: #888;">←</span>';
           for (let i = 10; i >= 1; i--) {
-            const isPick = (i === (11 - pickInRound));
+            // In snake back rounds, pick position needs to be inverted
+            const teamPicking = this.draftOrder[this.currentPick - 1];
+            const isPick = (i === teamPicking);
             gridHtml += `<div style="width: 8px; height: 8px; background: ${isPick ? '#50fa7b' : '#333'}; border-radius: 1px;"></div>`;
           }
         } else {
           for (let i = 1; i <= 10; i++) {
-            const isPick = (i === pickInRound);
+            const teamPicking = this.draftOrder[this.currentPick - 1];
+            const isPick = (i === teamPicking);
             gridHtml += `<div style="width: 8px; height: 8px; background: ${isPick ? '#50fa7b' : '#333'}; border-radius: 1px;"></div>`;
           }
           gridHtml += '<span style="font-size: 10px; color: #888;">→</span>';
@@ -381,7 +389,8 @@ class DraftSimulator {
         
         // Show next round preview (dimmer)
         if (currentRound < 25) {
-          const nextRoundSnake = !isSnakeBack;
+          const nextRound = currentRound + 1;
+          const nextRoundSnake = (nextRound % 2 === 0 && nextRound !== 3) || (nextRound === 3);
           gridHtml += '<div style="display: flex; gap: 1px; align-items: center; opacity: 0.3;">';
           if (nextRoundSnake) {
             gridHtml += '<span style="font-size: 10px; color: #888;">←</span>';
@@ -460,7 +469,7 @@ class DraftSimulator {
     const canPick = this.manualMode || (this.draftStarted && this.getCurrentTeam() === this.userTeamId);
     const cursorStyle = canPick ? 'cursor: pointer;' : 'cursor: not-allowed; opacity: 0.7;';
 
-    const html = filteredPlayers.slice(0, 50).map(player => `
+    const html = filteredPlayers.slice(0, 10).map(player => `
       <div class="player-row" onclick="draft.makePick('${player.id}')" style="${cursorStyle} padding: 8px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
         <div style="flex: 1;">
           <span style="color: ${positionColors[player.position] || '#fff'}; font-weight: bold; margin-right: 10px;">${player.position}</span>
