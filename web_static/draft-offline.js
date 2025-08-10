@@ -8,7 +8,8 @@ class DraftSimulator {
     this.currentPick = 1;
     this.totalPicks = 0;
     this.numTeams = 10;
-    this.userTeamId = 1;
+    this.userTeamId = null; // Will be set when user picks spot
+    this.draftStarted = false;
     this.rosterSpots = {
       QB: 2,
       RB: 5,
@@ -26,7 +27,20 @@ class DraftSimulator {
     await this.loadPlayers();
     this.initializeTeams();
     this.calculateDraftOrder();
+    this.loadState(); // Try to load saved state
     this.render();
+  }
+  
+  selectDraftSpot(spotNumber) {
+    this.userTeamId = spotNumber;
+    this.draftStarted = true;
+    this.saveState();
+    this.render();
+    
+    // Start auto-picking if it's not user's turn
+    if (this.getCurrentTeam() !== this.userTeamId) {
+      setTimeout(() => this.makeComputerPick(), 1000);
+    }
   }
 
   async loadPlayers() {
@@ -88,6 +102,17 @@ class DraftSimulator {
   }
 
   makePick(playerId) {
+    // Don't allow picks if draft hasn't started
+    if (!this.draftStarted || !this.userTeamId) {
+      alert('Please select your draft spot first!');
+      return false;
+    }
+    
+    // Only allow user to pick on their turn
+    if (this.getCurrentTeam() !== this.userTeamId) {
+      return false;
+    }
+    
     const player = this.availablePlayers.find(p => p.id === playerId);
     if (!player) return false;
 
@@ -113,7 +138,7 @@ class DraftSimulator {
     
     // Auto-pick for computer teams
     if (this.currentPick <= this.totalPicks && this.getCurrentTeam() !== this.userTeamId) {
-      setTimeout(() => this.makeComputerPick(), 500);
+      setTimeout(() => this.makeComputerPick(), 1000);
     }
     
     this.render();
@@ -195,8 +220,10 @@ class DraftSimulator {
     this.availablePlayers = [...this.allPlayers];
     this.draftedPlayers = [];
     this.currentPick = 1;
+    this.userTeamId = null;
+    this.draftStarted = false;
     this.initializeTeams();
-    this.saveState();
+    localStorage.removeItem('draftState'); // Clear saved state
     this.render();
   }
 
@@ -204,7 +231,9 @@ class DraftSimulator {
     const state = {
       currentPick: this.currentPick,
       draftedPlayers: this.draftedPlayers,
-      teams: this.teams
+      teams: this.teams,
+      userTeamId: this.userTeamId,
+      draftStarted: this.draftStarted
     };
     localStorage.setItem('draftState', JSON.stringify(state));
     localStorage.setItem('playersData', JSON.stringify({ players: this.allPlayers }));
@@ -217,10 +246,17 @@ class DraftSimulator {
       this.currentPick = data.currentPick;
       this.draftedPlayers = data.draftedPlayers;
       this.teams = data.teams;
+      this.userTeamId = data.userTeamId;
+      this.draftStarted = data.draftStarted;
       
       // Rebuild available players
       const draftedIds = new Set(this.draftedPlayers.map(d => d.player.id));
       this.availablePlayers = this.allPlayers.filter(p => !draftedIds.has(p.id));
+      
+      // Resume auto-picking if needed
+      if (this.draftStarted && this.getCurrentTeam() !== this.userTeamId) {
+        setTimeout(() => this.makeComputerPick(), 1000);
+      }
     }
   }
 
@@ -228,14 +264,25 @@ class DraftSimulator {
     // Update status
     const statusEl = document.getElementById('draft-status');
     if (statusEl) {
-      const currentTeam = this.getCurrentTeam();
-      const isUserPick = currentTeam === this.userTeamId;
-      statusEl.innerHTML = `
-        <div style="padding: 10px; background: ${isUserPick ? '#2a4e2a' : '#1a1d23'}; border-radius: 5px;">
-          <strong>Pick ${this.currentPick} / ${this.totalPicks}</strong> - 
-          ${isUserPick ? 'YOUR PICK' : `Team ${currentTeam}'s Pick`}
-        </div>
-      `;
+      if (!this.draftStarted || !this.userTeamId) {
+        // Show draft spot selection
+        let spotsHtml = '<div style="padding: 10px;"><h3>Select Your Draft Position:</h3><div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">';
+        for (let i = 1; i <= this.numTeams; i++) {
+          spotsHtml += `<button onclick="draft.selectDraftSpot(${i})" style="width: 60px; height: 60px; font-size: 20px;">${i}</button>`;
+        }
+        spotsHtml += '</div></div>';
+        statusEl.innerHTML = spotsHtml;
+      } else {
+        const currentTeam = this.getCurrentTeam();
+        const isUserPick = currentTeam === this.userTeamId;
+        statusEl.innerHTML = `
+          <div style="padding: 10px; background: ${isUserPick ? '#2a4e2a' : '#1a1d23'}; border-radius: 5px;">
+            <strong>Pick ${this.currentPick} / ${this.totalPicks}</strong> - 
+            ${isUserPick ? 'YOUR PICK' : `Team ${currentTeam}'s Pick`}
+            <br><small>You are Team ${this.userTeamId}</small>
+          </div>
+        `;
+      }
     }
 
     // Update available players
@@ -260,9 +307,12 @@ class DraftSimulator {
       LB: '#bd93f9',
       DB: '#f1fa8c'
     };
+    
+    const isUserTurn = this.draftStarted && this.getCurrentTeam() === this.userTeamId;
+    const cursorStyle = isUserTurn ? 'cursor: pointer;' : 'cursor: not-allowed; opacity: 0.7;';
 
     const html = this.availablePlayers.slice(0, 50).map(player => `
-      <div class="player-row" onclick="draft.makePick('${player.id}')" style="cursor: pointer; padding: 8px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+      <div class="player-row" onclick="draft.makePick('${player.id}')" style="${cursorStyle} padding: 8px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
         <div style="flex: 1;">
           <span style="color: ${positionColors[player.position] || '#fff'}; font-weight: bold; margin-right: 10px;">${player.position}</span>
           <span>${player.name}</span>

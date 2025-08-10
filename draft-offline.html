@@ -258,6 +258,11 @@
     }
 
     function simulateToEnd() {
+      if (!draft.draftStarted || !draft.userTeamId) {
+        alert('Please select your draft spot first!');
+        return;
+      }
+      
       const interval = setInterval(() => {
         if (draft.currentPick > draft.totalPicks || draft.availablePlayers.length === 0) {
           clearInterval(interval);
