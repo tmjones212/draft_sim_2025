@@ -194,8 +194,20 @@
     </div>
 
     <script>
-        // Mock data - in production this would come from the server
-        const mockPlayers = [
+        // Load player data
+        let allPlayers = [];
+        
+        async function loadPlayers() {
+            try {
+                const response = await fetch('web_static/players_data.json');
+                const data = await response.json();
+                allPlayers = data.players;
+                console.log(`Loaded ${allPlayers.length} players`);
+                initializeDraft();
+            } catch (error) {
+                console.error('Error loading players:', error);
+                // Fallback to mock data if needed
+                allPlayers = [
             // QBs
             {name: "Josh Allen", position: "QB", team: "BUF", adp: 45},
             {name: "Jalen Hurts", position: "QB", team: "PHI", adp: 48},
@@ -259,6 +271,9 @@
             {name: "Kyle Pitts", position: "TE", team: "ATL", adp: 72},
             {name: "Dallas Goedert", position: "TE", team: "PHI", adp: 78}
         ];
+                initializeDraft();
+            }
+        }
 
         // Draft state
         let draftState = {
@@ -266,12 +281,15 @@
             draftOrder: [],
             picks: [],
             currentPick: 1,
-            availablePlayers: [...mockPlayers],
-            allPlayers: [...mockPlayers]
+            availablePlayers: [],
+            allPlayers: []
         };
 
         // Initialize draft
         function initializeDraft() {
+            // Use loaded players
+            draftState.availablePlayers = [...allPlayers];
+            draftState.allPlayers = [...allPlayers];
             // Create 10 teams
             draftState.teams = {};
             for (let i = 1; i <= 10; i++) {
@@ -305,7 +323,8 @@
 
             draftState.picks = [];
             draftState.currentPick = 1;
-            draftState.availablePlayers = [...mockPlayers].sort((a, b) => a.adp - b.adp);
+            draftState.availablePlayers = [...allPlayers].sort((a, b) => a.adp - b.adp);
+            updateUI();
         }
 
         function getCurrentTeam() {
@@ -530,8 +549,7 @@
         }
 
         // Initialize on load
-        initializeDraft();
-        updateUI();
+        loadPlayers();
     </script>
 </body>
 </html>

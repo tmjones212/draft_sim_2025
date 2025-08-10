@@ -146,41 +146,60 @@ class DraftSimulator {
   }
 
   makeComputerPick() {
-    if (this.availablePlayers.length === 0) return;
+    if (this.availablePlayers.length === 0 || this.currentPick > this.totalPicks) return;
     
     const teamId = this.getCurrentTeam();
     const team = this.teams[teamId];
     
+    // Don't auto-pick for user
+    if (teamId === this.userTeamId) return;
+    
+    let player = null;
+    
     // Special rules
     if (this.currentPick <= 2) {
-      const chase = this.availablePlayers.find(p => p.name.includes('CHASE') && p.position === 'WR');
-      if (chase) {
-        this.makePick(chase.id);
-        return;
-      }
+      player = this.availablePlayers.find(p => p.name.includes('CHASE') && p.position === 'WR');
     }
     
-    if (this.currentPick <= 21) {
-      const burrow = this.availablePlayers.find(p => p.name.includes('BURROW') && p.position === 'QB');
-      if (burrow) {
-        this.makePick(burrow.id);
-        return;
-      }
+    if (!player && this.currentPick <= 21) {
+      player = this.availablePlayers.find(p => p.name.includes('BURROW') && p.position === 'QB');
     }
     
     // Simple BPA with position needs
-    const needPositions = this.getTeamNeeds(team);
-    let pick = this.availablePlayers[0]; // Best available by ADP
-    
-    // Try to fill needs if we're past the early rounds
-    if (this.currentPick > 30 && needPositions.length > 0) {
-      const needPlayer = this.availablePlayers.find(p => needPositions.includes(p.position));
-      if (needPlayer && this.availablePlayers.indexOf(needPlayer) < 10) {
-        pick = needPlayer;
+    if (!player) {
+      const needPositions = this.getTeamNeeds(team);
+      player = this.availablePlayers[0]; // Best available by ADP
+      
+      // Try to fill needs if we're past the early rounds
+      if (this.currentPick > 30 && needPositions.length > 0) {
+        const needPlayer = this.availablePlayers.find(p => needPositions.includes(p.position));
+        if (needPlayer && this.availablePlayers.indexOf(needPlayer) < 10) {
+          player = needPlayer;
+        }
       }
     }
     
-    this.makePick(pick.id);
+    if (!player) return;
+    
+    // Make the pick directly without calling makePick (to avoid recursion)
+    team.roster.push(player);
+    team.positionCounts[player.position] = (team.positionCounts[player.position] || 0) + 1;
+    
+    this.availablePlayers = this.availablePlayers.filter(p => p.id !== player.id);
+    this.draftedPlayers.push({
+      pick: this.currentPick,
+      teamId: teamId,
+      player: player
+    });
+    
+    this.currentPick++;
+    this.saveState();
+    this.render();
+    
+    // Continue auto-picking for next computer team
+    if (this.currentPick <= this.totalPicks && this.getCurrentTeam() !== this.userTeamId) {
+      setTimeout(() => this.makeComputerPick(), 1000);
+    }
   }
 
   getTeamNeeds(team) {
