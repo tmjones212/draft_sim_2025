@@ -354,6 +354,50 @@ class DraftSimulator {
             color: ${this.positionFilter === pos ? '#000' : '#fff'}; border: none; border-radius: 2px;">${pos}</button>`
         ).join('');
         
+        // Create draft grid visualization
+        const currentRound = Math.ceil(this.currentPick / this.numTeams);
+        const pickInRound = ((this.currentPick - 1) % this.numTeams) + 1;
+        const isSnakeBack = (currentRound % 2 === 0 && currentRound !== 3) || (currentRound === 3);
+        
+        // Build grid for current and next round
+        let gridHtml = '<div style="display: flex; flex-direction: column; gap: 1px; margin: 0 5px;">';
+        
+        // Show current round
+        gridHtml += '<div style="display: flex; gap: 1px; align-items: center;">';
+        if (isSnakeBack) {
+          gridHtml += '<span style="font-size: 10px; color: #888;">←</span>';
+          for (let i = 10; i >= 1; i--) {
+            const isPick = (i === (11 - pickInRound));
+            gridHtml += `<div style="width: 8px; height: 8px; background: ${isPick ? '#50fa7b' : '#333'}; border-radius: 1px;"></div>`;
+          }
+        } else {
+          for (let i = 1; i <= 10; i++) {
+            const isPick = (i === pickInRound);
+            gridHtml += `<div style="width: 8px; height: 8px; background: ${isPick ? '#50fa7b' : '#333'}; border-radius: 1px;"></div>`;
+          }
+          gridHtml += '<span style="font-size: 10px; color: #888;">→</span>';
+        }
+        gridHtml += '</div>';
+        
+        // Show next round preview (dimmer)
+        if (currentRound < 25) {
+          const nextRoundSnake = !isSnakeBack;
+          gridHtml += '<div style="display: flex; gap: 1px; align-items: center; opacity: 0.3;">';
+          if (nextRoundSnake) {
+            gridHtml += '<span style="font-size: 10px; color: #888;">←</span>';
+            for (let i = 10; i >= 1; i--) {
+              gridHtml += `<div style="width: 8px; height: 8px; background: #333; border-radius: 1px;"></div>`;
+            }
+          } else {
+            for (let i = 1; i <= 10; i++) {
+              gridHtml += `<div style="width: 8px; height: 8px; background: #333; border-radius: 1px;"></div>`;
+            }
+            gridHtml += '<span style="font-size: 10px; color: #888;">→</span>';
+          }
+          gridHtml += '</div>';
+        }
+        gridHtml += '</div>';
+        
         statusEl.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 3px; gap: 5px;">
             <span style="white-space: nowrap; font-size: 12px;"><strong>P${this.currentPick}</strong></span>
@@ -361,6 +405,7 @@ class DraftSimulator {
               <div style="display: flex; gap: 2px; justify-content: center;">${filterButtons1}</div>
               <div style="display: flex; gap: 2px; justify-content: center;">${filterButtons2}</div>
             </div>
+            ${gridHtml}
             <span style="background: ${isUserPick ? '#2a4e2a' : 'transparent'}; padding: 2px 6px; border-radius: 3px; white-space: nowrap; font-size: 12px;">
               ${isUserPick ? 'YOU' : `T${currentTeam}`}
             </span>
