@@ -19,7 +19,9 @@ class DraftSimulator {
       TE: 2,
       FLEX: 2,
       LB: 3,
-      DB: 3
+      DB: 3,
+      K: 1,
+      DST: 1
     };
     this.draftOrder = [];
     this.init();
@@ -246,6 +248,8 @@ class DraftSimulator {
     if ((counts.TE || 0) < this.rosterSpots.TE) needs.push('TE');
     if ((counts.LB || 0) < this.rosterSpots.LB && this.currentPick > 90) needs.push('LB');
     if ((counts.DB || 0) < this.rosterSpots.DB && this.currentPick > 90) needs.push('DB');
+    if ((counts.K || 0) < this.rosterSpots.K && this.currentPick > 120) needs.push('K');
+    if ((counts.DST || 0) < this.rosterSpots.DST && this.currentPick > 130) needs.push('DST');
     
     return needs;
   }
@@ -334,22 +338,33 @@ class DraftSimulator {
         const currentTeam = this.getCurrentTeam();
         const isUserPick = currentTeam === this.userTeamId;
         
-        // Position filter buttons
-        const positions = ['ALL', 'QB', 'RB', 'WR', 'TE', 'FLEX'];
-        const filterButtons = positions.map(pos => 
+        // Position filter buttons - split into two rows for mobile
+        const positions1 = ['ALL', 'QB', 'RB', 'WR', 'TE'];
+        const positions2 = ['FLEX', 'LB', 'DB', 'K', 'DST'];
+        
+        const filterButtons1 = positions1.map(pos => 
           `<button onclick="draft.setPositionFilter('${pos}')" 
-            style="padding: 2px 6px; font-size: 11px; background: ${this.positionFilter === pos ? '#50fa7b' : '#333'}; 
-            color: ${this.positionFilter === pos ? '#000' : '#fff'}; border: none; border-radius: 3px;">${pos}</button>`
+            style="padding: 1px 4px; font-size: 10px; background: ${this.positionFilter === pos ? '#50fa7b' : '#333'}; 
+            color: ${this.positionFilter === pos ? '#000' : '#fff'}; border: none; border-radius: 2px;">${pos}</button>`
+        ).join('');
+        
+        const filterButtons2 = positions2.map(pos => 
+          `<button onclick="draft.setPositionFilter('${pos}')" 
+            style="padding: 1px 4px; font-size: 10px; background: ${this.positionFilter === pos ? '#50fa7b' : '#333'}; 
+            color: ${this.positionFilter === pos ? '#000' : '#fff'}; border: none; border-radius: 2px;">${pos}</button>`
         ).join('');
         
         statusEl.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px; gap: 10px;">
-            <span style="white-space: nowrap;"><strong>Pick ${this.currentPick}/${this.totalPicks}</strong></span>
-            <div style="display: flex; gap: 3px;">${filterButtons}</div>
-            <span style="background: ${isUserPick ? '#2a4e2a' : 'transparent'}; padding: 2px 8px; border-radius: 3px; white-space: nowrap;">
-              ${isUserPick ? 'YOUR PICK' : `Team ${currentTeam}`}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 3px; gap: 5px;">
+            <span style="white-space: nowrap; font-size: 12px;"><strong>P${this.currentPick}</strong></span>
+            <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1;">
+              <div style="display: flex; gap: 2px; justify-content: center;">${filterButtons1}</div>
+              <div style="display: flex; gap: 2px; justify-content: center;">${filterButtons2}</div>
+            </div>
+            <span style="background: ${isUserPick ? '#2a4e2a' : 'transparent'}; padding: 2px 6px; border-radius: 3px; white-space: nowrap; font-size: 12px;">
+              ${isUserPick ? 'YOU' : `T${currentTeam}`}
             </span>
-            ${!isUserPick && this.manualMode ? '<button onclick="draft.makeAutoPick()" style="padding: 2px 10px; font-size: 12px;">CPU</button>' : ''}
+            ${!isUserPick && this.manualMode ? '<button onclick="draft.makeAutoPick()" style="padding: 2px 8px; font-size: 11px;">CPU</button>' : ''}
           </div>
         `;
       }
@@ -375,7 +390,10 @@ class DraftSimulator {
       WR: '#8be9fd',
       TE: '#ffb86c',
       LB: '#bd93f9',
-      DB: '#f1fa8c'
+      DB: '#f1fa8c',
+      K: '#e879f9',
+      DST: '#a78bfa',
+      DEF: '#a78bfa'  // Some data might use DEF instead of DST
     };
     
     // Filter players by position
@@ -387,6 +405,7 @@ class DraftSimulator {
           p.position === 'RB' || p.position === 'WR' || p.position === 'TE'
         );
       } else {
+        // Filter by specific position
         filteredPlayers = this.availablePlayers.filter(p => p.position === this.positionFilter);
       }
     }
@@ -462,7 +481,7 @@ class DraftSimulator {
     });
 
     let html = '<h3>Your Roster</h3>';
-    ['QB', 'RB', 'WR', 'TE', 'LB', 'DB'].forEach(pos => {
+    ['QB', 'RB', 'WR', 'TE', 'LB', 'DB', 'K', 'DST'].forEach(pos => {
       if (byPosition[pos]) {
         html += `<div style="margin-bottom: 10px;"><strong>${pos}:</strong> `;
         html += byPosition[pos].map(p => p.name).join(', ');
