@@ -1,0 +1,14 @@
+{
+  "routes": [
+    {
+      "route": "/",
+      "serve": "/index.html"
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html"
+  },
+  "globalHeaders": {
+    "Cache-Control": "no-cache"
+  }
+}

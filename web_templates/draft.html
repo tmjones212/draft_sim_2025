@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mock Draft 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #0e1117;
+            color: #e1e3e8;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: #1a1d24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button.danger {
+            background: #ef4444;
+        }
+
+        button.danger:hover {
+            background: #dc2626;
+        }
+
+        button.secondary {
+            background: #6b7280;
+        }
+
+        button.secondary:hover {
+            background: #4b5563;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #1a1d24;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: transparent;
+            color: #9ca3af;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .draft-board {
+            background: #1a1d24;
+            border-radius: 8px;
+            padding: 10px;
+            overflow-x: auto;
+        }
+
+        .round {
+            margin-bottom: 10px;
+        }
+
+        .round-header {
+            font-weight: bold;
+            color: #9ca3af;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .picks {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 5px;
+        }
+
+        .pick {
+            background: #0e1117;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            border: 1px solid #2d3748;
+        }
+
+        .pick.current {
+            border: 2px solid #3b82f6;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { border-color: #3b82f6; }
+            50% { border-color: #60a5fa; }
+        }
+
+        .pick-number {
+            color: #6b7280;
+            font-size: 10px;
+        }
+
+        .pick-team {
+            color: #9ca3af;
+            font-weight: 600;
+            margin: 2px 0;
+        }
+
+        .pick-player {
+            color: #e1e3e8;
+            font-weight: bold;
+        }
+
+        .position-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .position-QB { background: #ec4899; color: white; }
+        .position-RB { background: #14b8a6; color: white; }
+        .position-WR { background: #3b82f6; color: white; }
+        .position-TE { background: #f97316; color: white; }
+
+        .players-table {
+            background: #1a1d24;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .search-box {
+            padding: 10px;
+            background: #0e1117;
+            border: 1px solid #2d3748;
+            border-radius: 6px;
+            color: #e1e3e8;
+            width: 100%;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #0e1117;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #9ca3af;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 10px;
+            border-top: 1px solid #2d3748;
+        }
+
+        tr:hover {
+            background: #252a36;
+            cursor: pointer;
+        }
+
+        .player-name {
+            font-weight: 600;
+            color: #e1e3e8;
+        }
+
+        .draft-btn {
+            background: #10b981;
+            padding: 5px 15px;
+            font-size: 12px;
+        }
+
+        .draft-btn:hover {
+            background: #059669;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        .error {
+            background: #991b1b;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .picks {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+            
+            th, td {
+                padding: 8px 5px;
+                font-size: 12px;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1d24;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .close-modal {
+            background: transparent;
+            color: #6b7280;
+            font-size: 24px;
+            padding: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="status">
+                <div id="draft-status">Loading...</div>
+                <div id="on-clock" style="font-size: 14px; color: #9ca3af; margin-top: 5px;"></div>
+            </div>
+            <div class="controls">
+                <button onclick="initDraft()" class="danger">Reset Draft</button>
+                <button onclick="rollbackPick()" class="secondary">Undo Pick</button>
+                <button onclick="makeAutoPick()">Auto Pick</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('players')">Players</button>
+            <button class="tab" onclick="showTab('board')">Draft Board</button>
+            <button class="tab" onclick="showTab('teams')">Teams</button>
+        </div>
+
+        <div id="players-tab" class="tab-content active">
+            <input type="text" class="search-box" id="player-search" placeholder="Search players..." onkeyup="filterPlayers()">
+            <div class="players-table">
+                <table id="players-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Pos</th>
+                            <th>Team</th>
+                            <th>ADP</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="players-tbody">
+                        <tr><td colspan="5" class="loading">Loading players...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="board-tab" class="tab-content">
+            <div class="draft-board" id="draft-board">
+                <div class="loading">Loading draft board...</div>
+            </div>
+        </div>
+
+        <div id="teams-tab" class="tab-content">
+            <div id="teams-list">
+                <div class="loading">Loading teams...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pick-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirm Pick</h3>
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'players';
+        let allPlayers = [];
+        let currentPick = 0;
+
+        function showTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+            
+            if (tab === 'board') {
+                loadDraftBoard();
+            } else if (tab === 'teams') {
+                loadTeams();
+            }
+        }
+
+        async function initDraft() {
+            if (!confirm('Are you sure you want to reset the draft?')) return;
+            
+            try {
+                const response = await fetch('/api/init', { method: 'POST' });
+                if (response.ok) {
+                    loadStatus();
+                    loadPlayers();
+                    loadDraftBoard();
+                }
+            } catch (error) {
+                console.error('Error initializing draft:', error);
+            }
+        }
+
+        async function loadStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                currentPick = data.pick_number;
+                
+                if (data.draft_complete) {
+                    document.getElementById('draft-status').textContent = 'Draft Complete!';
+                    document.getElementById('on-clock').textContent = '';
+                } else {
+                    document.getElementById('draft-status').textContent = `Round ${data.round}, Pick ${data.pick_in_round} (Overall: ${data.pick_number})`;
+                    document.getElementById('on-clock').textContent = `On the clock: ${data.team_name}`;
+                }
+            } catch (error) {
+                console.error('Error loading status:', error);
+            }
+        }
+
+        async function loadPlayers() {
+            try {
+                const response = await fetch('/api/available_players');
+                allPlayers = await response.json();
+                displayPlayers(allPlayers);
+            } catch (error) {
+                console.error('Error loading players:', error);
+            }
+        }
+
+        function displayPlayers(players) {
+            const tbody = document.getElementById('players-tbody');
+            
+            if (players.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280;">No available players</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = players.map(player => `
+                <tr onclick="selectPlayer(${player.id})">
+                    <td class="player-name">${player.name}</td>
+                    <td><span class="position-badge position-${player.position}">${player.position}</span></td>
+                    <td>${player.team}</td>
+                    <td>${player.adp}</td>
+                    <td><button class="draft-btn" onclick="draftPlayer(${player.id}, event)">Draft</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function filterPlayers() {
+            const search = document.getElementById('player-search').value.toLowerCase();
+            const filtered = allPlayers.filter(p => 
+                p.name.toLowerCase().includes(search) ||
+                p.position.toLowerCase().includes(search) ||
+                p.team.toLowerCase().includes(search)
+            );
+            displayPlayers(filtered);
+        }
+
+        async function draftPlayer(playerId, event) {
+            if (event) event.stopPropagation();
+            
+            try {
+                const response = await fetch('/api/make_pick', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ player_id: playerId })
+                });
+                
+                if (response.ok) {
+                    await loadStatus();
+                    await loadPlayers();
+                    if (currentTab === 'board') {
+                        await loadDraftBoard();
+                    }
+                }
+            } catch (error) {
+                console.error('Error making pick:', error);
+            }
+        }
+
+        async function makeAutoPick() {
+            try {
+                const response = await fetch('/api/auto_pick', { method: 'POST' });
+                
+                if (response.ok) {
+                    await loadStatus();
+                    await loadPlayers();
+                    if (currentTab === 'board') {
+                        await loadDraftBoard();
+                    }
+                }
+            } catch (error) {
+                console.error('Error making auto pick:', error);
+            }
+        }
+
+        async function rollbackPick() {
+            if (!confirm('Undo the last pick?')) return;
+            
+            try {
+                const response = await fetch('/api/rollback', { method: 'POST' });
+                
+                if (response.ok) {
+                    await loadStatus();
+                    await loadPlayers();
+                    if (currentTab === 'board') {
+                        await loadDraftBoard();
+                    }
+                }
+            } catch (error) {
+                console.error('Error rolling back pick:', error);
+            }
+        }
+
+        async function loadDraftBoard() {
+            try {
+                const response = await fetch('/api/draft_board');
+                const board = await response.json();
+                
+                const boardDiv = document.getElementById('draft-board');
+                boardDiv.innerHTML = board.slice(0, 5).map(round => `
+                    <div class="round">
+                        <div class="round-header">Round ${round.round}</div>
+                        <div class="picks">
+                            ${round.picks.map(pick => `
+                                <div class="pick ${pick.pick_number === currentPick ? 'current' : ''}">
+                                    <div class="pick-number">Pick ${pick.pick_number}</div>
+                                    <div class="pick-team">${pick.team}</div>
+                                    ${pick.player_name ? `
+                                        <div class="pick-player">
+                                            ${pick.player_name}
+                                            <span class="position-badge position-${pick.position}">${pick.position}</span>
+                                        </div>
+                                    ` : '<div style="color: #4b5563; font-size: 11px;">Empty</div>'}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading draft board:', error);
+            }
+        }
+
+        async function loadTeams() {
+            try {
+                const response = await fetch('/api/teams');
+                const teams = await response.json();
+                
+                const teamsDiv = document.getElementById('teams-list');
+                teamsDiv.innerHTML = teams.map(team => `
+                    <div style="background: #1a1d24; padding: 15px; margin-bottom: 10px; border-radius: 8px;">
+                        <h3 style="margin-bottom: 10px;">${team.name}</h3>
+                        ${team.roster.length > 0 ? `
+                            <div style="display: grid; gap: 5px;">
+                                ${team.roster.map(player => `
+                                    <div style="padding: 5px; background: #0e1117; border-radius: 4px;">
+                                        ${player.name}
+                                        <span class="position-badge position-${player.position}">${player.position}</span>
+                                        <span style="color: #6b7280; font-size: 12px;">${player.team}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<div style="color: #6b7280;">No players drafted</div>'}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading teams:', error);
+            }
+        }
+
+        function selectPlayer(playerId) {
+            // Could show player details in modal
+        }
+
+        function closeModal() {
+            document.getElementById('pick-modal').classList.remove('active');
+        }
+
+        // Auto-refresh status
+        setInterval(loadStatus, 5000);
+
+        // Initialize on load
+        window.onload = () => {
+            loadStatus();
+            loadPlayers();
+        };
+    </script>
+</body>
+</html>

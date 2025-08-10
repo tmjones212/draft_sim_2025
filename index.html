@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mock Draft 2025 - Static Version</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0e1117;
+            color: #e1e3e8;
+            padding: 10px;
+        }
+        .container { max-width: 100%; margin: 0 auto; }
+        .header {
+            background: #1a1d24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .status { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .controls { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        button:active { transform: scale(0.98); }
+        button.danger { background: #ef4444; }
+        button.secondary { background: #6b7280; }
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #1a1d24;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: transparent;
+            color: #9ca3af;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .search-box {
+            padding: 10px;
+            background: #0e1117;
+            border: 1px solid #2d3748;
+            border-radius: 6px;
+            color: #e1e3e8;
+            width: 100%;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .players-table {
+            background: #1a1d24;
+            border-radius: 8px;
+            padding: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #2d3748;
+            cursor: pointer;
+        }
+        .player-row:hover { background: #252a36; }
+        .player-row.drafted { opacity: 0.4; }
+        .player-info { flex: 1; }
+        .player-name { font-weight: 600; margin-bottom: 3px; }
+        .player-details { font-size: 12px; color: #9ca3af; }
+        .position-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .position-QB { background: #ec4899; }
+        .position-RB { background: #14b8a6; }
+        .position-WR { background: #3b82f6; }
+        .position-TE { background: #f97316; }
+        .position-K { background: #8b5cf6; }
+        .position-DST { background: #6366f1; }
+        .position-LB { background: #84cc16; }
+        .position-DB { background: #06b6d4; }
+        .draft-btn {
+            background: #10b981;
+            padding: 5px 15px;
+            font-size: 12px;
+        }
+        .draft-board {
+            background: #1a1d24;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .round { margin-bottom: 15px; }
+        .round-header {
+            font-weight: bold;
+            color: #9ca3af;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        .picks {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 5px;
+        }
+        .pick {
+            background: #0e1117;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            border: 1px solid #2d3748;
+        }
+        .pick.current {
+            border: 2px solid #3b82f6;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { border-color: #3b82f6; }
+            50% { border-color: #60a5fa; }
+        }
+        .pick-number { color: #6b7280; font-size: 10px; }
+        .pick-team { color: #9ca3af; font-weight: 600; margin: 2px 0; font-size: 10px; }
+        .pick-player { color: #e1e3e8; font-weight: bold; font-size: 10px; }
+        .loading { text-align: center; padding: 40px; color: #6b7280; }
+        .info-box {
+            background: #1e40af;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        @media (max-width: 768px) {
+            .picks { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="info-box">
+            ⚡ This is a static demo version. For full functionality with real player data, run the Python server locally.
+        </div>
+        
+        <div class="header">
+            <div class="status" id="draft-status">Round 1, Pick 1</div>
+            <div style="font-size: 14px; color: #9ca3af;" id="on-clock">On the clock: Team 1</div>
+            <div class="controls">
+                <button onclick="resetDraft()" class="danger">Reset</button>
+                <button onclick="undoPick()" class="secondary">Undo</button>
+                <button onclick="autoPick()">Auto Pick</button>
+                <button onclick="simToEnd()">Sim to End</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('players', event)">Players</button>
+            <button class="tab" onclick="showTab('board', event)">Board</button>
+            <button class="tab" onclick="showTab('teams', event)">Teams</button>
+        </div>
+
+        <div id="players-tab" class="tab-content active">
+            <input type="text" class="search-box" placeholder="Search players..." onkeyup="filterPlayers(this.value)">
+            <div class="players-table" id="players-list"></div>
+        </div>
+
+        <div id="board-tab" class="tab-content">
+            <div class="draft-board" id="draft-board"></div>
+        </div>
+
+        <div id="teams-tab" class="tab-content">
+            <div id="teams-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data - in production this would come from the server
+        const mockPlayers = [
+            // QBs
+            {name: "Josh Allen", position: "QB", team: "BUF", adp: 45},
+            {name: "Jalen Hurts", position: "QB", team: "PHI", adp: 48},
+            {name: "Lamar Jackson", position: "QB", team: "BAL", adp: 52},
+            {name: "Dak Prescott", position: "QB", team: "DAL", adp: 55},
+            {name: "Patrick Mahomes", position: "QB", team: "KC", adp: 58},
+            {name: "Joe Burrow", position: "QB", team: "CIN", adp: 62},
+            {name: "Justin Herbert", position: "QB", team: "LAC", adp: 68},
+            {name: "Tua Tagovailoa", position: "QB", team: "MIA", adp: 75},
+            {name: "C.J. Stroud", position: "QB", team: "HOU", adp: 82},
+            {name: "Anthony Richardson", position: "QB", team: "IND", adp: 88},
+            
+            // RBs
+            {name: "Christian McCaffrey", position: "RB", team: "SF", adp: 1},
+            {name: "Breece Hall", position: "RB", team: "NYJ", adp: 3},
+            {name: "Bijan Robinson", position: "RB", team: "ATL", adp: 4},
+            {name: "Jonathan Taylor", position: "RB", team: "IND", adp: 7},
+            {name: "Saquon Barkley", position: "RB", team: "PHI", adp: 8},
+            {name: "Jahmyr Gibbs", position: "RB", team: "DET", adp: 10},
+            {name: "De'Von Achane", position: "RB", team: "MIA", adp: 15},
+            {name: "Derrick Henry", position: "RB", team: "BAL", adp: 20},
+            {name: "Josh Jacobs", position: "RB", team: "GB", adp: 22},
+            {name: "Kenneth Walker III", position: "RB", team: "SEA", adp: 25},
+            {name: "James Cook", position: "RB", team: "BUF", adp: 28},
+            {name: "Alvin Kamara", position: "RB", team: "NO", adp: 32},
+            {name: "Joe Mixon", position: "RB", team: "HOU", adp: 35},
+            {name: "Travis Etienne Jr.", position: "RB", team: "JAX", adp: 38},
+            {name: "Rachaad White", position: "RB", team: "TB", adp: 40},
+            
+            // WRs
+            {name: "CeeDee Lamb", position: "WR", team: "DAL", adp: 2},
+            {name: "Tyreek Hill", position: "WR", team: "MIA", adp: 5},
+            {name: "Ja'Marr Chase", position: "WR", team: "CIN", adp: 6},
+            {name: "Amon-Ra St. Brown", position: "WR", team: "DET", adp: 9},
+            {name: "Justin Jefferson", position: "WR", team: "MIN", adp: 11},
+            {name: "A.J. Brown", position: "WR", team: "PHI", adp: 12},
+            {name: "Garrett Wilson", position: "WR", team: "NYJ", adp: 13},
+            {name: "Puka Nacua", position: "WR", team: "LAR", adp: 14},
+            {name: "Chris Olave", position: "WR", team: "NO", adp: 16},
+            {name: "Marvin Harrison Jr.", position: "WR", team: "ARI", adp: 17},
+            {name: "Davante Adams", position: "WR", team: "NYJ", adp: 18},
+            {name: "Mike Evans", position: "WR", team: "TB", adp: 19},
+            {name: "Nico Collins", position: "WR", team: "HOU", adp: 21},
+            {name: "DJ Moore", position: "WR", team: "CHI", adp: 23},
+            {name: "Brandon Aiyuk", position: "WR", team: "SF", adp: 24},
+            {name: "Deebo Samuel", position: "WR", team: "SF", adp: 26},
+            {name: "Stefon Diggs", position: "WR", team: "HOU", adp: 27},
+            {name: "DK Metcalf", position: "WR", team: "SEA", adp: 29},
+            {name: "Jaylen Waddle", position: "WR", team: "MIA", adp: 30},
+            {name: "Cooper Kupp", position: "WR", team: "LAR", adp: 31},
+            
+            // TEs
+            {name: "Travis Kelce", position: "TE", team: "KC", adp: 33},
+            {name: "Sam LaPorta", position: "TE", team: "DET", adp: 41},
+            {name: "Mark Andrews", position: "TE", team: "BAL", adp: 46},
+            {name: "Trey McBride", position: "TE", team: "ARI", adp: 50},
+            {name: "George Kittle", position: "TE", team: "SF", adp: 54},
+            {name: "Dalton Kincaid", position: "TE", team: "BUF", adp: 60},
+            {name: "T.J. Hockenson", position: "TE", team: "MIN", adp: 65},
+            {name: "Evan Engram", position: "TE", team: "JAX", adp: 70},
+            {name: "Kyle Pitts", position: "TE", team: "ATL", adp: 72},
+            {name: "Dallas Goedert", position: "TE", team: "PHI", adp: 78}
+        ];
+
+        // Draft state
+        let draftState = {
+            teams: {},
+            draftOrder: [],
+            picks: [],
+            currentPick: 1,
+            availablePlayers: [...mockPlayers],
+            allPlayers: [...mockPlayers]
+        };
+
+        // Initialize draft
+        function initializeDraft() {
+            // Create 10 teams
+            draftState.teams = {};
+            for (let i = 1; i <= 10; i++) {
+                draftState.teams[i] = {
+                    name: `Team ${i}`,
+                    roster: [],
+                    positionCounts: {QB: 0, RB: 0, WR: 0, TE: 0, K: 0, DST: 0}
+                };
+            }
+
+            // Generate snake draft order for 15 rounds
+            draftState.draftOrder = [];
+            for (let round = 1; round <= 15; round++) {
+                if (round === 1) {
+                    // Round 1: 1-10
+                    for (let i = 1; i <= 10; i++) draftState.draftOrder.push(i);
+                } else if (round === 2) {
+                    // Round 2: 10-1
+                    for (let i = 10; i >= 1; i--) draftState.draftOrder.push(i);
+                } else if (round === 3) {
+                    // Round 3: 10-1 (3rd round reversal)
+                    for (let i = 10; i >= 1; i--) draftState.draftOrder.push(i);
+                } else if (round % 2 === 0) {
+                    // Even rounds after 3: 1-10
+                    for (let i = 1; i <= 10; i++) draftState.draftOrder.push(i);
+                } else {
+                    // Odd rounds after 3: 10-1
+                    for (let i = 10; i >= 1; i--) draftState.draftOrder.push(i);
+                }
+            }
+
+            draftState.picks = [];
+            draftState.currentPick = 1;
+            draftState.availablePlayers = [...mockPlayers].sort((a, b) => a.adp - b.adp);
+        }
+
+        function getCurrentTeam() {
+            return draftState.draftOrder[draftState.currentPick - 1];
+        }
+
+        function makePick(player) {
+            const teamId = getCurrentTeam();
+            const team = draftState.teams[teamId];
+            
+            // Add player to team
+            team.roster.push(player);
+            team.positionCounts[player.position]++;
+            
+            // Record pick
+            draftState.picks.push({
+                pickNumber: draftState.currentPick,
+                teamId: teamId,
+                player: player
+            });
+            
+            // Remove from available
+            draftState.availablePlayers = draftState.availablePlayers.filter(p => p !== player);
+            
+            // Advance pick
+            draftState.currentPick++;
+            
+            updateUI();
+        }
+
+        function autoPick() {
+            if (draftState.currentPick > 150) return;
+            
+            const teamId = getCurrentTeam();
+            const team = draftState.teams[teamId];
+            
+            // Simple draft logic - best available with position needs
+            let player = null;
+            
+            // Special rules for specific players
+            if (draftState.currentPick <= 2) {
+                const chase = draftState.availablePlayers.find(p => p.name === "Ja'Marr Chase");
+                if (chase) player = chase;
+            }
+            if (draftState.currentPick === 21) {
+                const burrow = draftState.availablePlayers.find(p => p.name === "Joe Burrow");
+                if (burrow) player = burrow;
+            }
+            
+            if (!player) {
+                // Check position needs
+                const needs = {
+                    QB: team.positionCounts.QB < 2,
+                    RB: team.positionCounts.RB < 5,
+                    WR: team.positionCounts.WR < 5,
+                    TE: team.positionCounts.TE < 2
+                };
+                
+                // Find best available player considering needs
+                for (let p of draftState.availablePlayers) {
+                    if (needs[p.position]) {
+                        player = p;
+                        break;
+                    }
+                }
+                
+                // If no needs, take best available
+                if (!player) player = draftState.availablePlayers[0];
+            }
+            
+            if (player) makePick(player);
+        }
+
+        function undoPick() {
+            if (draftState.picks.length === 0) return;
+            
+            const lastPick = draftState.picks.pop();
+            const team = draftState.teams[lastPick.teamId];
+            
+            // Remove from team
+            team.roster = team.roster.filter(p => p !== lastPick.player);
+            team.positionCounts[lastPick.player.position]--;
+            
+            // Add back to available
+            draftState.availablePlayers.push(lastPick.player);
+            draftState.availablePlayers.sort((a, b) => a.adp - b.adp);
+            
+            // Revert pick number
+            draftState.currentPick--;
+            
+            updateUI();
+        }
+
+        function resetDraft() {
+            if (!confirm('Reset the entire draft?')) return;
+            initializeDraft();
+            updateUI();
+        }
+
+        function simToEnd() {
+            while (draftState.currentPick <= 150) {
+                autoPick();
+            }
+        }
+
+        function showTab(tab, event) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tab + '-tab').classList.add('active');
+            
+            if (tab === 'board') updateBoard();
+            if (tab === 'teams') updateTeams();
+        }
+
+        function filterPlayers(search) {
+            const filtered = search ? 
+                draftState.availablePlayers.filter(p => 
+                    p.name.toLowerCase().includes(search.toLowerCase()) ||
+                    p.position.toLowerCase().includes(search.toLowerCase()) ||
+                    p.team.toLowerCase().includes(search.toLowerCase())
+                ) : draftState.availablePlayers;
+            
+            updatePlayersList(filtered);
+        }
+
+        function updatePlayersList(players = draftState.availablePlayers) {
+            const list = document.getElementById('players-list');
+            list.innerHTML = players.slice(0, 50).map(p => `
+                <div class="player-row" onclick="makePick(draftState.availablePlayers.find(pl => pl.name === '${p.name}'))">
+                    <div class="player-info">
+                        <div class="player-name">${p.name}</div>
+                        <div class="player-details">
+                            <span class="position-badge position-${p.position}">${p.position}</span>
+                            ${p.team} • ADP: ${p.adp}
+                        </div>
+                    </div>
+                    <button class="draft-btn" onclick="event.stopPropagation(); makePick(draftState.availablePlayers.find(pl => pl.name === '${p.name}'))">Draft</button>
+                </div>
+            `).join('');
+        }
+
+        function updateBoard() {
+            const board = document.getElementById('draft-board');
+            let html = '';
+            
+            for (let round = 1; round <= 5; round++) {
+                html += `<div class="round"><div class="round-header">Round ${round}</div><div class="picks">`;
+                
+                for (let pick = 1; pick <= 10; pick++) {
+                    const pickNum = (round - 1) * 10 + pick;
+                    const pickData = draftState.picks.find(p => p.pickNumber === pickNum);
+                    const teamId = draftState.draftOrder[pickNum - 1];
+                    
+                    html += `
+                        <div class="pick ${pickNum === draftState.currentPick ? 'current' : ''}">
+                            <div class="pick-number">Pick ${pickNum}</div>
+                            <div class="pick-team">${draftState.teams[teamId].name}</div>
+                            ${pickData ? `
+                                <div class="pick-player">
+                                    ${pickData.player.name.split(' ').slice(-1)[0]}
+                                    <span class="position-badge position-${pickData.player.position}">${pickData.player.position}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+                
+                html += '</div></div>';
+            }
+            
+            board.innerHTML = html;
+        }
+
+        function updateTeams() {
+            const list = document.getElementById('teams-list');
+            let html = '';
+            
+            for (let teamId in draftState.teams) {
+                const team = draftState.teams[teamId];
+                html += `
+                    <div style="background: #1a1d24; padding: 15px; margin-bottom: 10px; border-radius: 8px;">
+                        <h3 style="margin-bottom: 10px;">${team.name}</h3>
+                        ${team.roster.length > 0 ? 
+                            team.roster.map(p => `
+                                <div style="padding: 5px; background: #0e1117; border-radius: 4px; margin-bottom: 5px;">
+                                    ${p.name}
+                                    <span class="position-badge position-${p.position}">${p.position}</span>
+                                    ${p.team}
+                                </div>
+                            `).join('') : 
+                            '<div style="color: #6b7280;">No players drafted</div>'
+                        }
+                    </div>
+                `;
+            }
+            
+            list.innerHTML = html;
+        }
+
+        function updateUI() {
+            // Update status
+            const round = Math.ceil(draftState.currentPick / 10);
+            const pickInRound = ((draftState.currentPick - 1) % 10) + 1;
+            const teamId = getCurrentTeam();
+            
+            if (draftState.currentPick > 150) {
+                document.getElementById('draft-status').textContent = 'Draft Complete!';
+                document.getElementById('on-clock').textContent = '';
+            } else {
+                document.getElementById('draft-status').textContent = `Round ${round}, Pick ${pickInRound} (Overall: ${draftState.currentPick})`;
+                document.getElementById('on-clock').textContent = `On the clock: ${draftState.teams[teamId].name}`;
+            }
+            
+            // Update players list
+            updatePlayersList();
+            
+            // Update board if visible
+            if (document.getElementById('board-tab').classList.contains('active')) {
+                updateBoard();
+            }
+        }
+
+        // Initialize on load
+        initializeDraft();
+        updateUI();
+    </script>
+</body>
+</html>
