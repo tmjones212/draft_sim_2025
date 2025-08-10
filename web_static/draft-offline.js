@@ -12,6 +12,7 @@ class DraftSimulator {
     this.draftStarted = false;
     this.manualMode = true; // Default to manual mode
     this.positionFilter = 'ALL'; // Position filter
+    this.sortBy = 'adp'; // Sort by 'adp' or 'var'
     this.rosterSpots = {
       QB: 2,
       RB: 5,
@@ -62,6 +63,18 @@ class DraftSimulator {
   
   setPositionFilter(position) {
     this.positionFilter = position;
+    this.saveState();
+    this.render();
+  }
+  
+  setSortBy(sortType) {
+    this.sortBy = sortType;
+    // Sort available players
+    if (sortType === 'adp') {
+      this.availablePlayers.sort((a, b) => (a.adp || 999) - (b.adp || 999));
+    } else if (sortType === 'var') {
+      this.availablePlayers.sort((a, b) => (b.var || 0) - (a.var || 0));
+    }
     this.saveState();
     this.render();
   }
@@ -293,7 +306,8 @@ class DraftSimulator {
       userTeamId: this.userTeamId,
       draftStarted: this.draftStarted,
       manualMode: this.manualMode,
-      positionFilter: this.positionFilter
+      positionFilter: this.positionFilter,
+      sortBy: this.sortBy || 'adp'
     };
     localStorage.setItem('draftState', JSON.stringify(state));
     localStorage.setItem('playersData', JSON.stringify({ players: this.allPlayers }));
@@ -310,6 +324,7 @@ class DraftSimulator {
       this.draftStarted = data.draftStarted;
       this.manualMode = data.manualMode !== undefined ? data.manualMode : true;
       this.positionFilter = data.positionFilter || 'ALL';
+      this.sortBy = data.sortBy || 'adp';
       
       // Rebuild available players
       const draftedIds = new Set(this.draftedPlayers.map(d => d.player.id));
@@ -338,19 +353,12 @@ class DraftSimulator {
         const currentTeam = this.getCurrentTeam();
         const isUserPick = currentTeam === this.userTeamId;
         
-        // Position filter buttons - split into two rows for mobile
-        const positions1 = ['ALL', 'QB', 'RB', 'WR', 'TE'];
-        const positions2 = ['FLEX', 'LB', 'DB', 'K', 'DST'];
+        // Position filter buttons - all on one row
+        const positions = ['ALL', 'QB', 'RB', 'WR', 'TE', 'FLEX', 'LB', 'DB', 'K', 'DST'];
         
-        const filterButtons1 = positions1.map(pos => 
+        const filterButtons = positions.map(pos => 
           `<button onclick="draft.setPositionFilter('${pos}')" 
-            style="padding: 1px 4px; font-size: 10px; background: ${this.positionFilter === pos ? '#50fa7b' : '#333'}; 
-            color: ${this.positionFilter === pos ? '#000' : '#fff'}; border: none; border-radius: 2px;">${pos}</button>`
-        ).join('');
-        
-        const filterButtons2 = positions2.map(pos => 
-          `<button onclick="draft.setPositionFilter('${pos}')" 
-            style="padding: 1px 4px; font-size: 10px; background: ${this.positionFilter === pos ? '#50fa7b' : '#333'}; 
+            style="padding: 3px 6px; font-size: 10px; background: ${this.positionFilter === pos ? '#50fa7b' : '#333'}; 
             color: ${this.positionFilter === pos ? '#000' : '#fff'}; border: none; border-radius: 2px;">${pos}</button>`
         ).join('');
         
@@ -411,9 +419,8 @@ class DraftSimulator {
         statusEl.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 3px; gap: 5px;">
             <span style="white-space: nowrap; font-size: 12px;"><strong>P${this.currentPick}</strong></span>
-            <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1;">
-              <div style="display: flex; gap: 2px; justify-content: center;">${filterButtons1}</div>
-              <div style="display: flex; gap: 2px; justify-content: center;">${filterButtons2}</div>
+            <div style="display: flex; gap: 2px; flex-grow: 1; justify-content: center;">
+              ${filterButtons}
             </div>
             ${gridHtml}
             <span style="background: ${isUserPick ? '#2a4e2a' : 'transparent'}; padding: 2px 6px; border-radius: 3px; white-space: nowrap; font-size: 12px;">
@@ -452,6 +459,27 @@ class DraftSimulator {
       DEF: '#a78bfa'  // Some data might use DEF instead of DST
     };
     
+    // Add sort buttons header
+    let headerHtml = `
+      <div style="display: flex; justify-content: space-between; padding: 5px 8px; background: #2a2d33; border-bottom: 2px solid #444;">
+        <div style="display: flex; gap: 10px;">
+          <button onclick="draft.setSortBy('adp')" 
+            style="padding: 3px 8px; font-size: 11px; background: ${this.sortBy === 'adp' ? '#50fa7b' : '#444'}; 
+            color: ${this.sortBy === 'adp' ? '#000' : '#fff'}; border: none; border-radius: 3px;">
+            ADP ↑
+          </button>
+          <button onclick="draft.setSortBy('var')" 
+            style="padding: 3px 8px; font-size: 11px; background: ${this.sortBy === 'var' ? '#50fa7b' : '#444'}; 
+            color: ${this.sortBy === 'var' ? '#000' : '#fff'}; border: none; border-radius: 3px;">
+            VAR ↓
+          </button>
+        </div>
+        <div style="font-size: 11px; color: #888;">
+          ${this.availablePlayers.length} available
+        </div>
+      </div>
+    `;
+    
     // Filter players by position
     let filteredPlayers = this.availablePlayers;
     if (this.positionFilter !== 'ALL') {
@@ -485,7 +513,7 @@ class DraftSimulator {
       </div>
     `).join('');
 
-    container.innerHTML = html;
+    container.innerHTML = headerHtml + html;
   }
 
   renderDraftBoard(elementId = 'draft-board', maxRounds = 5) {
