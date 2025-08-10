@@ -168,7 +168,8 @@
             <div class="controls">
                 <button onclick="resetDraft()" class="danger">Reset</button>
                 <button onclick="undoPick()" class="secondary">Undo</button>
-                <button onclick="autoPick()">Auto Pick</button>
+                <button onclick="toggleMode()" id="mode-btn">Mode: Manual</button>
+                <button onclick="makeComputerPick()">Computer Pick</button>
                 <button onclick="simToEnd()">Sim to End</button>
             </div>
         </div>
@@ -282,7 +283,9 @@
             picks: [],
             currentPick: 1,
             availablePlayers: [],
-            allPlayers: []
+            allPlayers: [],
+            userTeamId: null,
+            draftStarted: false
         };
 
         // Initialize draft
@@ -324,7 +327,71 @@
             draftState.picks = [];
             draftState.currentPick = 1;
             draftState.availablePlayers = [...allPlayers].sort((a, b) => a.adp - b.adp);
+            
+            // Show draft spot selection if not started
+            if (!draftState.draftStarted) {
+                showDraftSpotSelection();
+            } else {
+                updateUI();
+            }
+        }
+        
+        function selectDraftSpot(spot) {
+            draftState.userTeamId = spot;
+            draftState.draftStarted = true;
+            draftState.manualMode = true;
+            draftState.teams[spot].name = 'Your Team';
             updateUI();
+        }
+        
+        function toggleMode() {
+            draftState.manualMode = !draftState.manualMode;
+            updateUI();
+        }
+        
+        function makeComputerPick() {
+            const teamId = getCurrentTeam();
+            if (teamId === draftState.userTeamId) return;
+            
+            // Simple BPA
+            const player = draftState.availablePlayers[0];
+            if (!player) return;
+            
+            const team = draftState.teams[teamId];
+            team.roster.push(player);
+            team.positionCounts[player.position]++;
+            
+            draftState.picks.push({
+                pick: draftState.currentPick,
+                team: teamId,
+                player: player
+            });
+            
+            draftState.availablePlayers = draftState.availablePlayers.filter(p => p !== player);
+            draftState.currentPick++;
+            
+            updateUI();
+            
+            // Continue if auto mode
+            if (!draftState.manualMode && getCurrentTeam() !== draftState.userTeamId) {
+                setTimeout(makeComputerPick, 1000);
+            }
+        }
+        
+        function showDraftSpotSelection() {
+            const statusEl = document.getElementById('draft-status');
+            const onClockEl = document.getElementById('on-clock');
+            
+            statusEl.textContent = 'Select Your Draft Position:';
+            let html = '<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">';
+            for (let i = 1; i <= 10; i++) {
+                html += `<button onclick="selectDraftSpot(${i})" style="width: 50px; height: 50px;">${i}</button>`;
+            }
+            html += '</div>';
+            onClockEl.innerHTML = html;
+            
+            // Hide other UI elements
+            document.getElementById('players-list').innerHTML = '<p style="text-align: center; padding: 20px;">Please select your draft position first</p>';
         }
 
         function getCurrentTeam() {
@@ -332,7 +399,18 @@
         }
 
         function makePick(player) {
+            if (!draftState.draftStarted || !draftState.userTeamId) {
+                alert('Please select your draft position first!');
+                return;
+            }
+            
             const teamId = getCurrentTeam();
+            
+            // Only allow user to pick on their turn
+            if (teamId !== draftState.userTeamId) {
+                alert("It's not your turn!");
+                return;
+            }
             const team = draftState.teams[teamId];
             
             // Add player to team
@@ -420,8 +498,9 @@
 
         function resetDraft() {
             if (!confirm('Reset the entire draft?')) return;
+            draftState.draftStarted = false;
+            draftState.userTeamId = null;
             initializeDraft();
-            updateUI();
         }
 
         function simToEnd() {
@@ -536,7 +615,19 @@
                 document.getElementById('on-clock').textContent = '';
             } else {
                 document.getElementById('draft-status').textContent = `Round ${round}, Pick ${pickInRound} (Overall: ${draftState.currentPick})`;
-                document.getElementById('on-clock').textContent = `On the clock: ${draftState.teams[teamId].name}`;
+                const isUserTurn = teamId === draftState.userTeamId;
+                document.getElementById('on-clock').innerHTML = `On the clock: ${draftState.teams[teamId].name} ${isUserTurn ? '(YOUR PICK)' : ''}`;
+            }
+            
+            // Update mode button
+            const modeBtn = document.getElementById('mode-btn');
+            if (modeBtn) {
+                modeBtn.textContent = `Mode: ${draftState.manualMode ? 'Manual' : 'Auto'}`;
+            }
+            
+            // Auto-pick if not user's turn and in auto mode
+            if (!draftState.manualMode && teamId !== draftState.userTeamId && draftState.currentPick <= 150) {
+                setTimeout(makeComputerPick, 1000);
             }
             
             // Update players list

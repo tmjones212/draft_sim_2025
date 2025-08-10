@@ -10,6 +10,7 @@ class DraftSimulator {
     this.numTeams = 10;
     this.userTeamId = null; // Will be set when user picks spot
     this.draftStarted = false;
+    this.manualMode = true; // Default to manual mode
     this.rosterSpots = {
       QB: 2,
       RB: 5,
@@ -37,9 +38,27 @@ class DraftSimulator {
     this.saveState();
     this.render();
     
-    // Start auto-picking if it's not user's turn
-    if (this.getCurrentTeam() !== this.userTeamId) {
+    // Only auto-pick if not in manual mode
+    if (!this.manualMode && this.getCurrentTeam() !== this.userTeamId) {
       setTimeout(() => this.makeComputerPick(), 1000);
+    }
+  }
+  
+  toggleMode() {
+    this.manualMode = !this.manualMode;
+    this.saveState();
+    this.render();
+    
+    // If switching to auto mode and it's computer's turn, start auto-picking
+    if (!this.manualMode && this.getCurrentTeam() !== this.userTeamId) {
+      setTimeout(() => this.makeComputerPick(), 1000);
+    }
+  }
+  
+  makeAutoPick() {
+    // For manual mode - make one computer pick
+    if (this.getCurrentTeam() !== this.userTeamId) {
+      this.makeComputerPick();
     }
   }
 
@@ -136,8 +155,8 @@ class DraftSimulator {
     // Save state to localStorage
     this.saveState();
     
-    // Auto-pick for computer teams
-    if (this.currentPick <= this.totalPicks && this.getCurrentTeam() !== this.userTeamId) {
+    // Auto-pick for computer teams only if not in manual mode
+    if (!this.manualMode && this.currentPick <= this.totalPicks && this.getCurrentTeam() !== this.userTeamId) {
       setTimeout(() => this.makeComputerPick(), 1000);
     }
     
@@ -196,8 +215,8 @@ class DraftSimulator {
     this.saveState();
     this.render();
     
-    // Continue auto-picking for next computer team
-    if (this.currentPick <= this.totalPicks && this.getCurrentTeam() !== this.userTeamId) {
+    // Continue auto-picking for next computer team only if not in manual mode
+    if (!this.manualMode && this.currentPick <= this.totalPicks && this.getCurrentTeam() !== this.userTeamId) {
       setTimeout(() => this.makeComputerPick(), 1000);
     }
   }
@@ -252,7 +271,8 @@ class DraftSimulator {
       draftedPlayers: this.draftedPlayers,
       teams: this.teams,
       userTeamId: this.userTeamId,
-      draftStarted: this.draftStarted
+      draftStarted: this.draftStarted,
+      manualMode: this.manualMode
     };
     localStorage.setItem('draftState', JSON.stringify(state));
     localStorage.setItem('playersData', JSON.stringify({ players: this.allPlayers }));
@@ -267,13 +287,14 @@ class DraftSimulator {
       this.teams = data.teams;
       this.userTeamId = data.userTeamId;
       this.draftStarted = data.draftStarted;
+      this.manualMode = data.manualMode !== undefined ? data.manualMode : true;
       
       // Rebuild available players
       const draftedIds = new Set(this.draftedPlayers.map(d => d.player.id));
       this.availablePlayers = this.allPlayers.filter(p => !draftedIds.has(p.id));
       
-      // Resume auto-picking if needed
-      if (this.draftStarted && this.getCurrentTeam() !== this.userTeamId) {
+      // Resume auto-picking if needed (only if not in manual mode)
+      if (!this.manualMode && this.draftStarted && this.getCurrentTeam() !== this.userTeamId) {
         setTimeout(() => this.makeComputerPick(), 1000);
       }
     }
@@ -298,7 +319,8 @@ class DraftSimulator {
           <div style="padding: 10px; background: ${isUserPick ? '#2a4e2a' : '#1a1d23'}; border-radius: 5px;">
             <strong>Pick ${this.currentPick} / ${this.totalPicks}</strong> - 
             ${isUserPick ? 'YOUR PICK' : `Team ${currentTeam}'s Pick`}
-            <br><small>You are Team ${this.userTeamId}</small>
+            <br><small>You are Team ${this.userTeamId} | Mode: ${this.manualMode ? 'MANUAL' : 'AUTO'}</small>
+            ${!isUserPick && this.manualMode ? '<br><button onclick="draft.makeAutoPick()" style="margin-top: 10px;">Make Computer Pick</button>' : ''}
           </div>
         `;
       }

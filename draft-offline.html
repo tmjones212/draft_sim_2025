@@ -204,6 +204,7 @@
     <div class="controls">
       <button onclick="draft.rollback()">↶ Undo</button>
       <button onclick="draft.restart()">↻ Restart</button>
+      <button onclick="draft.toggleMode()" id="mode-btn">Mode: Manual</button>
       <button onclick="simulateToEnd()">⏩ Simulate</button>
     </div>
   </div>
@@ -233,6 +234,17 @@
   </div>
 
   <script src="web_static/draft-offline.js"></script>
+  <script>
+    // Override render to update mode button
+    const originalRender = DraftSimulator.prototype.render;
+    DraftSimulator.prototype.render = function() {
+      originalRender.call(this);
+      const modeBtn = document.getElementById('mode-btn');
+      if (modeBtn) {
+        modeBtn.textContent = `Mode: ${this.manualMode ? 'Manual' : 'Auto'}`;
+      }
+    };
+  </script>
   <script>
     function showTab(tabName) {
       // Hide all tabs
