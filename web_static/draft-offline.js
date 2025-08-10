@@ -11,6 +11,7 @@ class DraftSimulator {
     this.userTeamId = null; // Will be set when user picks spot
     this.draftStarted = false;
     this.manualMode = true; // Default to manual mode
+    this.positionFilter = 'ALL'; // Position filter
     this.rosterSpots = {
       QB: 2,
       RB: 5,
@@ -55,6 +56,12 @@ class DraftSimulator {
       console.log('Starting auto-pick for computer team');
       setTimeout(() => this.makeComputerPick(), 1000);
     }
+  }
+  
+  setPositionFilter(position) {
+    this.positionFilter = position;
+    this.saveState();
+    this.render();
   }
   
   makeAutoPick() {
@@ -281,7 +288,8 @@ class DraftSimulator {
       teams: this.teams,
       userTeamId: this.userTeamId,
       draftStarted: this.draftStarted,
-      manualMode: this.manualMode
+      manualMode: this.manualMode,
+      positionFilter: this.positionFilter
     };
     localStorage.setItem('draftState', JSON.stringify(state));
     localStorage.setItem('playersData', JSON.stringify({ players: this.allPlayers }));
@@ -297,6 +305,7 @@ class DraftSimulator {
       this.userTeamId = data.userTeamId;
       this.draftStarted = data.draftStarted;
       this.manualMode = data.manualMode !== undefined ? data.manualMode : true;
+      this.positionFilter = data.positionFilter || 'ALL';
       
       // Rebuild available players
       const draftedIds = new Set(this.draftedPlayers.map(d => d.player.id));
@@ -324,13 +333,23 @@ class DraftSimulator {
       } else {
         const currentTeam = this.getCurrentTeam();
         const isUserPick = currentTeam === this.userTeamId;
+        
+        // Position filter buttons
+        const positions = ['ALL', 'QB', 'RB', 'WR', 'TE', 'FLEX'];
+        const filterButtons = positions.map(pos => 
+          `<button onclick="draft.setPositionFilter('${pos}')" 
+            style="padding: 2px 6px; font-size: 11px; background: ${this.positionFilter === pos ? '#50fa7b' : '#333'}; 
+            color: ${this.positionFilter === pos ? '#000' : '#fff'}; border: none; border-radius: 3px;">${pos}</button>`
+        ).join('');
+        
         statusEl.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px;">
-            <span><strong>Pick ${this.currentPick}/${this.totalPicks}</strong></span>
-            <span style="background: ${isUserPick ? '#2a4e2a' : 'transparent'}; padding: 2px 8px; border-radius: 3px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px; gap: 10px;">
+            <span style="white-space: nowrap;"><strong>Pick ${this.currentPick}/${this.totalPicks}</strong></span>
+            <div style="display: flex; gap: 3px;">${filterButtons}</div>
+            <span style="background: ${isUserPick ? '#2a4e2a' : 'transparent'}; padding: 2px 8px; border-radius: 3px; white-space: nowrap;">
               ${isUserPick ? 'YOUR PICK' : `Team ${currentTeam}`}
             </span>
-            ${!isUserPick && this.manualMode ? '<button onclick="draft.makeAutoPick()" style="padding: 2px 10px; font-size: 12px;">CPU Pick</button>' : ''}
+            ${!isUserPick && this.manualMode ? '<button onclick="draft.makeAutoPick()" style="padding: 2px 10px; font-size: 12px;">CPU</button>' : ''}
           </div>
         `;
       }
@@ -359,12 +378,25 @@ class DraftSimulator {
       DB: '#f1fa8c'
     };
     
+    // Filter players by position
+    let filteredPlayers = this.availablePlayers;
+    if (this.positionFilter !== 'ALL') {
+      if (this.positionFilter === 'FLEX') {
+        // FLEX includes RB, WR, TE
+        filteredPlayers = this.availablePlayers.filter(p => 
+          p.position === 'RB' || p.position === 'WR' || p.position === 'TE'
+        );
+      } else {
+        filteredPlayers = this.availablePlayers.filter(p => p.position === this.positionFilter);
+      }
+    }
+    
     // In manual mode, always allow clicking
     // In auto mode, only allow clicking on user's turn
     const canPick = this.manualMode || (this.draftStarted && this.getCurrentTeam() === this.userTeamId);
     const cursorStyle = canPick ? 'cursor: pointer;' : 'cursor: not-allowed; opacity: 0.7;';
 
-    const html = this.availablePlayers.slice(0, 50).map(player => `
+    const html = filteredPlayers.slice(0, 50).map(player => `
       <div class="player-row" onclick="draft.makePick('${player.id}')" style="${cursorStyle} padding: 8px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
         <div style="flex: 1;">
           <span style="color: ${positionColors[player.position] || '#fff'}; font-weight: bold; margin-right: 10px;">${player.position}</span>
