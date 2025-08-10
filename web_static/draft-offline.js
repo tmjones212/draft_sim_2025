@@ -356,31 +356,32 @@ class DraftSimulator {
         
         // Create draft grid visualization
         const currentRound = Math.ceil(this.currentPick / this.numTeams);
-        const pickInRound = ((this.currentPick - 1) % this.numTeams) + 1;
-        // Round 1: forward (1-10)
-        // Round 2: backward (10-1) 
-        // Round 3: backward (10-1) - 3rd round reversal
-        // Round 4: forward (1-10)
+        const teamPicking = this.draftOrder[this.currentPick - 1];
+        
+        // Determine if round goes forward or backward
+        // Round 1: forward (teams 1→10)
+        // Round 2: backward (teams 10→1) 
+        // Round 3: backward (teams 10→1) - 3rd round reversal
+        // Round 4: forward (teams 1→10)
         // etc.
-        const isSnakeBack = (currentRound % 2 === 0 && currentRound !== 3) || (currentRound === 3);
+        const isRoundReversed = (currentRound % 2 === 0 && currentRound !== 3) || (currentRound === 3);
         
         // Build grid for current and next round
         let gridHtml = '<div style="display: flex; flex-direction: column; gap: 1px; margin: 0 5px;">';
         
         // Show current round
         gridHtml += '<div style="display: flex; gap: 1px; align-items: center;">';
-        if (isSnakeBack) {
+        if (isRoundReversed) {
           gridHtml += '<span style="font-size: 10px; color: #888;">←</span>';
-          for (let i = 10; i >= 1; i--) {
-            // In snake back rounds, pick position needs to be inverted
-            const teamPicking = this.draftOrder[this.currentPick - 1];
-            const isPick = (i === teamPicking);
+          // Show teams 10 to 1 from left to right
+          for (let teamNum = 10; teamNum >= 1; teamNum--) {
+            const isPick = (teamNum === teamPicking);
             gridHtml += `<div style="width: 8px; height: 8px; background: ${isPick ? '#50fa7b' : '#333'}; border-radius: 1px;"></div>`;
           }
         } else {
-          for (let i = 1; i <= 10; i++) {
-            const teamPicking = this.draftOrder[this.currentPick - 1];
-            const isPick = (i === teamPicking);
+          // Show teams 1 to 10 from left to right
+          for (let teamNum = 1; teamNum <= 10; teamNum++) {
+            const isPick = (teamNum === teamPicking);
             gridHtml += `<div style="width: 8px; height: 8px; background: ${isPick ? '#50fa7b' : '#333'}; border-radius: 1px;"></div>`;
           }
           gridHtml += '<span style="font-size: 10px; color: #888;">→</span>';
@@ -390,9 +391,9 @@ class DraftSimulator {
         // Show next round preview (dimmer)
         if (currentRound < 25) {
           const nextRound = currentRound + 1;
-          const nextRoundSnake = (nextRound % 2 === 0 && nextRound !== 3) || (nextRound === 3);
+          const nextRoundReversed = (nextRound % 2 === 0 && nextRound !== 3) || (nextRound === 3);
           gridHtml += '<div style="display: flex; gap: 1px; align-items: center; opacity: 0.3;">';
-          if (nextRoundSnake) {
+          if (nextRoundReversed) {
             gridHtml += '<span style="font-size: 10px; color: #888;">←</span>';
             for (let i = 10; i >= 1; i--) {
               gridHtml += `<div style="width: 8px; height: 8px; background: #333; border-radius: 1px;"></div>`;
@@ -429,6 +430,7 @@ class DraftSimulator {
     
     // Update draft board
     this.renderDraftBoard();
+    this.renderDraftBoard('draft-board-mini', 3); // Mini board showing 3 rounds
     
     // Update your team
     this.renderYourTeam();
@@ -469,7 +471,7 @@ class DraftSimulator {
     const canPick = this.manualMode || (this.draftStarted && this.getCurrentTeam() === this.userTeamId);
     const cursorStyle = canPick ? 'cursor: pointer;' : 'cursor: not-allowed; opacity: 0.7;';
 
-    const html = filteredPlayers.slice(0, 10).map(player => `
+    const html = filteredPlayers.map(player => `
       <div class="player-row" onclick="draft.makePick('${player.id}')" style="${cursorStyle} padding: 8px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
         <div style="flex: 1;">
           <span style="color: ${positionColors[player.position] || '#fff'}; font-weight: bold; margin-right: 10px;">${player.position}</span>
@@ -486,21 +488,22 @@ class DraftSimulator {
     container.innerHTML = html;
   }
 
-  renderDraftBoard() {
-    const container = document.getElementById('draft-board');
+  renderDraftBoard(elementId = 'draft-board', maxRounds = 5) {
+    const container = document.getElementById(elementId);
     if (!container) return;
 
     const rounds = Math.ceil(this.totalPicks / this.numTeams);
     let html = '<table style="width: 100%; border-collapse: collapse;">';
-    html += '<thead><tr><th>Round</th>';
+    html += '<thead><tr><th style="padding: 3px; border: 1px solid #333; font-size: 11px;">R</th>';
     
     for (let i = 1; i <= this.numTeams; i++) {
-      html += `<th style="padding: 5px; border: 1px solid #333;">Team ${i}</th>`;
+      const fontSize = elementId === 'draft-board-mini' ? '10px' : '12px';
+      html += `<th style="padding: 3px; border: 1px solid #333; font-size: ${fontSize};">T${i}</th>`;
     }
     html += '</tr></thead><tbody>';
 
-    for (let round = 1; round <= Math.min(rounds, 5); round++) {
-      html += `<tr><td style="padding: 5px; border: 1px solid #333; font-weight: bold;">R${round}</td>`;
+    for (let round = 1; round <= Math.min(rounds, maxRounds); round++) {
+      html += `<tr><td style="padding: 3px; border: 1px solid #333; font-weight: bold; font-size: 10px;">${round}</td>`;
       
       for (let team = 1; team <= this.numTeams; team++) {
         const pick = this.draftedPlayers.find(p => {
@@ -509,9 +512,14 @@ class DraftSimulator {
           return pickRound === round && pickTeam === team;
         });
         
-        html += '<td style="padding: 5px; border: 1px solid #333; font-size: 12px;">';
+        const fontSize = elementId === 'draft-board-mini' ? '9px' : '12px';
+        const padding = elementId === 'draft-board-mini' ? '2px' : '5px';
+        html += `<td style="padding: ${padding}; border: 1px solid #333; font-size: ${fontSize};">`;
         if (pick) {
-          html += `${pick.player.position} ${pick.player.name.split(' ').pop()}`;
+          const lastName = pick.player.name.split(' ').pop();
+          const displayName = elementId === 'draft-board-mini' && lastName.length > 8 ? 
+            lastName.substring(0, 7) + '.' : lastName;
+          html += `${pick.player.position} ${displayName}`;
         }
         html += '</td>';
       }
