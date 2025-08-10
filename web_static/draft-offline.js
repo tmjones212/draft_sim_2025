@@ -437,7 +437,7 @@ class DraftSimulator {
     
     // Update draft board
     this.renderDraftBoard();
-    this.renderDraftBoard('draft-board-mini', 3); // Mini board showing 3 rounds
+    this.renderDraftBoard('draft-board-mini', 25); // Mini board showing all rounds
     
     // Update your team
     this.renderYourTeam();
