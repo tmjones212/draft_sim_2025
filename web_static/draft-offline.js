@@ -38,7 +38,7 @@ class DraftSimulator {
     this.saveState();
     this.render();
     
-    // Only auto-pick if not in manual mode
+    // Only auto-pick if in auto mode AND it's not user's turn
     if (!this.manualMode && this.getCurrentTeam() !== this.userTeamId) {
       setTimeout(() => this.makeComputerPick(), 1000);
     }
@@ -163,6 +163,7 @@ class DraftSimulator {
     this.saveState();
     
     // Auto-pick for computer teams only if not in manual mode
+    // In manual mode, don't auto-pick at all
     if (!this.manualMode && this.currentPick <= this.totalPicks && this.getCurrentTeam() !== this.userTeamId) {
       setTimeout(() => this.makeComputerPick(), 1000);
     }
@@ -301,7 +302,7 @@ class DraftSimulator {
       const draftedIds = new Set(this.draftedPlayers.map(d => d.player.id));
       this.availablePlayers = this.allPlayers.filter(p => !draftedIds.has(p.id));
       
-      // Resume auto-picking if needed (only if not in manual mode)
+      // Resume auto-picking if needed (only if in auto mode)
       if (!this.manualMode && this.draftStarted && this.getCurrentTeam() !== this.userTeamId) {
         setTimeout(() => this.makeComputerPick(), 1000);
       }
@@ -357,8 +358,10 @@ class DraftSimulator {
       DB: '#f1fa8c'
     };
     
-    const isUserTurn = this.draftStarted && this.getCurrentTeam() === this.userTeamId;
-    const cursorStyle = isUserTurn ? 'cursor: pointer;' : 'cursor: not-allowed; opacity: 0.7;';
+    // In manual mode, always allow clicking
+    // In auto mode, only allow clicking on user's turn
+    const canPick = this.manualMode || (this.draftStarted && this.getCurrentTeam() === this.userTeamId);
+    const cursorStyle = canPick ? 'cursor: pointer;' : 'cursor: not-allowed; opacity: 0.7;';
 
     const html = this.availablePlayers.slice(0, 50).map(player => `
       <div class="player-row" onclick="draft.makePick('${player.id}')" style="${cursorStyle} padding: 8px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
