@@ -315,9 +315,9 @@ class DraftSimulator {
     if (statusEl) {
       if (!this.draftStarted || !this.userTeamId) {
         // Show draft spot selection
-        let spotsHtml = '<div style="padding: 10px;"><h3>Select Your Draft Position:</h3><div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">';
+        let spotsHtml = '<div style="padding: 5px;"><div style="font-size: 14px; margin-bottom: 10px;">Select Draft Position:</div><div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px;">';
         for (let i = 1; i <= this.numTeams; i++) {
-          spotsHtml += `<button onclick="draft.selectDraftSpot(${i})" style="width: 60px; height: 60px; font-size: 20px;">${i}</button>`;
+          spotsHtml += `<button onclick="draft.selectDraftSpot(${i})" style="padding: 15px; font-size: 16px;">${i}</button>`;
         }
         spotsHtml += '</div></div>';
         statusEl.innerHTML = spotsHtml;
@@ -325,11 +325,12 @@ class DraftSimulator {
         const currentTeam = this.getCurrentTeam();
         const isUserPick = currentTeam === this.userTeamId;
         statusEl.innerHTML = `
-          <div style="padding: 10px; background: ${isUserPick ? '#2a4e2a' : '#1a1d23'}; border-radius: 5px;">
-            <strong>Pick ${this.currentPick} / ${this.totalPicks}</strong> - 
-            ${isUserPick ? 'YOUR PICK' : `Team ${currentTeam}'s Pick`}
-            <br><small>You are Team ${this.userTeamId} | Mode: ${this.manualMode ? 'MANUAL' : 'AUTO'}</small>
-            ${!isUserPick && this.manualMode ? '<br><button onclick="draft.makeAutoPick()" style="margin-top: 10px;">Make Computer Pick</button>' : ''}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px;">
+            <span><strong>Pick ${this.currentPick}/${this.totalPicks}</strong></span>
+            <span style="background: ${isUserPick ? '#2a4e2a' : 'transparent'}; padding: 2px 8px; border-radius: 3px;">
+              ${isUserPick ? 'YOUR PICK' : `Team ${currentTeam}`}
+            </span>
+            ${!isUserPick && this.manualMode ? '<button onclick="draft.makeAutoPick()" style="padding: 2px 10px; font-size: 12px;">CPU Pick</button>' : ''}
           </div>
         `;
       }

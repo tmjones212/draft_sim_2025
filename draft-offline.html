@@ -29,12 +29,14 @@
     
     .header {
       background: #1a1d23;
-      padding: 15px;
+      padding: 10px;
       text-align: center;
       border-bottom: 2px solid #333;
       position: sticky;
       top: 0;
       z-index: 100;
+      min-height: 50px;
+      position: relative;
     }
     
     .controls {
@@ -66,20 +68,21 @@
     
     .tabs {
       display: flex;
-      gap: 10px;
-      margin: 20px 0;
+      gap: 5px;
+      margin: 10px 0;
       border-bottom: 2px solid #333;
       overflow-x: auto;
     }
     
     .tab {
-      padding: 10px 20px;
+      padding: 8px 15px;
       background: transparent;
       color: #888;
       border: none;
       cursor: pointer;
       transition: all 0.3s;
       white-space: nowrap;
+      font-size: 14px;
     }
     
     .tab.active {
@@ -92,8 +95,8 @@
       min-height: 400px;
       background: #1a1d23;
       border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 20px;
+      padding: 10px;
+      margin-bottom: 10px;
     }
     
     .player-list {
@@ -153,12 +156,9 @@
     }
     
     .status-bar {
-      background: #2a4e2a;
-      padding: 15px;
-      border-radius: 5px;
-      margin-bottom: 15px;
+      padding: 5px;
       text-align: center;
-      font-size: 18px;
+      font-size: 14px;
     }
     
     .your-pick {
@@ -187,25 +187,52 @@
         padding: 5px;
       }
       
+      .header {
+        padding: 5px;
+      }
+      
       .player-row {
-        font-size: 14px;
+        font-size: 13px;
+        padding: 6px;
       }
       
       .draft-board {
         font-size: 10px;
+      }
+      
+      .player-list {
+        max-height: calc(100vh - 150px);
+      }
+      
+      .content-area {
+        padding: 5px;
+      }
+      
+      .tabs {
+        margin: 5px 0;
+      }
+      
+      .tab {
+        padding: 6px 12px;
+        font-size: 13px;
       }
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>Mock Draft Simulator 2025</h1>
     <div id="draft-status" class="status-bar"></div>
-    <div class="controls">
-      <button onclick="draft.rollback()">↶ Undo</button>
-      <button onclick="draft.restart()">↻ Restart</button>
-      <button onclick="toggleMode()" id="mode-btn">Mode: Manual</button>
-      <button onclick="simulateToEnd()">⏩ Simulate</button>
+    <button onclick="toggleMenu()" class="menu-btn" style="position: absolute; right: 10px; top: 10px; background: #333; border: 1px solid #555; padding: 5px 10px; font-size: 20px;">☰</button>
+  </div>
+  
+  <div id="menu-overlay" class="menu-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 999;">
+    <div class="menu-content" style="background: #1a1d23; padding: 20px; margin: 50px auto; max-width: 300px; border-radius: 10px;">
+      <h3 style="margin-bottom: 15px;">Settings</h3>
+      <button onclick="draft.rollback()" style="display: block; width: 100%; margin-bottom: 10px;">↶ Undo Last Pick</button>
+      <button onclick="draft.restart()" style="display: block; width: 100%; margin-bottom: 10px;">↻ Restart Draft</button>
+      <button onclick="toggleMode()" id="mode-btn" style="display: block; width: 100%; margin-bottom: 10px;">Mode: Manual</button>
+      <button onclick="simulateToEnd()" style="display: block; width: 100%; margin-bottom: 10px;">⏩ Simulate to End</button>
+      <button onclick="toggleMenu()" style="display: block; width: 100%; background: #666;">Close</button>
     </div>
   </div>
 
@@ -249,6 +276,11 @@
       if (draft && draft.toggleMode) {
         draft.toggleMode();
       }
+    }
+    
+    function toggleMenu() {
+      const menu = document.getElementById('menu-overlay');
+      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
     }
     
     function showTab(tabName) {
