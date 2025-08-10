@@ -1,0 +1,57 @@
+{
+  "id": "draft_20250810_031059",
+  "name": "Draft 08/10/2025 03:10 AM",
+  "created": "2025-08-10T03:10:59.920144",
+  "modified": "2025-08-10T03:11:01.624316",
+  "picks": [],
+  "user_team_id": 8,
+  "manual_mode": false,
+  "teams": {
+    "1": {
+      "name": "Karwan",
+      "draft_position": 1
+    },
+    "2": {
+      "name": "Joey",
+      "draft_position": 2
+    },
+    "3": {
+      "name": "Peter",
+      "draft_position": 3
+    },
+    "4": {
+      "name": "Eric",
+      "draft_position": 4
+    },
+    "5": {
+      "name": "Jerwan",
+      "draft_position": 5
+    },
+    "6": {
+      "name": "Stan",
+      "draft_position": 6
+    },
+    "7": {
+      "name": "Pat",
+      "draft_position": 7
+    },
+    "8": {
+      "name": "Me",
+      "draft_position": 8
+    },
+    "9": {
+      "name": "Johnson",
+      "draft_position": 9
+    },
+    "10": {
+      "name": "Luan",
+      "draft_position": 10
+    }
+  },
+  "config": {
+    "num_teams": 10,
+    "roster_spots": 17,
+    "draft_type": "snake",
+    "reversal_round": 3
+  }
+}

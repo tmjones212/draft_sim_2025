@@ -1110,7 +1110,8 @@ class MockDraftApp:
         import json
         
         # Use absolute path to ensure consistency
-        base_dir = os.path.dirname(os.path.dirname(__file__))
+        # main.py is at project root, so just use dirname once
+        base_dir = os.path.dirname(__file__)
         tier_file = os.path.join(base_dir, 'data', 'cheat_sheet_tiers.json')
         
         custom_rankings = {}
@@ -1123,8 +1124,9 @@ class MockDraftApp:
                     
                 overall_rank = 1
                 
-                # Process each tier in order
-                for tier_num in range(1, 16):  # Support up to 15 tiers
+                # EXACTLY match cheat sheet's notify_rankings_update logic
+                # Process Tier tiers first (none will exist in default file)
+                for tier_num in range(1, 16):
                     tier_name = f"Tier {tier_num}"
                     if tier_name in tiers:
                         players_in_tier = tiers[tier_name]
@@ -1133,16 +1135,15 @@ class MockDraftApp:
                             player_tiers[player_id] = tier_num
                             overall_rank += 1
                 
-                # Also process round-based tiers
+                # Then process Round tiers (this is what our default file has)
                 for round_num in range(1, 16):
                     round_name = f"Round {round_num}"
                     if round_name in tiers:
                         players_in_round = tiers[round_name]
                         for player_id in players_in_round:
-                            if player_id not in custom_rankings:  # Don't override tier rankings
+                            if player_id not in custom_rankings:  # Don't override
                                 custom_rankings[player_id] = overall_rank
-                                # Assign to tier based on round (3 rounds per tier approximately)
-                                player_tiers[player_id] = min((round_num - 1) // 3 + 1, 8)
+                                player_tiers[player_id] = 0  # Match cheat sheet: 0 for round-based
                                 overall_rank += 1
                 
                 self.custom_rankings = custom_rankings
@@ -1167,35 +1168,63 @@ class MockDraftApp:
             self.player_tiers = {}
             return
         
-        # Sort players by ADP
+        import os
+        import json
+        
+        # Create default tiers structure matching cheat sheet
+        tiers = {}
+        for i in range(1, 16):
+            tiers[f"Round {i}"] = []
+        
+        # Sort players by ADP and assign to rounds
         sorted_players = sorted(self.all_players, key=lambda p: p.adp if p.adp else 999)
         
+        players_per_round = 12
+        for i, player in enumerate(sorted_players[:180]):  # 15 rounds * 12 teams
+            round_num = (i // players_per_round) + 1
+            if round_num <= 15:
+                round_key = f"Round {round_num}"
+                tiers[round_key].append(player.player_id)
+        
+        # Save the default tiers file
+        # main.py is at project root
+        base_dir = os.path.dirname(__file__)
+        data_dir = os.path.join(base_dir, 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        tier_file = os.path.join(data_dir, 'cheat_sheet_tiers.json')
+        
+        try:
+            with open(tier_file, 'w') as f:
+                json.dump(tiers, f, indent=2)
+            print(f"Created default cheat sheet tiers at {tier_file}")
+        except Exception as e:
+            print(f"Error creating default tiers: {e}")
+        
+        # Process the tiers using EXACT same logic as load_cheat_sheet_tiers
         custom_rankings = {}
         player_tiers = {}
+        overall_rank = 1
         
-        # Assign rankings and tiers based on ADP position
-        for rank, player in enumerate(sorted_players[:180], 1):  # Top 180 players (15 rounds * 12 teams)
-            custom_rankings[player.player_id] = rank
-            
-            # Assign tier based on rank (roughly 20-25 players per tier)
-            if rank <= 12:
-                tier = 1  # Elite
-            elif rank <= 30:
-                tier = 2
-            elif rank <= 50:
-                tier = 3
-            elif rank <= 75:
-                tier = 4
-            elif rank <= 100:
-                tier = 5
-            elif rank <= 130:
-                tier = 6
-            elif rank <= 160:
-                tier = 7
-            else:
-                tier = 8
-            
-            player_tiers[player.player_id] = tier
+        # Process Tier tiers first (won't exist in default)
+        for tier_num in range(1, 16):
+            tier_name = f"Tier {tier_num}"
+            if tier_name in tiers:
+                players_in_tier = tiers[tier_name]
+                for player_id in players_in_tier:
+                    custom_rankings[player_id] = overall_rank
+                    player_tiers[player_id] = tier_num
+                    overall_rank += 1
+        
+        # Then process Round tiers
+        for round_num in range(1, 16):
+            round_name = f"Round {round_num}"
+            if round_name in tiers:
+                players_in_round = tiers[round_name]
+                for player_id in players_in_round:
+                    if player_id not in custom_rankings:
+                        custom_rankings[player_id] = overall_rank
+                        player_tiers[player_id] = 0  # 0 for round-based, matching cheat sheet
+                        overall_rank += 1
         
         self.custom_rankings = custom_rankings
         self.player_tiers = player_tiers
@@ -1212,12 +1241,11 @@ class MockDraftApp:
         # Update player list to show custom rankings
         if hasattr(self, 'player_list'):
             self.player_list.set_custom_rankings(custom_rankings, player_tiers)
-            # Only update if we're currently sorting by custom rank
+            # Don't do a full refresh - just update the CR column if needed
             if self.player_list.sort_by == 'custom_rank':
+                # Only if actively sorting by custom rank, do a refresh
                 self.player_list.update_players(self.available_players)
-            else:
-                # Just update the custom rank display without full refresh
-                self.player_list.update_table_view()
+            # Otherwise, don't refresh at all - the CR column will update next time the list refreshes
     
     def on_adp_change(self):
         """Called when ADP values are changed via UI"""

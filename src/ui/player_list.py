@@ -796,8 +796,15 @@ class PlayerList(StyledFrame):
         }
         
         if custom_rank:
-            cr_bg = tier_colors.get(tier, bg)
-            cr_fg = 'black' if tier in [1, 2, 3, 5] else 'white' if tier > 0 else DARK_THEME['text_primary']
+            # Only use tier background color if tier > 0
+            if tier > 0:
+                cr_bg = tier_colors.get(tier, bg)
+                # Use contrasting text colors for readability
+                cr_fg = 'black' if tier in [1, 2, 3, 5] else 'white'
+            else:
+                # No tier - use normal background and text
+                cr_bg = bg
+                cr_fg = DARK_THEME['text_primary']
             cr_label = tk.Label(
                 cr_frame,
                 text=str(custom_rank),

@@ -7,6 +7,7 @@ from .styled_widgets import StyledFrame, StyledButton
 import os
 from PIL import Image, ImageTk
 import json
+import time
 
 
 class CheatSheetPage(StyledFrame):
@@ -75,6 +76,8 @@ class CheatSheetPage(StyledFrame):
         self.drag_data = None  # Current drag information
         self.drop_indicator = None
         self.tiers = self.load_tiers()  # Load saved tiers or create default
+        self._tiered_cache_time = 0  # Cache invalidation time
+        self._tiered_player_ids = set()  # Cached set of tiered player IDs
         
         self.setup_ui()
         # Delay initial display to ensure UI is ready
@@ -83,8 +86,8 @@ class CheatSheetPage(StyledFrame):
         # Set up recursive mouse wheel binding after initial display
         self.after(100, self.setup_recursive_mousewheel)
         
-        # Notify draft app of initial rankings
-        self.after(150, self.notify_rankings_update)
+        # Notify draft app of initial rankings - delay more to not interfere with load
+        self.after(1000, self.notify_rankings_update)
     
     def get_short_name(self, player: Player) -> str:
         """Get short name (nickname or last name) for a player"""
@@ -160,8 +163,8 @@ class CheatSheetPage(StyledFrame):
             except Exception as e:
                 print(f"Error loading cheat sheet tiers: {e}")
         
-        # Default tiers - named by rounds
-        print("Using default cheat sheet tiers")
+        # Default tiers - will be created by main app if needed
+        print("No cheat sheet tiers found, using empty defaults")
         return {
             "Round 1": [],
             "Round 2": [],
@@ -214,7 +217,7 @@ class CheatSheetPage(StyledFrame):
         
         return new_tiers
     
-    def save_tiers(self):
+    def save_tiers(self, notify_rankings=True):
         """Save tiers to file"""
         # Use absolute path to ensure consistency
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -228,7 +231,7 @@ class CheatSheetPage(StyledFrame):
             print(f"Saved cheat sheet tiers to {tier_file}")
             
             # Notify draft app that tiers have changed
-            if hasattr(self, 'draft_app') and self.draft_app:
+            if notify_rankings and hasattr(self, 'draft_app') and self.draft_app:
                 self.draft_app._cheat_sheet_needs_sync = True
                 # Build and send custom rankings
                 self.notify_rankings_update()
@@ -1169,13 +1172,36 @@ class CheatSheetPage(StyledFrame):
         """Refresh only a single tier without touching the rest of the UI"""
         # Find the tier frame
         tier_frame = None
+        tier_header = None
         for widget in self.tiers_scrollable.winfo_children():
-            if isinstance(widget, StyledFrame) and hasattr(widget, 'tier_name') and widget.tier_name == tier_name:
+            if isinstance(widget, tk.Frame) and not isinstance(widget, StyledFrame):
+                # This might be the header frame for the tier
+                for child in widget.winfo_children():
+                    if isinstance(child, tk.Label):
+                        label_text = child.cget('text')
+                        if label_text.startswith(tier_name):
+                            tier_header = widget
+                            break
+            elif isinstance(widget, StyledFrame) and hasattr(widget, 'tier_name') and widget.tier_name == tier_name:
                 tier_frame = widget
-                break
         
         if not tier_frame:
             return
+        
+        # Update tier header count if found
+        if tier_header:
+            player_count = len(self.tiers.get(tier_name, []))
+            for child in tier_header.winfo_children():
+                if isinstance(child, tk.Label):
+                    label_text = child.cget('text')
+                    if label_text.startswith(tier_name):
+                        # Update the count in the header
+                        if " - Pick" in label_text:
+                            pick_part = label_text.split(" - Pick")[1]
+                            child.config(text=f"{tier_name} ({player_count}) - Pick{pick_part}")
+                        else:
+                            child.config(text=f"{tier_name} ({player_count})")
+                        break
         
         # Clear existing player widgets in this tier only
         for widget in tier_frame.winfo_children():
@@ -1187,6 +1213,11 @@ class CheatSheetPage(StyledFrame):
         # Get the current player order from the tier
         player_ids = self.tiers.get(tier_name, [])
         
+        # Quick exit if tier is empty
+        if not player_ids:
+            tier_frame.configure(height=150)
+            return
+        
         # Recreate player widgets in the correct order
         players_per_row = 10
         # Calculate starting rank based on previous tiers
@@ -1196,19 +1227,17 @@ class CheatSheetPage(StyledFrame):
                 break
             starting_rank += len(t_players)
         
-        # Collect actual player objects
-        actual_players = []
+        # Create player widgets
         for i, player_id in enumerate(player_ids):
             player = next((p for p in self.all_players if p.player_id == player_id), None)
             if player:
-                actual_players.append(player)
                 row = i // players_per_row
                 col = i % players_per_row
                 rank = starting_rank + i
                 self.create_player_widget(tier_frame, player, tier_name, row, col, rank=rank)
         
         # Update tier frame height based on actual number of players
-        num_rows = max(1, (len(actual_players) + players_per_row - 1) // players_per_row)
+        num_rows = max(1, (len(player_ids) + players_per_row - 1) // players_per_row)
         row_height = 150
         frame_height = num_rows * row_height + 10
         tier_frame.configure(height=frame_height)
@@ -1216,9 +1245,6 @@ class CheatSheetPage(StyledFrame):
         # Update only the tier's scroll region if needed
         self.tiers_scrollable.update_idletasks()
         self.tiers_canvas.configure(scrollregion=self.tiers_canvas.bbox("all"))
-        
-        # Re-bind mouse wheel events
-        self.after(10, self.setup_recursive_mousewheel)
     
     def smart_refresh_player(self, source_widget: tk.Widget, player: Player, source_tier: Optional[str], target_tier: Optional[str], target: tk.Widget):
         """Smart refresh that only moves the specific player widget"""
@@ -1280,6 +1306,90 @@ class CheatSheetPage(StyledFrame):
         # Re-bind mouse wheel events
         self.after(10, self.setup_recursive_mousewheel)
     
+    def _perform_deferred_save(self):
+        """Perform the deferred save and update operations"""
+        self._pending_save = False
+        # Invalidate cache when saving
+        self._tiered_cache_time = 0
+        self.save_tiers(notify_rankings=False)
+        # Defer the rankings notification by a bit to allow multiple moves
+        if not hasattr(self, '_pending_rankings_update'):
+            self._pending_rankings_update = False
+        
+        if not self._pending_rankings_update:
+            self._pending_rankings_update = True
+            # Delay the rankings update to batch multiple moves
+            self.after(500, self._perform_deferred_rankings_update)
+    
+    def _perform_deferred_rankings_update(self):
+        """Perform the deferred rankings update"""
+        self._pending_rankings_update = False
+        self.notify_rankings_update()
+    
+    def _optimized_move_refresh(self, source: tk.Widget, player: Player, source_tier: Optional[str], target_tier: Optional[str], target: tk.Widget):
+        """Optimized refresh for moving a player between tiers"""
+        # Remove the source widget without full refresh
+        source.destroy()
+        if player.player_id in self.player_widgets:
+            del self.player_widgets[player.player_id]
+        
+        # If moving to a tier, add the player widget there
+        if target_tier:
+            # Refresh just the target tier
+            self.refresh_single_tier(target_tier)
+            # Update rank labels in subsequent tiers without full refresh
+            self._update_rank_labels_only(target_tier)
+        else:
+            # Moving to available players - just reorganize that section
+            self.reorganize_available_players()
+        
+        # If source tier exists and is different from target, refresh it too
+        if source_tier and source_tier != target_tier:
+            self.refresh_single_tier(source_tier)
+            # Update rank labels in subsequent tiers
+            self._update_rank_labels_only(source_tier)
+    
+    def _update_rank_labels_only(self, starting_tier: str):
+        """Update only rank labels without recreating widgets"""
+        # Find which tiers come after the starting tier
+        found_starting = False
+        tiers_to_update = []
+        
+        for tier_name in self.tiers.keys():
+            if found_starting:
+                tiers_to_update.append(tier_name)
+            elif tier_name == starting_tier:
+                found_starting = True
+        
+        # Calculate starting rank
+        starting_rank = 1
+        for tier_name, player_ids in self.tiers.items():
+            if tier_name in tiers_to_update:
+                break
+            starting_rank += len(player_ids)
+        
+        # Update only the rank labels
+        current_rank = starting_rank
+        for tier_name in tiers_to_update:
+            # Find tier frame
+            for widget in self.tiers_scrollable.winfo_children():
+                if isinstance(widget, StyledFrame) and hasattr(widget, 'tier_name') and widget.tier_name == tier_name:
+                    # Update rank labels for players in this tier
+                    player_widgets = sorted(
+                        [w for w in widget.winfo_children() if hasattr(w, 'player')],
+                        key=lambda w: (w.winfo_y(), w.winfo_x())  # Sort by position
+                    )
+                    for pw in player_widgets:
+                        # Find and update the rank label
+                        for child in pw.winfo_children():
+                            if isinstance(child, tk.Label):
+                                text = child.cget('text')
+                                if text.startswith('#'):
+                                    child.config(text=f"#{current_rank}")
+                                    current_rank += 1
+                                    break
+                    break
+    
     def handle_drop(self, source: tk.Widget, target: tk.Widget):
         """Handle dropping a player"""
         if not hasattr(source, 'player'):
@@ -1328,23 +1438,35 @@ class CheatSheetPage(StyledFrame):
             else:
                 self.tiers[target_tier].append(player.player_id)
         
-        # Save and refresh
-        self.save_tiers()
-        
-        # For same-tier moves, only refresh that tier
+        # Optimized refresh - don't call update_display!
         if source_tier == target_tier:
+            # Same tier - just refresh that one tier
             self.refresh_single_tier(target_tier)
         else:
-            # Different tier - use smart refresh but also update ranks in subsequent tiers
-            self.smart_refresh_player(source, player, source_tier, target_tier, target)
-            
-            # Update ranks in all tiers after the affected tier
+            # Different tiers - refresh both
+            if source_tier:
+                self.refresh_single_tier(source_tier)
             if target_tier:
-                # Moving to a tier - update tiers after target
-                self.update_ranks_after_tier(target_tier)
-            elif source_tier:
-                # Moving from a tier to available - update tiers after source
-                self.update_ranks_after_tier(source_tier)
+                self.refresh_single_tier(target_tier)
+            else:
+                # Moving to available - invalidate cache and reorganize that section
+                self._tiered_cache_time = 0
+                self.reorganize_available_players()
+            
+            # Update rank labels for tiers after the affected ones
+            if source_tier:
+                self._update_rank_labels_only(source_tier)
+            if target_tier:
+                self._update_rank_labels_only(target_tier)
+        
+        # Defer the save to avoid multiple file writes
+        if not hasattr(self, '_pending_save'):
+            self._pending_save = False
+        
+        if not self._pending_save:
+            self._pending_save = True
+            # Schedule the save for later
+            self.after(100, self._perform_deferred_save)
     
     def add_tier(self):
         """Add a new tier"""
@@ -1378,19 +1500,33 @@ class CheatSheetPage(StyledFrame):
     
     def reorganize_available_players(self):
         """Reorganize available players to remove gaps"""
-        # Clear and recreate all available player widgets
+        # Clear existing widgets first
         for widget in self.avail_scrollable.winfo_children():
             if hasattr(widget, 'player') and not isinstance(widget, tk.Label):
                 widget.destroy()
-                if widget.player.player_id in self.player_widgets:
+                if hasattr(widget, 'player') and widget.player.player_id in self.player_widgets:
                     del self.player_widgets[widget.player.player_id]
         
-        # Get all available players (not in any tier)
-        tiered_player_ids = set()
-        for tier_players in self.tiers.values():
-            tiered_player_ids.update(tier_players)
+        # Get all available players (not in any tier) - cache this computation
+        if not hasattr(self, '_tiered_cache_time') or (time.time() - self._tiered_cache_time > 0.5):
+            tiered_player_ids = set()
+            for tier_players in self.tiers.values():
+                tiered_player_ids.update(tier_players)
+            self._tiered_player_ids = tiered_player_ids
+            self._tiered_cache_time = time.time()
+        else:
+            tiered_player_ids = self._tiered_player_ids
         
         available_players = [p for p in self.all_players if p.player_id not in tiered_player_ids]
+        
+        # Filter if show available only is checked
+        if hasattr(self, 'show_available_only') and self.show_available_only.get():
+            try:
+                if self.draft_app and hasattr(self.draft_app, 'draft_engine'):
+                    drafted_ids = {pick.player.player_id for pick in self.draft_app.draft_engine.draft_history}
+                    available_players = [p for p in available_players if p.player_id not in drafted_ids]
+            except:
+                pass
         
         # Apply position filter if active
         if hasattr(self, 'avail_position_var') and self.avail_position_var.get() != "ALL":
@@ -1410,17 +1546,25 @@ class CheatSheetPage(StyledFrame):
             min_height = total_rows * (widget_height + spacing) + 20
             self.avail_scrollable.configure(height=min_height)
             
+            # Create widgets in batches for better performance
             for i, player in enumerate(available_players):
                 row = i // players_per_row
                 col = i % players_per_row
                 self.create_player_widget(self.avail_scrollable, player, None, row, col, is_available=True)
+        else:
+            # Show empty message
+            empty_label = tk.Label(
+                self.avail_scrollable,
+                text="All players are assigned to tiers",
+                bg=DARK_THEME['bg_secondary'],
+                fg=DARK_THEME['text_muted'],
+                font=(DARK_THEME['font_family'], 12)
+            )
+            empty_label.pack(pady=50)
         
         # Update scroll region
         self.avail_scrollable.update_idletasks()
         self.avail_canvas.configure(scrollregion=self.avail_canvas.bbox("all"))
-        
-        # Re-bind mouse wheel events
-        self.after(10, self.setup_recursive_mousewheel)
     
     def filter_available_position(self, position: str):
         """Filter available players by position"""
