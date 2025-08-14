@@ -73,7 +73,12 @@ class DraftSimulator {
     if (sortType === 'adp') {
       this.availablePlayers.sort((a, b) => (a.adp || 999) - (b.adp || 999));
     } else if (sortType === 'var') {
-      this.availablePlayers.sort((a, b) => (b.var || 0) - (a.var || 0));
+      this.availablePlayers.sort((a, b) => {
+        // Sort by VAR descending (higher VAR is better)
+        const varA = parseFloat(a.var) || -999;
+        const varB = parseFloat(b.var) || -999;
+        return varB - varA;
+      });
     }
     this.saveState();
     this.render();
@@ -132,15 +137,19 @@ class DraftSimulator {
       }
       
       // Snake draft with 3rd round reversal
-      // Rounds 1, 3, 5, 7, ... go 1-10
-      // Rounds 2, 4, 6, 8, ... go 10-1
-      // The pattern is: Normal, Reverse, Normal, Reverse starting from round 3
-      if (round === 2) {
-        // Round 2 is reversed
+      // Round 1: 1-10 (normal)
+      // Round 2: 10-1 (reversed)
+      // Round 3: 10-1 (reversed - this is the 3rd round reversal!)
+      // Round 4: 1-10 (normal)
+      // Round 5: 10-1 (reversed)
+      // Round 6: 1-10 (normal)
+      // Pattern: 1=normal, 2=reverse, 3=reverse, then alternating starting with 4=normal
+      if (round === 2 || round === 3) {
+        // Rounds 2 AND 3 are reversed (3rd round reversal)
         order.reverse();
-      } else if (round >= 3) {
-        // From round 3 onwards: odd rounds normal, even rounds reversed
-        if (round % 2 === 0) {
+      } else if (round >= 4) {
+        // From round 4 onwards: even rounds normal, odd rounds reversed
+        if (round % 2 === 1) {
           order.reverse();
         }
       }
@@ -513,8 +522,10 @@ class DraftSimulator {
           <span style="color: #888; margin-left: 10px;">${player.team}</span>
         </div>
         <div>
-          <span style="color: #888;">ADP: ${player.adp}</span>
-          ${player.var ? `<span style="color: #50fa7b; margin-left: 10px;">VAR: ${player.var.toFixed(1)}</span>` : ''}
+          ${this.sortBy === 'var' ? 
+            `<span style="color: #50fa7b;">VAR: ${player.var ? player.var.toFixed(1) : '0.0'}</span>` :
+            `<span style="color: #888;">ADP: ${player.adp}</span>`
+          }
         </div>
       </div>
     `).join('');

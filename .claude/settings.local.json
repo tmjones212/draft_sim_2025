@@ -37,6 +37,7 @@
       "Bash(timeout:*)",
       "Bash(node test_draft_order.js)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }
