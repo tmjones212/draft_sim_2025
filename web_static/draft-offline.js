@@ -132,11 +132,17 @@ class DraftSimulator {
       }
       
       // Snake draft with 3rd round reversal
-      if (round % 2 === 0 && round !== 3) {
+      // Rounds 1, 3, 5, 7, ... go 1-10
+      // Rounds 2, 4, 6, 8, ... go 10-1
+      // The pattern is: Normal, Reverse, Normal, Reverse starting from round 3
+      if (round === 2) {
+        // Round 2 is reversed
         order.reverse();
-      } else if (round === 3 && rounds > 2) {
-        // Round 3 goes same direction as round 2
-        order.reverse();
+      } else if (round >= 3) {
+        // From round 3 onwards: odd rounds normal, even rounds reversed
+        if (round % 2 === 0) {
+          order.reverse();
+        }
       }
       
       this.draftOrder.push(...order);
