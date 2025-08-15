@@ -1,0 +1,28 @@
+{
+  "active_preset": "Default League",
+  "presets": {
+    "Default League": {
+      "enabled": true,
+      "draft_order": [
+        "Karwan",
+        "Joey",
+        "Peter",
+        "Eric",
+        "Jerwan",
+        "Stan",
+        "Pat",
+        "Me",
+        "Johnson",
+        "Luan"
+      ],
+      "user_position": 7,
+      "player_exclusions": [
+        {
+          "team_name": "Luan",
+          "player_name": "JOSH ALLEN",
+          "enabled": true
+        }
+      ]
+    }
+  }
+}

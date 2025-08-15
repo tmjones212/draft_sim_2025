@@ -1,0 +1,16 @@
+{
+  "id": "draft_20250814_170030",
+  "name": "Draft 08/14/2025 05:00 PM",
+  "created": "2025-08-14T17:00:30.554931",
+  "modified": "2025-08-14T17:00:30.554931",
+  "picks": [],
+  "user_team_id": null,
+  "manual_mode": false,
+  "teams": {},
+  "config": {
+    "num_teams": 10,
+    "roster_spots": 17,
+    "draft_type": "snake",
+    "reversal_round": 3
+  }
+}

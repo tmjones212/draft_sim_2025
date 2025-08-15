@@ -23,7 +23,7 @@ from src.utils.player_extensions import format_name
 from src.services.player_pool_service import PlayerPoolService
 from src.services.draft_save_manager import DraftSaveManager
 from src.services.draft_preset_manager import DraftPresetManager
-from src.services.draft_history_manager import DraftHistoryManager
+# from src.services.draft_history_manager import DraftHistoryManager  # Removed - using templates
 
 
 class MockDraftApp:
@@ -90,7 +90,7 @@ class MockDraftApp:
         self.draft_save_manager = DraftSaveManager()
         
         # Draft history manager for ongoing drafts
-        self.draft_history_manager = DraftHistoryManager()
+        # self.draft_history_manager = DraftHistoryManager()  # Removed - using templates
         
         # Quick loading indicator
         loading_label = tk.Label(
@@ -102,6 +102,9 @@ class MockDraftApp:
         )
         loading_label.pack(expand=True)
         self.quick_loading = loading_label
+        
+        # Initialize flags
+        self.loading_draft = False
         
         # Start loading players immediately
         self.load_players_async()
@@ -235,17 +238,6 @@ class MockDraftApp:
         )
         self.restart_button.pack(side='left', padx=(0, 10))
         
-        # View Saved Drafts button
-        self.view_saved_button = StyledButton(
-            button_container,
-            text="VIEW SAVED",
-            command=self.view_saved_drafts,
-            bg=DARK_THEME['button_bg'],
-            font=(DARK_THEME['font_family'], 11, 'bold'),
-            padx=20,
-            pady=10
-        )
-        self.view_saved_button.pack(side='left', padx=(0, 10))
         
         # Preset button
         self.preset_button = StyledButton(
@@ -324,13 +316,13 @@ class MockDraftApp:
         # Load template button
         self.load_template_button = StyledButton(
             button_container,
-            text="LOAD",
+            text="VIEW/LOAD",
             command=self.load_template,
             bg=DARK_THEME['button_bg'],
             font=(DARK_THEME['font_family'], 10),
             padx=15,
             pady=8,
-            state='disabled'
+            state='normal'  # Always enabled to allow viewing
         )
         self.load_template_button.pack(side='left', padx=(0, 5))
         
@@ -432,7 +424,7 @@ class MockDraftApp:
             get_top_players=self.get_top_available_players,
             image_service=self.image_service,
             on_draft_name_change=self.on_draft_name_change,
-            on_draft_load=self.load_draft_history,
+            # on_draft_load removed - using templates instead
             get_draft_list=self.get_draft_list
         )
         self.draft_board.pack(fill='both', expand=True, padx=10, pady=10)
@@ -649,12 +641,8 @@ class MockDraftApp:
             # Update the draft board with new team names
             self.draft_board.update_team_names(self.teams)
         
-        # Save team configuration to draft history
-        self.draft_history_manager.save_team_config(
-            self.teams,
-            user_team_id=self.user_team_id,
-            manual_mode=self.manual_mode
-        )
+        # Don't auto-start draft session until we have 10 picks
+        # This prevents empty drafts from being saved
         
         # Hide the banner when team is selected
         self.draft_spot_banner.pack_forget()
@@ -767,9 +755,6 @@ class MockDraftApp:
                 last_pick = self.draft_engine.draft_results[-1]
                 self.draft_history.add_pick(last_pick)
             
-            # Save to draft history manager
-            last_pick = self.draft_engine.draft_results[-1]
-            self._save_draft_history_pick(last_pick)
             
             # Schedule auto-draft to run immediately
             self.root.after(1, self.check_auto_draft)
@@ -793,6 +778,10 @@ class MockDraftApp:
     
     def check_auto_draft(self):
         """Check if current pick should be automated"""
+        # Don't auto-draft while loading a saved draft
+        if hasattr(self, 'loading_draft') and self.loading_draft:
+            return
+            
         if self.draft_engine.is_draft_complete():
             return
             
@@ -810,6 +799,10 @@ class MockDraftApp:
     
     def auto_draft_until_user_turn(self):
         """Automatically draft for all teams until it's the user's turn"""
+        # Don't auto-draft while loading a saved draft
+        if hasattr(self, 'loading_draft') and self.loading_draft:
+            return
+            
         picks_made = []
         
         # Pre-calculate all picks in a batch for speed
@@ -1328,7 +1321,9 @@ class MockDraftApp:
         self.draft_button.config(state='disabled', bg=DARK_THEME['button_disabled'])
         
         # Disable player draft buttons
-        self.player_list.disable_draft_buttons()
+        # Disable draft buttons if the method exists
+        if hasattr(self.player_list, 'disable_draft_buttons'):
+            self.player_list.disable_draft_buttons()
     
     def restart_draft(self):
         """Reset the draft but keep user team selection"""
@@ -1362,8 +1357,9 @@ class MockDraftApp:
             # Still loading, wait for it to complete
             self.available_players = []
         
-        # Start a new draft session
-        self.draft_history_manager.start_new_draft()
+        # Only start a new draft session if we're not loading a draft
+        if not hasattr(self, 'loading_draft') or not self.loading_draft:
+            pass  # Draft history removed - using templates
         
         # Restore user team selection
         self.user_team_id = saved_user_team
@@ -1718,7 +1714,7 @@ class MockDraftApp:
             self.teams[pick.team_id].add_player(pick.player)
         
         # Update draft history to remove reverted picks
-        self.draft_history_manager.remove_picks_after(target_pick_number - 1)
+        # self.draft_history_manager.remove_picks_after(target_pick_number - 1)  # Removed
         
         # Clear position count cache since rosters changed
         self._position_counts_cache.clear()
@@ -1897,8 +1893,9 @@ class MockDraftApp:
         # Initialize player pool service
         self.player_pool = PlayerPoolService(players)
         
-        # Start a new draft session
-        self.draft_history_manager.start_new_draft()
+        # Only start a new draft session if we're not loading a draft
+        if not hasattr(self, 'loading_draft') or not self.loading_draft:
+            pass  # Draft history removed - using templates
         
         # Remove loading label
         if hasattr(self, 'loading_label'):
@@ -2159,12 +2156,10 @@ class MockDraftApp:
     
     def on_template_selected(self, event=None):
         """Handle template selection from dropdown"""
-        # Enable load and delete buttons when template is selected
+        # Enable delete button when template is selected (load button is always enabled)
         if self.template_var.get():
-            self.load_template_button.config(state='normal')
             self.delete_template_button.config(state='normal')
         else:
-            self.load_template_button.config(state='disabled')
             self.delete_template_button.config(state='disabled')
     
     def save_template(self):
@@ -2268,6 +2263,312 @@ class MockDraftApp:
         # Save on Enter
         entry.bind('<Return>', lambda e: save())
     
+    def show_template_viewer(self):
+        """Show dialog with all templates and their team rosters"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Template Viewer")
+        dialog.geometry("1200x700")
+        dialog.configure(bg=DARK_THEME['bg_primary'])
+        
+        # Center dialog on parent
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # Center the dialog on parent window
+        dialog.update_idletasks()
+        x = (self.root.winfo_x() + (self.root.winfo_width() // 2) - 600)
+        y = (self.root.winfo_y() + (self.root.winfo_height() // 2) - 350)
+        dialog.geometry(f"1200x700+{x}+{y}")
+        
+        # Main container with padding
+        main_frame = tk.Frame(dialog, bg=DARK_THEME['bg_primary'])
+        main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        
+        # Title
+        title_label = tk.Label(
+            main_frame,
+            text="Template Viewer - Click to preview, Double-click to load",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 14, 'bold')
+        )
+        title_label.pack(pady=(0, 15))
+        
+        # Create paned window for template list and team view
+        paned = tk.PanedWindow(
+            main_frame,
+            orient='horizontal',
+            bg=DARK_THEME['bg_secondary'],
+            sashwidth=8,
+            showhandle=False
+        )
+        paned.pack(fill='both', expand=True)
+        
+        # Left side - Template list
+        left_frame = tk.Frame(paned, bg=DARK_THEME['bg_secondary'])
+        paned.add(left_frame, minsize=350)
+        
+        # Template list header
+        list_header = tk.Label(
+            left_frame,
+            text="Available Templates",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 12, 'bold')
+        )
+        list_header.pack(pady=(10, 5))
+        
+        # Template listbox with scrollbar
+        list_container = tk.Frame(left_frame, bg=DARK_THEME['bg_secondary'])
+        list_container.pack(fill='both', expand=True, padx=10, pady=5)
+        
+        scrollbar = tk.Scrollbar(list_container, bg=DARK_THEME['bg_tertiary'])
+        scrollbar.pack(side='right', fill='y')
+        
+        template_listbox = tk.Listbox(
+            list_container,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 11),
+            selectmode='single',
+            yscrollcommand=scrollbar.set,
+            highlightthickness=0,
+            selectbackground=DARK_THEME['button_active'],
+            selectforeground=DARK_THEME['text_primary']
+        )
+        template_listbox.pack(side='left', fill='both', expand=True)
+        scrollbar.config(command=template_listbox.yview)
+        
+        # Right side - Team roster view
+        right_frame = tk.Frame(paned, bg=DARK_THEME['bg_secondary'])
+        paned.add(right_frame, minsize=700)
+        
+        # Team roster header
+        roster_header = tk.Label(
+            right_frame,
+            text="Your Team in Selected Template",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 12, 'bold')
+        )
+        roster_header.pack(pady=(10, 5))
+        
+        # Roster display area with scrollbar
+        roster_container = tk.Frame(right_frame, bg=DARK_THEME['bg_secondary'])
+        roster_container.pack(fill='both', expand=True, padx=10, pady=5)
+        
+        roster_scroll = tk.Scrollbar(roster_container, bg=DARK_THEME['bg_tertiary'])
+        roster_scroll.pack(side='right', fill='y')
+        
+        roster_text = tk.Text(
+            roster_container,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            wrap='word',
+            yscrollcommand=roster_scroll.set,
+            state='disabled',
+            height=25
+        )
+        roster_text.pack(side='left', fill='both', expand=True)
+        roster_scroll.config(command=roster_text.yview)
+        
+        # Store template data
+        templates = self.template_manager.list_templates()
+        template_data = {}
+        
+        # Load templates and populate list
+        for t in templates:
+            template_listbox.insert('end', t['name'])
+            # Load template data
+            template = self.template_manager.load_template(t['filename'])
+            if template:
+                template_data[t['name']] = template
+        
+        def on_template_select(event=None):
+            """Display selected template's team roster"""
+            selection = template_listbox.curselection()
+            if not selection:
+                return
+            
+            template_name = template_listbox.get(selection[0])
+            template = template_data.get(template_name)
+            
+            if not template:
+                return
+            
+            # Get user team ID from template
+            user_team_id = template.user_settings.get('user_team_id', 0)
+            
+            # Clear and update roster display
+            roster_text.config(state='normal')
+            roster_text.delete('1.0', 'end')
+            
+            # Get team data
+            team_data = template.team_states.get(str(user_team_id))
+            
+            if team_data:
+                roster_text.insert('end', f"Team: {team_data['name']}\n\n", 'header')
+                
+                # Get player data
+                player_dict = {p['player_id']: p for p in template.player_pool['all_players']}
+                
+                # Show players in draft order by looking at draft results
+                roster_text.insert('end', "Your Picks (in draft order):\n\n", 'subheader')
+                
+                player_count = 0
+                for pick in template.draft_results:
+                    # Check if this pick belongs to the user's team
+                    if pick['team_id'] == user_team_id and pick['player_id']:
+                        if pick['player_id'] in player_dict:
+                            player_count += 1
+                            p = player_dict[pick['player_id']]
+                            
+                            # Format: Round.Pick - Player Name (POS) - Team - ADP
+                            round_num = pick['round']
+                            pick_in_round = pick['pick_in_round']
+                            
+                            pick_info = f"{round_num}.{pick_in_round:02d}"
+                            player_info = f"{pick_info} - {p['name']} ({p['position']}) - {p['team']}"
+                            if p.get('adp'):
+                                player_info += f" (ADP: {p['adp']:.0f})"
+                            
+                            roster_text.insert('end', f"{player_info}\n", 'player')
+                
+                if player_count == 0:
+                    roster_text.insert('end', "No players drafted yet.\n", 'player')
+                
+                # Show draft info
+                current_pick = template.draft_config.get('current_pick', {})
+                if current_pick:
+                    roster_text.insert('end', f"\n\nDraft Status:\n", 'position')
+                    roster_text.insert('end', f"  Round {current_pick.get('round', 0)}, "
+                                             f"Pick {current_pick.get('pick_in_round', 0)}\n", 'player')
+                    roster_text.insert('end', f"  Overall Pick #{current_pick.get('pick_number', 0)}\n", 'player')
+            else:
+                roster_text.insert('end', "No team data found in this template.\n")
+            
+            # Configure text tags for styling
+            roster_text.tag_config('header', font=(DARK_THEME['font_family'], 12, 'bold'),
+                                 foreground=DARK_THEME['text_primary'])
+            roster_text.tag_config('subheader', font=(DARK_THEME['font_family'], 11, 'bold'),
+                                 foreground=DARK_THEME['button_active'])
+            roster_text.tag_config('player', font=(DARK_THEME['font_family'], 10),
+                                 foreground=DARK_THEME['text_primary'])
+            
+            roster_text.config(state='disabled')
+        
+        # Bind selection event
+        template_listbox.bind('<<ListboxSelect>>', on_template_select)
+        
+        # Bind double-click to load
+        def on_double_click(event=None):
+            """Load template on double-click"""
+            selection = template_listbox.curselection()
+            if selection:
+                template_name = template_listbox.get(selection[0])
+                template = template_data.get(template_name)
+                if template:
+                    self.apply_template(template)
+                    messagebox.showinfo("Success", f"Template '{template_name}' loaded successfully")
+                    dialog.destroy()
+        
+        template_listbox.bind('<Double-Button-1>', on_double_click)
+        
+        # Button frame at bottom
+        button_frame = tk.Frame(main_frame, bg=DARK_THEME['bg_primary'])
+        button_frame.pack(pady=(15, 0))
+        
+        def load_selected():
+            """Load the selected template"""
+            selection = template_listbox.curselection()
+            if not selection:
+                messagebox.showwarning("No Selection", "Please select a template to load")
+                return
+            
+            template_name = template_listbox.get(selection[0])
+            template = template_data.get(template_name)
+            
+            if template:
+                self.apply_template(template)
+                messagebox.showinfo("Success", f"Template '{template_name}' loaded successfully")
+                dialog.destroy()
+        
+        # Load button
+        load_btn = StyledButton(
+            button_frame,
+            text="LOAD SELECTED",
+            command=load_selected,
+            bg=DARK_THEME['button_active'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            padx=20,
+            pady=10
+        )
+        load_btn.pack(side='left', padx=5)
+        
+        # Delete button
+        def delete_selected():
+            """Delete the selected template"""
+            selection = template_listbox.curselection()
+            if not selection:
+                messagebox.showwarning("No Selection", "Please select a template to delete")
+                return
+            
+            template_name = template_listbox.get(selection[0])
+            
+            # Confirm deletion
+            result = messagebox.askyesno(
+                "Delete Template",
+                f"Are you sure you want to delete the template '{template_name}'?",
+                parent=dialog
+            )
+            
+            if result:
+                # Find template file
+                for t in templates:
+                    if t['name'] == template_name:
+                        success = self.template_manager.delete_template(t['filename'])
+                        if success:
+                            # Remove from listbox and data
+                            template_listbox.delete(selection[0])
+                            del template_data[template_name]
+                            # Clear roster display
+                            roster_text.config(state='normal')
+                            roster_text.delete('1.0', 'end')
+                            roster_text.config(state='disabled')
+                            # Update main dropdown
+                            self.update_template_dropdown()
+                            messagebox.showinfo("Success", f"Template '{template_name}' deleted")
+                        break
+        
+        delete_btn = StyledButton(
+            button_frame,
+            text="DELETE",
+            command=delete_selected,
+            bg='#d32f2f',
+            font=(DARK_THEME['font_family'], 11),
+            padx=20,
+            pady=10
+        )
+        delete_btn.pack(side='left', padx=5)
+        
+        # Close button
+        close_btn = StyledButton(
+            button_frame,
+            text="CLOSE",
+            command=dialog.destroy,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 11),
+            padx=20,
+            pady=10
+        )
+        close_btn.pack(side='left', padx=5)
+        
+        # Auto-select first template if available
+        if template_listbox.size() > 0:
+            template_listbox.selection_set(0)
+            on_template_select()
+    
     def delete_template(self):
         """Delete the selected template"""
         selected = self.template_var.get()
@@ -2296,9 +2597,8 @@ class MockDraftApp:
                 if success:
                     messagebox.showinfo("Success", f"Template '{selected}' deleted successfully")
                     self.update_template_dropdown()
-                    # Clear selection and disable buttons
+                    # Clear selection and disable delete button only
                     self.template_var.set("")
-                    self.load_template_button.config(state='disabled')
                     self.delete_template_button.config(state='disabled')
                 else:
                     messagebox.showerror("Error", "Failed to delete template")
@@ -2309,7 +2609,8 @@ class MockDraftApp:
         """Load a selected template"""
         selected = self.template_var.get()
         if not selected:
-            messagebox.showwarning("No Selection", "Please select a template to load")
+            # Show template viewer dialog if no template selected
+            self.show_template_viewer()
             return
         
         # Find the template file
@@ -2497,10 +2798,24 @@ class MockDraftApp:
                 parent=self.root
             )
     
-    def view_saved_drafts(self):
+    # Draft save/load removed - using templates/presets instead
+    
+    def placeholder_for_removed_methods(self):
+        """Placeholder for removed save/load methods"""
+        pass
+    
+    # The following methods were removed, now using templates/presets:
+    # - save_draft_manually
+    # - view_saved_drafts  
+    # - load_draft_history
+    # - _generate_draft_name_from_picks
+    # - _save_draft_history_pick
+    
+    def show_preset_dialog(self):
         """View saved draft files"""
         # Get draft history (ongoing drafts)
         draft_history = self.draft_history_manager.get_draft_list()
+        print(f"Found {len(draft_history)} saved drafts")
         
         # Also get completed drafts
         saved_drafts = self.draft_save_manager.get_saved_drafts()
@@ -2605,9 +2920,10 @@ class MockDraftApp:
             name_label.pack(anchor='w', pady=(5, 0))
             
             # Team and mode info
-            info_text = f"Team: {draft_info['user_team']} | "
-            info_text += f"Mode: {'Manual' if draft_info['manual_mode'] else 'Normal'} | "
-            info_text += f"Picks: {draft_info['total_picks']}"
+            info_text = f"Team: {draft_info.get('user_team', 'Unknown')} | "
+            manual_mode = draft_info.get('manual_mode', False)
+            info_text += f"Mode: {'Manual' if manual_mode else 'Normal'} | "
+            info_text += f"Picks: {draft_info.get('total_picks', draft_info.get('picks', 0))}"
             
             info_label = tk.Label(
                 info_frame,
@@ -2635,7 +2951,20 @@ class MockDraftApp:
                 padx=15,
                 pady=5
             )
-            view_btn.pack(side='right', padx=10)
+            view_btn.pack(side='right', padx=5)
+            
+            # Delete button
+            if draft_info.get('type') == 'history':
+                delete_btn = StyledButton(
+                    row,
+                    text="DELETE",
+                    command=lambda d=draft_info, dlg=dialog: self.delete_draft(d['id'], dlg),
+                    bg='#D32F2F',  # Red color
+                    font=(DARK_THEME['font_family'], 9),
+                    padx=15,
+                    pady=5
+                )
+                delete_btn.pack(side='right', padx=5)
         
         # Close button
         close_btn = StyledButton(
@@ -3018,15 +3347,63 @@ class MockDraftApp:
         """Get list of saved drafts for dropdown"""
         return self.draft_history_manager.get_draft_list()
     
+    def delete_draft(self, draft_id, dialog):
+        """Delete a saved draft"""
+        result = messagebox.askyesno(
+            "Confirm Delete",
+            "Are you sure you want to delete this draft?",
+            parent=dialog
+        )
+        
+        if result:
+            # Delete the draft file
+            import os
+            draft_file = os.path.join(
+                os.path.dirname(__file__),
+                "data", "draft_history",
+                f"{draft_id}.json"
+            )
+            
+            if os.path.exists(draft_file):
+                os.remove(draft_file)
+                messagebox.showinfo(
+                    "Draft Deleted",
+                    "Draft has been deleted successfully.",
+                    parent=dialog
+                )
+                # Refresh the dialog
+                dialog.destroy()
+                self.view_saved_drafts()
+            else:
+                messagebox.showerror(
+                    "Error",
+                    "Draft file not found.",
+                    parent=dialog
+                )
+    
     def load_draft_history(self, draft_id):
         """Load a saved draft from history"""
+        print(f"Loading draft: {draft_id}")
         draft_data = self.draft_history_manager.load_draft(draft_id)
         if not draft_data:
             messagebox.showerror("Error", "Could not load draft", parent=self.root)
             return
         
+        print(f"Draft data loaded: {draft_data.get('name')} with {len(draft_data.get('picks', []))} picks")
+        
+        # Temporarily disable auto-draft
+        self.loading_draft = True
+        
+        # Save the draft_id and name so they don't get overwritten
+        saved_draft_id = self.draft_history_manager.current_draft_id
+        saved_draft_name = draft_data.get('name', 'Untitled')
+        
         # Clear current draft
         self.restart_draft()
+        
+        # Restore the draft_id and name we're loading
+        self.draft_history_manager.current_draft_id = saved_draft_id
+        self.draft_history_manager.current_draft_name = saved_draft_name
         
         # Update draft name in UI
         self.draft_board.set_draft_name(draft_data.get('name', ''))
@@ -3043,7 +3420,7 @@ class MockDraftApp:
         if draft_data.get('user_team_id'):
             self.user_team_id = draft_data['user_team_id']
             self.draft_board.select_team(self.user_team_id)
-            self.on_team_selected(self.user_team_id)
+            # Don't call on_team_selected as it starts a new draft session
         
         # Restore manual mode
         if draft_data.get('manual_mode'):
@@ -3052,11 +3429,20 @@ class MockDraftApp:
         
         # Restore picks
         picks = draft_data.get('picks', [])
+        print(f"Restoring {len(picks)} picks...")
+        picks_restored = 0
+        
         for pick_data in picks:
             # Find the player
             player = None
+            player_id = pick_data.get('player', {}).get('player_id')
+            
+            if not player_id:
+                print(f"Warning: Pick missing player_id: {pick_data}")
+                continue
+                
             for p in self.all_players:
-                if p.player_id == pick_data['player']['player_id']:
+                if p.player_id == player_id:
                     player = p
                     break
             
@@ -3076,6 +3462,10 @@ class MockDraftApp:
                 
                 # Remove from UI
                 self._remove_drafted_player(player)
+                picks_restored += 1
+                print(f"Restored pick {picks_restored}: {player.name} to Team {team_id}")
+            else:
+                print(f"Warning: Could not find player with ID {player_id}")
         
         # Update UI
         pick_info = self.draft_engine.get_current_pick_info()
@@ -3090,15 +3480,88 @@ class MockDraftApp:
             for pick in self.draft_engine.draft_results:
                 self.draft_history.add_pick(pick)
         
-        messagebox.showinfo("Draft Loaded", f"Loaded draft: {draft_data.get('name', 'Untitled')}", parent=self.root)
+        # Update the display fully
+        self.update_display(full_update=True)
+        
+        # Re-enable auto-draft
+        self.loading_draft = False
+        
+        # Show success message with actual pick count
+        picks_loaded = len(self.draft_engine.draft_results)
+        messagebox.showinfo(
+            "Draft Loaded", 
+            f"Loaded draft: {draft_data.get('name', 'Untitled')}\n{picks_loaded} picks restored.",
+            parent=self.root
+        )
+    
+    def _generate_draft_name_from_picks(self):
+        """Generate draft name from player last names"""
+        import random
+        
+        # Get user's picks only
+        user_picks = []
+        if self.user_team_id is not None:
+            user_picks = [pick for pick in self.draft_engine.draft_results 
+                         if pick.team_id == self.user_team_id]
+        
+        # If no user picks yet, use all picks
+        if not user_picks:
+            user_picks = self.draft_engine.draft_results[:3]  # First 3 picks
+        
+        # Extract last names
+        last_names = []
+        for pick in user_picks[:3]:  # Use up to first 3 picks
+            player_name = pick.player.name
+            # Get last name (last word in the name)
+            last_name = player_name.split()[-1] if player_name else "Player"
+            last_names.append(last_name)
+        
+        # Create name from last names
+        if last_names:
+            draft_name = "-".join(last_names)
+            # Add random number for uniqueness
+            draft_name += f"-{random.randint(100, 999)}"
+        else:
+            from datetime import datetime
+            draft_name = f"Draft-{datetime.now().strftime('%m%d')}-{random.randint(100, 999)}"
+        
+        return draft_name
     
     def _save_draft_history_pick(self, pick):
         """Save a pick to draft history"""
-        self.draft_history_manager.save_pick(
-            pick,
-            user_team_id=self.user_team_id,
-            manual_mode=self.manual_mode
-        )
+        # Only start saving after 10 picks
+        if len(self.draft_engine.draft_results) >= 10:
+            # Initialize draft session if not already started
+            if not self.draft_history_manager.current_draft_id:
+                draft_name = self._generate_draft_name_from_picks()
+                self.draft_history_manager.start_new_draft(draft_name=draft_name)
+                
+                # Save team configuration
+                self.draft_history_manager.save_team_config(
+                    self.teams,
+                    user_team_id=self.user_team_id,
+                    manual_mode=self.manual_mode
+                )
+                
+                # Save all previous picks
+                for prev_pick in self.draft_engine.draft_results[:-1]:
+                    self.draft_history_manager.save_pick(
+                        prev_pick,
+                        user_team_id=self.user_team_id,
+                        manual_mode=self.manual_mode
+                    )
+            
+            # Save the current pick
+            self.draft_history_manager.save_pick(
+                pick,
+                user_team_id=self.user_team_id,
+                manual_mode=self.manual_mode
+            )
+            
+            # Update draft name every 10 picks or so
+            if len(self.draft_engine.draft_results) % 10 == 0:
+                new_name = self._generate_draft_name_from_picks()
+                self.draft_history_manager.update_draft_name(new_name)
 
 
 def main():

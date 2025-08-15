@@ -1,0 +1,650 @@
+{
+  "id": "draft_20250814_170009",
+  "name": "Draft 08/14/2025 05:00 PM",
+  "created": "2025-08-14T17:00:09.606888",
+  "modified": "2025-08-14T17:00:22.663680",
+  "picks": [
+    {
+      "pick_number": 1,
+      "round": 1,
+      "pick_in_round": 1,
+      "team_id": 1,
+      "player": {
+        "name": "JAMARR CHASE",
+        "position": "WR",
+        "team": "CIN",
+        "adp": 1,
+        "player_id": "7564",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.288106"
+    },
+    {
+      "pick_number": 2,
+      "round": 1,
+      "pick_in_round": 2,
+      "team_id": 2,
+      "player": {
+        "name": "BIJAN ROBINSON",
+        "position": "RB",
+        "team": "ATL",
+        "adp": 2,
+        "player_id": "9509",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.297204"
+    },
+    {
+      "pick_number": 3,
+      "round": 1,
+      "pick_in_round": 3,
+      "team_id": 3,
+      "player": {
+        "name": "JUSTIN JEFFERSON",
+        "position": "WR",
+        "team": "MIN",
+        "adp": 3,
+        "player_id": "6794",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.307222"
+    },
+    {
+      "pick_number": 4,
+      "round": 1,
+      "pick_in_round": 4,
+      "team_id": 4,
+      "player": {
+        "name": "CEEDEE LAMB",
+        "position": "WR",
+        "team": "DAL",
+        "adp": 4.0,
+        "player_id": "6786",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.317238"
+    },
+    {
+      "pick_number": 5,
+      "round": 1,
+      "pick_in_round": 5,
+      "team_id": 5,
+      "player": {
+        "name": "MALIK NABERS",
+        "position": "WR",
+        "team": "NYG",
+        "adp": 7.0,
+        "player_id": "11632",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.327423"
+    },
+    {
+      "pick_number": 6,
+      "round": 1,
+      "pick_in_round": 6,
+      "team_id": 6,
+      "player": {
+        "name": "SAQUON BARKLEY",
+        "position": "RB",
+        "team": "PHI",
+        "adp": 5.0,
+        "player_id": "4866",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.336936"
+    },
+    {
+      "pick_number": 7,
+      "round": 1,
+      "pick_in_round": 7,
+      "team_id": 7,
+      "player": {
+        "name": "AMON RA ST BROWN",
+        "position": "WR",
+        "team": "DET",
+        "adp": 8.0,
+        "player_id": "7547",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.346268"
+    },
+    {
+      "pick_number": 8,
+      "round": 1,
+      "pick_in_round": 8,
+      "team_id": 8,
+      "player": {
+        "name": "JAHMYR GIBBS",
+        "position": "RB",
+        "team": "DET",
+        "adp": 6.0,
+        "player_id": "9221",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.356287"
+    },
+    {
+      "pick_number": 9,
+      "round": 1,
+      "pick_in_round": 9,
+      "team_id": 9,
+      "player": {
+        "name": "PUKA NACUA",
+        "position": "WR",
+        "team": "LA",
+        "adp": 9.0,
+        "player_id": "9493",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.364997"
+    },
+    {
+      "pick_number": 10,
+      "round": 1,
+      "pick_in_round": 10,
+      "team_id": 10,
+      "player": {
+        "name": "BROCK BOWERS",
+        "position": "TE",
+        "team": "LV",
+        "adp": 11.0,
+        "player_id": "11604",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.376018"
+    },
+    {
+      "pick_number": 11,
+      "round": 2,
+      "pick_in_round": 1,
+      "team_id": 10,
+      "player": {
+        "name": "NICO COLLINS",
+        "position": "WR",
+        "team": "HOU",
+        "adp": 10.0,
+        "player_id": "7569",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.386162"
+    },
+    {
+      "pick_number": 12,
+      "round": 2,
+      "pick_in_round": 2,
+      "team_id": 9,
+      "player": {
+        "name": "ASHTON JEANTY",
+        "position": "RB",
+        "team": "LV",
+        "adp": 11.5,
+        "player_id": "12527",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.396212"
+    },
+    {
+      "pick_number": 13,
+      "round": 2,
+      "pick_in_round": 3,
+      "team_id": 8,
+      "player": {
+        "name": "CHRISTIAN MCCAFFREY",
+        "position": "RB",
+        "team": "SF",
+        "adp": 12.0,
+        "player_id": "4034",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.406297"
+    },
+    {
+      "pick_number": 14,
+      "round": 2,
+      "pick_in_round": 4,
+      "team_id": 7,
+      "player": {
+        "name": "JOSH ALLEN",
+        "position": "QB",
+        "team": "BUF",
+        "adp": 13.0,
+        "player_id": "4984",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.415606"
+    },
+    {
+      "pick_number": 15,
+      "round": 2,
+      "pick_in_round": 5,
+      "team_id": 6,
+      "player": {
+        "name": "LAMAR JACKSON",
+        "position": "QB",
+        "team": "BAL",
+        "adp": 15.0,
+        "player_id": "4881",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.426578"
+    },
+    {
+      "pick_number": 16,
+      "round": 2,
+      "pick_in_round": 6,
+      "team_id": 5,
+      "player": {
+        "name": "BRIAN THOMAS",
+        "position": "WR",
+        "team": "JAX",
+        "adp": 14.5,
+        "player_id": "11631",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.436117"
+    },
+    {
+      "pick_number": 17,
+      "round": 2,
+      "pick_in_round": 7,
+      "team_id": 4,
+      "player": {
+        "name": "DEVON ACHANE",
+        "position": "RB",
+        "team": "MIA",
+        "adp": 16,
+        "player_id": "9226",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.446368"
+    },
+    {
+      "pick_number": 18,
+      "round": 2,
+      "pick_in_round": 8,
+      "team_id": 3,
+      "player": {
+        "name": "AJ BROWN",
+        "position": "WR",
+        "team": "PHI",
+        "adp": 19.375,
+        "player_id": "5859",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.455877"
+    },
+    {
+      "pick_number": 19,
+      "round": 2,
+      "pick_in_round": 9,
+      "team_id": 2,
+      "player": {
+        "name": "JAYDEN DANIELS",
+        "position": "QB",
+        "team": "WAS",
+        "adp": 18.0,
+        "player_id": "11566",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.466607"
+    },
+    {
+      "pick_number": 20,
+      "round": 2,
+      "pick_in_round": 10,
+      "team_id": 1,
+      "player": {
+        "name": "DRAKE LONDON",
+        "position": "WR",
+        "team": "ATL",
+        "adp": 19.25,
+        "player_id": "8112",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.477125"
+    },
+    {
+      "pick_number": 21,
+      "round": 3,
+      "pick_in_round": 1,
+      "team_id": 10,
+      "player": {
+        "name": "JOE BURROW",
+        "position": "QB",
+        "team": "CIN",
+        "adp": 19.5,
+        "player_id": "6770",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.487148"
+    },
+    {
+      "pick_number": 22,
+      "round": 3,
+      "pick_in_round": 2,
+      "team_id": 9,
+      "player": {
+        "name": "TREY MCBRIDE",
+        "position": "TE",
+        "team": "ARZ",
+        "adp": 19.4375,
+        "player_id": "8130",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.498194"
+    },
+    {
+      "pick_number": 23,
+      "round": 3,
+      "pick_in_round": 3,
+      "team_id": 8,
+      "player": {
+        "name": "DERRICK HENRY",
+        "position": "RB",
+        "team": "BAL",
+        "adp": 21,
+        "player_id": "3198",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.509215"
+    },
+    {
+      "pick_number": 24,
+      "round": 3,
+      "pick_in_round": 4,
+      "team_id": 7,
+      "player": {
+        "name": "BUCKY IRVING",
+        "position": "RB",
+        "team": "TB",
+        "adp": 25,
+        "player_id": "11584",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.519231"
+    },
+    {
+      "pick_number": 25,
+      "round": 3,
+      "pick_in_round": 5,
+      "team_id": 6,
+      "player": {
+        "name": "JONATHAN TAYLOR",
+        "position": "RB",
+        "team": "IND",
+        "adp": 27,
+        "player_id": "6813",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.529244"
+    },
+    {
+      "pick_number": 26,
+      "round": 3,
+      "pick_in_round": 6,
+      "team_id": 5,
+      "player": {
+        "name": "LADD MCCONKEY",
+        "position": "WR",
+        "team": "LAC",
+        "adp": 26.0,
+        "player_id": "11635",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.541267"
+    },
+    {
+      "pick_number": 27,
+      "round": 3,
+      "pick_in_round": 7,
+      "team_id": 4,
+      "player": {
+        "name": "JALEN HURTS",
+        "position": "QB",
+        "team": "PHI",
+        "adp": 26,
+        "player_id": "6904",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.551576"
+    },
+    {
+      "pick_number": 28,
+      "round": 3,
+      "pick_in_round": 8,
+      "team_id": 3,
+      "player": {
+        "name": "KYREN WILLIAMS",
+        "position": "RB",
+        "team": "LA",
+        "adp": 28,
+        "player_id": "8150",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.562174"
+    },
+    {
+      "pick_number": 29,
+      "round": 3,
+      "pick_in_round": 9,
+      "team_id": 2,
+      "player": {
+        "name": "JAXON SMITH NJIGBA",
+        "position": "WR",
+        "team": "SEA",
+        "adp": 28.5,
+        "player_id": "9488",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.573201"
+    },
+    {
+      "pick_number": 30,
+      "round": 3,
+      "pick_in_round": 10,
+      "team_id": 1,
+      "player": {
+        "name": "JOSH JACOBS",
+        "position": "RB",
+        "team": "GB",
+        "adp": 29,
+        "player_id": "5850",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.585211"
+    },
+    {
+      "pick_number": 31,
+      "round": 4,
+      "pick_in_round": 1,
+      "team_id": 1,
+      "player": {
+        "name": "PATRICK MAHOMES",
+        "position": "QB",
+        "team": "KC",
+        "adp": 33,
+        "player_id": "4046",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.595509"
+    },
+    {
+      "pick_number": 32,
+      "round": 4,
+      "pick_in_round": 2,
+      "team_id": 2,
+      "player": {
+        "name": "TEE HIGGINS",
+        "position": "WR",
+        "team": "CIN",
+        "adp": 32,
+        "player_id": "6801",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.607027"
+    },
+    {
+      "pick_number": 33,
+      "round": 4,
+      "pick_in_round": 3,
+      "team_id": 3,
+      "player": {
+        "name": "CHASE BROWN",
+        "position": "RB",
+        "team": "CIN",
+        "adp": 30,
+        "player_id": "9224",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.619048"
+    },
+    {
+      "pick_number": 34,
+      "round": 4,
+      "pick_in_round": 4,
+      "team_id": 4,
+      "player": {
+        "name": "BREECE HALL",
+        "position": "RB",
+        "team": "NYJ",
+        "adp": 34,
+        "player_id": "8155",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.629064"
+    },
+    {
+      "pick_number": 35,
+      "round": 4,
+      "pick_in_round": 5,
+      "team_id": 5,
+      "player": {
+        "name": "MARVIN HARRISON",
+        "position": "WR",
+        "team": "ARZ",
+        "adp": 35,
+        "player_id": "11628",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.641084"
+    },
+    {
+      "pick_number": 36,
+      "round": 4,
+      "pick_in_round": 6,
+      "team_id": 6,
+      "player": {
+        "name": "TYREEK HILL",
+        "position": "WR",
+        "team": "MIA",
+        "adp": 37,
+        "player_id": "3321",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.652160"
+    },
+    {
+      "pick_number": 37,
+      "round": 4,
+      "pick_in_round": 7,
+      "team_id": 7,
+      "player": {
+        "name": "BAKER MAYFIELD",
+        "position": "QB",
+        "team": "TB",
+        "adp": 36,
+        "player_id": "4892",
+        "var_rank": null,
+        "pos_rank": null
+      },
+      "timestamp": "2025-08-14T17:00:22.663680"
+    }
+  ],
+  "user_team_id": 8,
+  "manual_mode": false,
+  "teams": {
+    "1": {
+      "name": "Karwan",
+      "draft_position": 1
+    },
+    "2": {
+      "name": "Joey",
+      "draft_position": 2
+    },
+    "3": {
+      "name": "Peter",
+      "draft_position": 3
+    },
+    "4": {
+      "name": "Eric",
+      "draft_position": 4
+    },
+    "5": {
+      "name": "Jerwan",
+      "draft_position": 5
+    },
+    "6": {
+      "name": "Stan",
+      "draft_position": 6
+    },
+    "7": {
+      "name": "Pat",
+      "draft_position": 7
+    },
+    "8": {
+      "name": "Me",
+      "draft_position": 8
+    },
+    "9": {
+      "name": "Johnson",
+      "draft_position": 9
+    },
+    "10": {
+      "name": "Luan",
+      "draft_position": 10
+    }
+  },
+  "config": {
+    "num_teams": 10,
+    "roster_spots": 17,
+    "draft_type": "snake",
+    "reversal_round": 3
+  }
+}

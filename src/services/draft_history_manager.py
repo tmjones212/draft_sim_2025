@@ -29,7 +29,12 @@ class DraftHistoryManager:
         # Generate unique draft ID
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.current_draft_id = f"draft_{timestamp}"
-        self.current_draft_name = draft_name or f"Draft {datetime.now().strftime('%m/%d/%Y %I:%M %p')}"
+        
+        # Use provided name or generate a default
+        if draft_name:
+            self.current_draft_name = draft_name
+        else:
+            self.current_draft_name = f"Draft {datetime.now().strftime('%m/%d/%Y %I:%M %p')}"
         
         # Create initial draft file
         draft_data = {
@@ -158,13 +163,22 @@ class DraftHistoryManager:
                     try:
                         with open(filepath, 'r') as f:
                             data = json.load(f)
+                            user_team_id = data.get("user_team_id")
+                            user_team_name = "No Team"
+                            if user_team_id is not None and "teams" in data:
+                                team_info = data["teams"].get(str(user_team_id), {})
+                                user_team_name = team_info.get("name", f"Team {user_team_id}")
+                            
                             drafts.append({
                                 "id": data.get("id"),
                                 "name": data.get("name", "Untitled Draft"),
                                 "created": data.get("created"),
                                 "modified": data.get("modified"),
                                 "picks_count": len(data.get("picks", [])),
-                                "user_team": data.get("teams", {}).get(str(data.get("user_team_id")), {}).get("name", "No Team")
+                                "user_team": user_team_name,
+                                "user_team_id": user_team_id,
+                                "manual_mode": data.get("manual_mode", False),
+                                "total_picks": len(data.get("picks", []))
                             })
                     except:
                         continue

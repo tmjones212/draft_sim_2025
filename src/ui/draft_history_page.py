@@ -59,6 +59,10 @@ class DraftHistoryPage(ttk.Frame):
         notes_btn = ttk.Button(filter_frame, text="Manager Notes", command=self.open_manager_notes)
         notes_btn.pack(side="left", padx=5)
         
+        # QB Analysis button
+        qb_analysis_btn = ttk.Button(filter_frame, text="QB Draft Analysis", command=self.show_qb_analysis)
+        qb_analysis_btn.pack(side="left", padx=5)
+        
         # Second filter row
         filter_frame2 = tk.Frame(self, bg=DARK_THEME['bg_primary'])
         filter_frame2.pack(fill="x", padx=10, pady=(0, 5))
@@ -408,3 +412,339 @@ class DraftHistoryPage(ttk.Frame):
         for manager, note_var in self.note_entries.items():
             self.manager_notes_service.set_note(manager, note_var.get())
         dialog.destroy()
+    
+    def show_qb_analysis(self):
+        """Show QB draft analysis window with table of QBs taken per round"""
+        # Create dialog window
+        dialog = tk.Toplevel(self)
+        dialog.title("QB Draft Analysis - Last 5 Years")
+        dialog.geometry("700x650")
+        dialog.configure(bg=DARK_THEME['bg_primary'])
+        
+        # Make dialog modal
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        # Main frame
+        main_frame = tk.Frame(dialog, bg=DARK_THEME['bg_primary'])
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Title for first table
+        title_label = tk.Label(
+            main_frame,
+            text="QBs Drafted Per Round (Last 5 Years)",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 12, 'bold')
+        )
+        title_label.pack(pady=(0, 10))
+        
+        # Calculate QB draft data
+        from datetime import datetime
+        current_year = datetime.now().year
+        
+        # Filter for last 5 years and QB position
+        qb_data = [pick for pick in self.draft_data 
+                   if pick.get("position") == "QB" 
+                   and pick.get("year", 0) >= (current_year - 5)
+                   and pick.get("round", 0) <= 5]
+        
+        # Count QBs per round per year
+        qb_counts = {}
+        years = sorted(list(set(pick.get("year", 0) for pick in qb_data)), reverse=True)[:5]
+        
+        for year in years:
+            qb_counts[year] = {}
+            for round_num in range(1, 6):
+                count = len([pick for pick in qb_data 
+                           if pick.get("year") == year 
+                           and pick.get("round") == round_num])
+                qb_counts[year][round_num] = count
+        
+        # Create first table frame (per round)
+        table_frame = tk.Frame(main_frame, bg=DARK_THEME['bg_secondary'], highlightbackground=DARK_THEME['border'], highlightthickness=1)
+        table_frame.pack(fill="both", expand=False, pady=(0, 20))
+        
+        # Create header row
+        header_frame = tk.Frame(table_frame, bg=DARK_THEME['bg_tertiary'])
+        header_frame.pack(fill="x")
+        
+        # Year column header
+        year_header = tk.Label(
+            header_frame,
+            text="Year",
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            width=10,
+            anchor="center"
+        )
+        year_header.pack(side="left", padx=1, pady=5)
+        
+        # Round headers
+        for round_num in range(1, 6):
+            round_header = tk.Label(
+                header_frame,
+                text=f"Round {round_num}",
+                bg=DARK_THEME['bg_tertiary'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 11, 'bold'),
+                width=12,
+                anchor="center"
+            )
+            round_header.pack(side="left", padx=1, pady=5)
+        
+        # Total column header
+        total_header = tk.Label(
+            header_frame,
+            text="Total",
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            width=10,
+            anchor="center"
+        )
+        total_header.pack(side="left", padx=1, pady=5)
+        
+        # Create data rows
+        for i, year in enumerate(years):
+            row_bg = DARK_THEME['bg_secondary'] if i % 2 == 0 else DARK_THEME['bg_tertiary']
+            row_frame = tk.Frame(table_frame, bg=row_bg)
+            row_frame.pack(fill="x")
+            
+            # Year cell
+            year_label = tk.Label(
+                row_frame,
+                text=str(year),
+                bg=row_bg,
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 10),
+                width=10,
+                anchor="center"
+            )
+            year_label.pack(side="left", padx=1, pady=3)
+            
+            # Round cells
+            year_total = 0
+            for round_num in range(1, 6):
+                count = qb_counts.get(year, {}).get(round_num, 0)
+                year_total += count
+                
+                # Color code based on count
+                if count == 0:
+                    text_color = DARK_THEME['text_secondary']
+                elif count == 1:
+                    text_color = DARK_THEME['text_primary']
+                elif count == 2:
+                    text_color = "#FFC107"  # Yellow
+                else:
+                    text_color = "#4CAF50"  # Green
+                
+                count_label = tk.Label(
+                    row_frame,
+                    text=str(count),
+                    bg=row_bg,
+                    fg=text_color,
+                    font=(DARK_THEME['font_family'], 10, 'bold' if count > 0 else 'normal'),
+                    width=12,
+                    anchor="center"
+                )
+                count_label.pack(side="left", padx=1, pady=3)
+            
+            # Total cell
+            total_label = tk.Label(
+                row_frame,
+                text=str(year_total),
+                bg=row_bg,
+                fg="#4CAF50" if year_total > 0 else DARK_THEME['text_secondary'],
+                font=(DARK_THEME['font_family'], 10, 'bold'),
+                width=10,
+                anchor="center"
+            )
+            total_label.pack(side="left", padx=1, pady=3)
+        
+        # Average row
+        avg_frame = tk.Frame(table_frame, bg=DARK_THEME['bg_primary'])
+        avg_frame.pack(fill="x", pady=(5, 0))
+        
+        avg_label = tk.Label(
+            avg_frame,
+            text="Average",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            width=10,
+            anchor="center"
+        )
+        avg_label.pack(side="left", padx=1, pady=3)
+        
+        # Calculate and display averages
+        total_avg = 0
+        for round_num in range(1, 6):
+            round_counts = [qb_counts.get(year, {}).get(round_num, 0) for year in years if year in qb_counts]
+            avg = sum(round_counts) / len(round_counts) if round_counts else 0
+            total_avg += avg
+            
+            avg_value_label = tk.Label(
+                avg_frame,
+                text=f"{avg:.1f}",
+                bg=DARK_THEME['bg_primary'],
+                fg="#FFC107",
+                font=(DARK_THEME['font_family'], 10, 'bold'),
+                width=12,
+                anchor="center"
+            )
+            avg_value_label.pack(side="left", padx=1, pady=3)
+        
+        # Total average
+        total_avg_label = tk.Label(
+            avg_frame,
+            text=f"{total_avg:.1f}",
+            bg=DARK_THEME['bg_primary'],
+            fg="#4CAF50",
+            font=(DARK_THEME['font_family'], 10, 'bold'),
+            width=10,
+            anchor="center"
+        )
+        total_avg_label.pack(side="left", padx=1, pady=3)
+        
+        # Title for second table (cumulative)
+        title2_label = tk.Label(
+            main_frame,
+            text="Cumulative QBs Drafted Through Each Round",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 12, 'bold')
+        )
+        title2_label.pack(pady=(0, 10))
+        
+        # Create second table frame (cumulative)
+        table2_frame = tk.Frame(main_frame, bg=DARK_THEME['bg_secondary'], highlightbackground=DARK_THEME['border'], highlightthickness=1)
+        table2_frame.pack(fill="both", expand=False)
+        
+        # Create header row for cumulative table
+        header2_frame = tk.Frame(table2_frame, bg=DARK_THEME['bg_tertiary'])
+        header2_frame.pack(fill="x")
+        
+        # Year column header
+        year2_header = tk.Label(
+            header2_frame,
+            text="Year",
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            width=10,
+            anchor="center"
+        )
+        year2_header.pack(side="left", padx=1, pady=5)
+        
+        # Round headers for cumulative
+        for round_num in range(1, 6):
+            round2_header = tk.Label(
+                header2_frame,
+                text=f"Thru R{round_num}",
+                bg=DARK_THEME['bg_tertiary'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 11, 'bold'),
+                width=12,
+                anchor="center"
+            )
+            round2_header.pack(side="left", padx=1, pady=5)
+        
+        # Create data rows for cumulative table
+        for i, year in enumerate(years):
+            row_bg = DARK_THEME['bg_secondary'] if i % 2 == 0 else DARK_THEME['bg_tertiary']
+            row2_frame = tk.Frame(table2_frame, bg=row_bg)
+            row2_frame.pack(fill="x")
+            
+            # Year cell
+            year2_label = tk.Label(
+                row2_frame,
+                text=str(year),
+                bg=row_bg,
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 10),
+                width=10,
+                anchor="center"
+            )
+            year2_label.pack(side="left", padx=1, pady=3)
+            
+            # Cumulative round cells
+            cumulative = 0
+            for round_num in range(1, 6):
+                count = qb_counts.get(year, {}).get(round_num, 0)
+                cumulative += count
+                
+                # Color code based on cumulative count
+                if cumulative == 0:
+                    text_color = DARK_THEME['text_secondary']
+                elif cumulative <= 2:
+                    text_color = DARK_THEME['text_primary']
+                elif cumulative <= 4:
+                    text_color = "#FFC107"  # Yellow
+                else:
+                    text_color = "#4CAF50"  # Green
+                
+                cum_label = tk.Label(
+                    row2_frame,
+                    text=str(cumulative),
+                    bg=row_bg,
+                    fg=text_color,
+                    font=(DARK_THEME['font_family'], 10, 'bold' if cumulative > 0 else 'normal'),
+                    width=12,
+                    anchor="center"
+                )
+                cum_label.pack(side="left", padx=1, pady=3)
+        
+        # Average row for cumulative table
+        avg2_frame = tk.Frame(table2_frame, bg=DARK_THEME['bg_primary'])
+        avg2_frame.pack(fill="x", pady=(5, 0))
+        
+        avg2_label = tk.Label(
+            avg2_frame,
+            text="Average",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            width=10,
+            anchor="center"
+        )
+        avg2_label.pack(side="left", padx=1, pady=3)
+        
+        # Calculate and display cumulative averages
+        for round_num in range(1, 6):
+            cumulative_counts = []
+            for year in years:
+                if year in qb_counts:
+                    cum = sum(qb_counts[year].get(r, 0) for r in range(1, round_num + 1))
+                    cumulative_counts.append(cum)
+            
+            avg = sum(cumulative_counts) / len(cumulative_counts) if cumulative_counts else 0
+            
+            avg2_value_label = tk.Label(
+                avg2_frame,
+                text=f"{avg:.1f}",
+                bg=DARK_THEME['bg_primary'],
+                fg="#FFC107",
+                font=(DARK_THEME['font_family'], 10, 'bold'),
+                width=12,
+                anchor="center"
+            )
+            avg2_value_label.pack(side="left", padx=1, pady=3)
+        
+        # Close button
+        button_frame = tk.Frame(dialog, bg=DARK_THEME['bg_primary'])
+        button_frame.pack(fill="x", padx=20, pady=(0, 20))
+        
+        close_btn = ttk.Button(
+            button_frame,
+            text="Close",
+            command=dialog.destroy
+        )
+        close_btn.pack(side="right")
+        
+        # Center the dialog
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
+        y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
+        dialog.geometry(f"+{x}+{y}")
