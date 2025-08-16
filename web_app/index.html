@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Draft Simulator 2025</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <div class="header">
+            <h1>Mock Draft Simulator 2025</h1>
+            <div class="header-controls">
+                <button id="restartBtn" class="btn btn-primary">Restart Draft</button>
+                <button id="repickSpotBtn" class="btn btn-secondary">Repick Spot</button>
+                <button id="undoBtn" class="btn btn-secondary">Undo</button>
+                <button id="settingsBtn" class="btn btn-secondary">Settings</button>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="draft">Draft</button>
+            <button class="tab-btn" data-tab="game-history">Game History</button>
+            <button class="tab-btn" data-tab="prev-drafts">Previous Drafts</button>
+            <button class="tab-btn" data-tab="trade">Trade</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Draft Tab -->
+            <div id="draft-tab" class="tab-pane active">
+                <div class="draft-container">
+                    <!-- Left Panel: Draft Board -->
+                    <div class="draft-board-panel">
+                        <div class="draft-board-header">
+                            <h3>Draft Board</h3>
+                            <div class="round-controls">
+                                <label>Visible Rounds: </label>
+                                <input type="number" id="visibleRounds" min="1" max="16" value="3">
+                            </div>
+                        </div>
+                        <div id="draftBoard" class="draft-board"></div>
+                    </div>
+
+                    <!-- Right Panel: Player List -->
+                    <div class="player-list-panel">
+                        <div class="player-list-header">
+                            <h3>Available Players</h3>
+                            <div class="filter-controls">
+                                <input type="text" id="playerSearch" placeholder="Search players...">
+                                <select id="positionFilter">
+                                    <option value="ALL">All Positions</option>
+                                    <option value="QB">QB</option>
+                                    <option value="RB">RB</option>
+                                    <option value="WR">WR</option>
+                                    <option value="TE">TE</option>
+                                    <option value="FLEX">FLEX</option>
+                                    <option value="LB">LB</option>
+                                    <option value="DB">DB</option>
+                                </select>
+                                <button id="resetAdpBtn" class="btn btn-small">Reset ADP</button>
+                            </div>
+                        </div>
+                        <div class="player-list-table">
+                            <table id="playerTable">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="rank">VAR</th>
+                                        <th data-sort="tier">CR</th>
+                                        <th data-sort="position">Pos</th>
+                                        <th data-sort="name">Name</th>
+                                        <th data-sort="team">Team</th>
+                                        <th data-sort="adp" class="sortable">ADP ↑</th>
+                                        <th data-sort="sos">SOS</th>
+                                        <th data-sort="projRank">Proj</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="playerTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Pick Info -->
+                <div class="current-pick-info">
+                    <div id="currentPickDisplay"></div>
+                    <div id="timerDisplay"></div>
+                </div>
+            </div>
+
+            <!-- Game History Tab -->
+            <div id="game-history-tab" class="tab-pane">
+                <div class="game-history-container">
+                    <div class="game-history-controls">
+                        <select id="ghPositionFilter">
+                            <option value="ALL">All Positions</option>
+                            <option value="QB">QB</option>
+                            <option value="RB">RB</option>
+                            <option value="WR">WR</option>
+                            <option value="TE">TE</option>
+                            <option value="FLEX">FLEX</option>
+                            <option value="LB">LB</option>
+                            <option value="DB">DB</option>
+                        </select>
+                        <select id="ghLocationFilter">
+                            <option value="ALL">All Locations</option>
+                            <option value="HOME">Home</option>
+                            <option value="AWAY">Away</option>
+                        </select>
+                        <select id="ghVenueFilter">
+                            <option value="ALL">All Venues</option>
+                            <option value="DOME">Dome</option>
+                            <option value="OUTSIDE">Outside</option>
+                        </select>
+                        <label>
+                            <input type="checkbox" id="ghShowAvailable"> Show Available
+                        </label>
+                        <label>
+                            <input type="checkbox" id="ghDetailedView"> Detailed View
+                        </label>
+                        <div class="week-range-controls">
+                            <button class="week-preset" data-range="all">All</button>
+                            <button class="week-preset" data-range="first">First Half</button>
+                            <button class="week-preset" data-range="last">Last Half</button>
+                            <button class="week-preset" data-range="playoffs">Playoffs</button>
+                            <label>Weeks: </label>
+                            <input type="number" id="weekStart" min="1" max="18" value="1">
+                            <span>-</span>
+                            <input type="number" id="weekEnd" min="1" max="18" value="18">
+                        </div>
+                        <button id="clearGraphBtn" class="btn btn-small">Clear Graph</button>
+                    </div>
+                    <div class="game-history-content">
+                        <div class="game-history-table">
+                            <table id="gameHistoryTable">
+                                <thead id="gameHistoryHeader"></thead>
+                                <tbody id="gameHistoryBody"></tbody>
+                                <tfoot id="gameHistoryFooter"></tfoot>
+                            </table>
+                        </div>
+                        <div class="game-history-graph">
+                            <canvas id="pointsGraph"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Previous Drafts Tab -->
+            <div id="prev-drafts-tab" class="tab-pane">
+                <div class="prev-drafts-container">
+                    <div class="prev-drafts-controls">
+                        <select id="draftSelect"></select>
+                        <button id="loadDraftBtn" class="btn btn-primary">Load Draft</button>
+                        <button id="deleteDraftBtn" class="btn btn-danger">Delete Draft</button>
+                        <button id="managerNotesBtn" class="btn btn-secondary">Manager Notes</button>
+                    </div>
+                    <div id="prevDraftBoard"></div>
+                </div>
+            </div>
+
+            <!-- Trade Tab -->
+            <div id="trade-tab" class="tab-pane">
+                <div class="trade-container">
+                    <h3>Trade Draft Picks</h3>
+                    <div class="trade-form">
+                        <div class="trade-team">
+                            <label>Team 1:</label>
+                            <select id="team1Select"></select>
+                            <label>Give Pick:</label>
+                            <select id="team1PickSelect"></select>
+                        </div>
+                        <div class="trade-arrow">⟷</div>
+                        <div class="trade-team">
+                            <label>Team 2:</label>
+                            <select id="team2Select"></select>
+                            <label>Give Pick:</label>
+                            <select id="team2PickSelect"></select>
+                        </div>
+                        <button id="executeTradeBtn" class="btn btn-primary">Execute Trade</button>
+                    </div>
+                    <div id="tradeHistory"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="draftSpotModal" class="modal">
+        <div class="modal-content">
+            <h2>Select Your Draft Position</h2>
+            <div id="draftSpotGrid" class="draft-spot-grid"></div>
+        </div>
+    </div>
+
+    <div id="managerNotesModal" class="modal">
+        <div class="modal-content">
+            <h2>Manager Draft Habit Notes</h2>
+            <div id="managerNotesList"></div>
+            <button id="closeNotesBtn" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h2>Settings</h2>
+            <div class="settings-form">
+                <label>
+                    <input type="checkbox" id="autoPickEnabled"> Enable Auto-Pick
+                </label>
+                <label>
+                    Timer (seconds):
+                    <input type="number" id="timerSeconds" min="5" max="300" value="90">
+                </label>
+                <label>
+                    <input type="checkbox" id="soundEnabled"> Enable Sounds
+                </label>
+                <label>
+                    Admin Mode:
+                    <input type="checkbox" id="adminMode"> Enable (All picks controlled)
+                </label>
+            </div>
+            <button id="saveSettingsBtn" class="btn btn-primary">Save</button>
+            <button id="cancelSettingsBtn" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Load JavaScript modules -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/draftLogic.js"></script>
+    <script src="js/playerList.js"></script>
+    <script src="js/draftBoard.js"></script>
+    <script src="js/gameHistory.js"></script>
+    <script src="js/trade.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,732 @@
+/* Dark Theme Variables */
+:root {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2a2a2a;
+    --bg-tertiary: #333333;
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --border-color: #404040;
+    --highlight-color: #4a4a4a;
+    --accent-blue: #3498db;
+    --accent-green: #4CAF50;
+    --accent-red: #F44336;
+    --accent-yellow: #FFC107;
+    
+    /* Position Colors */
+    --qb-color: #ff69b4;
+    --rb-color: #40e0d0;
+    --wr-color: #4169e1;
+    --te-color: #ff8c00;
+    --lb-color: #9370db;
+    --db-color: #32cd32;
+    
+    /* Tier Colors */
+    --tier1-color: #FFD700;
+    --tier2-color: #C0C0C0;
+    --tier3-color: #CD7F32;
+    --tier4-color: #4169E1;
+    --tier5-color: #32CD32;
+    --tier6-color: #FF6347;
+    --tier7-color: #9370DB;
+    --tier8-color: #20B2AA;
+}
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Header */
+.header {
+    background-color: var(--bg-secondary);
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    font-size: 24px;
+    color: var(--text-primary);
+}
+
+.header-controls {
+    display: flex;
+    gap: 10px;
+}
+
+/* Buttons */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.btn-primary {
+    background-color: var(--accent-blue);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--highlight-color);
+}
+
+.btn-danger {
+    background-color: var(--accent-red);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #d32f2f;
+}
+
+.btn-small {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+/* Tab Navigation */
+.tab-nav {
+    background-color: var(--bg-secondary);
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.tab-btn:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.tab-btn.active {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--accent-blue);
+}
+
+/* Tab Content */
+.tab-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+.tab-pane {
+    display: none;
+    height: 100%;
+    overflow: auto;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Draft Tab Layout */
+.draft-container {
+    display: flex;
+    flex-direction: column; /* Changed to vertical layout */
+    height: 100%;
+    gap: 20px;
+    padding: 20px;
+}
+
+.draft-board-panel {
+    flex: 0 0 auto; /* Take only needed height */
+    max-height: 40%; /* Limit to 40% of container */
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.player-list-panel {
+    flex: 1; /* Take remaining space */
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Draft Board */
+.draft-board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.round-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.round-controls input {
+    width: 50px;
+    padding: 4px;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.draft-board {
+    flex: 1;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: auto;
+    padding: 10px;
+}
+
+.draft-round {
+    margin-bottom: 15px;
+}
+
+.draft-round h4 {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.draft-picks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 5px;
+}
+
+.draft-pick {
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 12px;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+.draft-pick.current {
+    background-color: var(--accent-blue);
+    animation: pulse 1s infinite;
+}
+
+.draft-pick.user-pick {
+    background-color: var(--accent-green);
+}
+
+.draft-pick.traded {
+    border: 2px dashed var(--accent-yellow);
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.pick-number {
+    font-size: 10px;
+    color: var(--text-secondary);
+}
+
+.pick-team {
+    font-weight: bold;
+    margin: 2px 0;
+}
+
+.pick-player {
+    font-size: 11px;
+}
+
+/* Player List */
+.player-list-header {
+    margin-bottom: 10px;
+}
+
+.filter-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.filter-controls input[type="text"] {
+    flex: 1;
+    padding: 6px;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.filter-controls select {
+    padding: 6px;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.player-list-table {
+    flex: 1;
+    overflow: auto;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+#playerTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#playerTable thead {
+    position: sticky;
+    top: 0;
+    background-color: var(--bg-tertiary);
+    z-index: 10;
+}
+
+#playerTable th {
+    padding: 8px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: bold;
+    border-bottom: 2px solid var(--border-color);
+    cursor: pointer;
+    user-select: none;
+}
+
+#playerTable th.sortable:hover {
+    background-color: var(--highlight-color);
+}
+
+#playerTable td {
+    padding: 6px 8px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#playerTable tbody tr:hover {
+    background-color: var(--highlight-color);
+}
+
+#playerTable tbody tr.selected {
+    background-color: var(--accent-blue);
+}
+
+/* Position Colors in Table */
+.pos-QB { color: var(--qb-color); font-weight: bold; }
+.pos-RB { color: var(--rb-color); font-weight: bold; }
+.pos-WR { color: var(--wr-color); font-weight: bold; }
+.pos-TE { color: var(--te-color); font-weight: bold; }
+.pos-LB { color: var(--lb-color); font-weight: bold; }
+.pos-DB { color: var(--db-color); font-weight: bold; }
+
+/* Tier Colors */
+.tier-1 { color: var(--tier1-color); font-weight: bold; }
+.tier-2 { color: var(--tier2-color); font-weight: bold; }
+.tier-3 { color: var(--tier3-color); font-weight: bold; }
+.tier-4 { color: var(--tier4-color); font-weight: bold; }
+.tier-5 { color: var(--tier5-color); font-weight: bold; }
+.tier-6 { color: var(--tier6-color); font-weight: bold; }
+.tier-7 { color: var(--tier7-color); font-weight: bold; }
+.tier-8 { color: var(--tier8-color); font-weight: bold; }
+
+/* SOS Colors */
+.sos-easy { color: var(--accent-green); font-weight: bold; }
+.sos-medium { color: var(--accent-yellow); font-weight: bold; }
+.sos-hard { color: var(--accent-red); font-weight: bold; }
+
+/* Team Logos */
+.team-logo {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+}
+
+/* Current Pick Info */
+.current-pick-info {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--bg-secondary);
+    border: 2px solid var(--accent-blue);
+    border-radius: 4px;
+    padding: 15px;
+    min-width: 200px;
+}
+
+#currentPickDisplay {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+#timerDisplay {
+    font-size: 24px;
+    color: var(--accent-blue);
+    text-align: center;
+}
+
+/* Game History Tab */
+.game-history-container {
+    padding: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-history-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.week-range-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.week-preset {
+    padding: 4px 8px;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.week-preset:hover {
+    background-color: var(--highlight-color);
+}
+
+.game-history-content {
+    flex: 1;
+    display: flex;
+    gap: 20px;
+    min-height: 0;
+}
+
+.game-history-table {
+    flex: 1;
+    overflow: auto;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.game-history-graph {
+    width: 400px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px;
+}
+
+#gameHistoryTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#gameHistoryTable th,
+#gameHistoryTable td {
+    padding: 6px;
+    text-align: left;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#gameHistoryTable thead {
+    position: sticky;
+    top: 0;
+    background-color: var(--bg-tertiary);
+}
+
+#gameHistoryTable tbody tr:hover {
+    background-color: var(--highlight-color);
+    cursor: pointer;
+}
+
+#gameHistoryTable tbody tr.selected {
+    background-color: var(--accent-blue);
+}
+
+/* Stats color coding */
+.stat-good { color: var(--accent-green); font-weight: bold; }
+.stat-bad { color: var(--accent-red); }
+.stat-neutral { color: var(--text-primary); }
+
+/* Trade Tab */
+.trade-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.trade-form {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background-color: var(--bg-secondary);
+    padding: 20px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.trade-team {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.trade-team label {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.trade-team select {
+    padding: 8px;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.trade-arrow {
+    font-size: 24px;
+    color: var(--accent-blue);
+}
+
+#tradeHistory {
+    background-color: var(--bg-secondary);
+    padding: 15px;
+    border-radius: 4px;
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999; /* Increased z-index to ensure it's on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Darker backdrop */
+}
+
+.modal.active {
+    display: flex !important; /* Force display with !important */
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--bg-secondary);
+    padding: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    max-width: 600px;
+    max-height: 80vh;
+    overflow: auto;
+}
+
+.modal-content h2 {
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.draft-spot-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.draft-spot-btn {
+    padding: 20px;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.draft-spot-btn:hover {
+    background-color: var(--accent-blue);
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.settings-form label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.settings-form input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.settings-form input[type="number"] {
+    width: 80px;
+    padding: 4px;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+/* Manager Notes */
+#managerNotesList {
+    max-height: 400px;
+    overflow: auto;
+    margin-bottom: 20px;
+}
+
+.manager-note-item {
+    background-color: var(--bg-tertiary);
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.manager-note-item h4 {
+    color: var(--accent-blue);
+    margin-bottom: 5px;
+}
+
+.manager-note-item textarea {
+    width: 100%;
+    min-height: 60px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 5px;
+    resize: vertical;
+}
+
+/* Tooltips */
+.tooltip {
+    position: absolute;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 1000;
+    border: 1px solid var(--border-color);
+    pointer-events: none;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bg-tertiary);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--highlight-color);
+}
+
+/* Loading Spinner */
+.spinner {
+    border: 3px solid var(--bg-tertiary);
+    border-top: 3px solid var(--accent-blue);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .draft-container {
+        flex-direction: column;
+    }
+    
+    .draft-board-panel,
+    .player-list-panel {
+        flex: 1;
+        width: 100%;
+    }
+    
+    .game-history-content {
+        flex-direction: column;
+    }
+    
+    .game-history-graph {
+        width: 100%;
+        height: 300px;
+    }
+}

@@ -2258,7 +2258,8 @@ class MockDraftApp:
                 manual_mode=self.manual_mode,
                 custom_rankings=self.custom_rankings,
                 player_tiers=self.player_tiers,
-                watch_list=watch_list
+                watch_list=watch_list,
+                trade_service=self.trade_service
             )
             
             if success:
@@ -3340,6 +3341,15 @@ class MockDraftApp:
                     player=player
                 )
                 self.draft_engine.draft_results.append(pick)
+        
+        # Restore trades if present
+        if hasattr(template, 'trades') and template.trades:
+            self.trade_service.clear_trades()
+            for trade in template.trades:
+                self.trade_service.add_trade(
+                    trade['team1_id'], trade['team1_rounds'],
+                    trade['team2_id'], trade['team2_rounds']
+                )
         
         # Restore user settings
         user_settings = template.user_settings

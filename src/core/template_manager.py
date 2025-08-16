@@ -17,6 +17,7 @@ class DraftTemplate:
         self.player_pool = {}
         self.user_settings = {}
         self.notes = ""
+        self.trades = []  # Store trade configurations
         
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -27,7 +28,8 @@ class DraftTemplate:
             "team_states": self.team_states,
             "player_pool": self.player_pool,
             "user_settings": self.user_settings,
-            "notes": self.notes
+            "notes": self.notes,
+            "trades": self.trades
         }
     
     @classmethod
@@ -40,6 +42,7 @@ class DraftTemplate:
         template.player_pool = data.get("player_pool", {})
         template.user_settings = data.get("user_settings", {})
         template.notes = data.get("notes", "")
+        template.trades = data.get("trades", [])
         return template
 
 
@@ -58,7 +61,8 @@ class TemplateManager:
                      manual_mode: bool,
                      custom_rankings: Optional[Dict[str, int]] = None,
                      player_tiers: Optional[Dict[str, int]] = None,
-                     watch_list: Optional[List[str]] = None) -> bool:
+                     watch_list: Optional[List[str]] = None,
+                     trade_service=None) -> bool:
         """Save current draft state as a template"""
         try:
             template = DraftTemplate(name)
@@ -129,6 +133,10 @@ class TemplateManager:
                 "player_tiers": player_tiers or {},
                 "watch_list": watch_list or []
             }
+            
+            # Save trades if trade service is provided
+            if trade_service:
+                template.trades = trade_service.trades
             
             # Write to file
             filename = f"{name.replace(' ', '_').lower()}.json"

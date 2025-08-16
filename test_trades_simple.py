@@ -52,15 +52,15 @@ def test_trade_scenario():
     """Test the specific trade scenario requested"""
     print("=" * 60)
     print("TESTING DRAFT PICK TRADE SCENARIO")
-    print("Team 8 trades their 1st, 4th & 10th round picks")
-    print("Team 7 trades their 2nd, 3rd & 11th round picks")
+    print("Team 8 trades picks 8, 38, 63 (Rounds 1, 4, 7)")
+    print("Team 7 trades picks 14, 24, 77 (Rounds 2, 3, 8)")
     print("=" * 60)
     
     # Create trade service
     trade_service = DraftTradeService()
     
     # Add the trade
-    trade_service.add_trade(8, [1, 4, 10], 7, [2, 3, 11])
+    trade_service.add_trade(8, [1, 4, 7], 7, [2, 3, 8])
     
     # Display trade summary
     print("\nTrade Summary:")
@@ -73,12 +73,12 @@ def test_trade_scenario():
     
     # Test all relevant picks
     test_cases = [
-        (8, 1, 7, "Team 8's 1st round → Team 7"),
-        (8, 4, 7, "Team 8's 4th round → Team 7"),
-        (8, 10, 7, "Team 8's 10th round → Team 7"),
-        (7, 2, 8, "Team 7's 2nd round → Team 8"),
-        (7, 3, 8, "Team 7's 3rd round → Team 8"),
-        (7, 11, 8, "Team 7's 11th round → Team 8"),
+        (8, 1, 7, "Team 8's 1st round (Pick 8) → Team 7"),
+        (8, 4, 7, "Team 8's 4th round (Pick 38) → Team 7"),
+        (8, 7, 7, "Team 8's 7th round (Pick 63) → Team 7"),
+        (7, 2, 8, "Team 7's 2nd round (Pick 14) → Team 8"),
+        (7, 3, 8, "Team 7's 3rd round (Pick 24) → Team 8"),
+        (7, 8, 8, "Team 7's 8th round (Pick 77) → Team 8"),
         (8, 2, 8, "Team 8's 2nd round (unchanged)"),
         (8, 3, 8, "Team 8's 3rd round (unchanged)"),
         (7, 1, 7, "Team 7's 1st round (unchanged)"),

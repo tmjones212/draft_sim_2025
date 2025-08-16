@@ -279,12 +279,13 @@ class TradeDialog:
         apply_button.pack(side='right')
     
     def add_example_trade(self):
-        """Add the example trade (Team 8's 1st+4th+10th for Team 7's 2nd+3rd+11th)"""
-        self.trade_service.add_trade(8, [1, 4, 10], 7, [2, 3, 11])
+        """Add the example trade (Team 8's picks 8, 38, 63 for Team 7's picks 14, 24, 77)"""
+        self.trade_service.add_trade(8, [1, 4, 7], 7, [2, 3, 8])
         self.update_trades_list()
         messagebox.showinfo(
             "Trade Added",
-            "Added trade: Team 8 (R1, R4, R10) ⇄ Team 7 (R2, R3, R11)"
+            "Added trade: Team 8 (R1, R4, R7) ⇄ Team 7 (R2, R3, R8)\n" +
+            "Picks: 8, 38, 63 ⇄ 14, 24, 77"
         )
     
     def add_custom_trade(self):
