@@ -245,6 +245,7 @@
       <button onclick="draft.rollback()" style="display: block; width: 100%; margin-bottom: 10px;">↶ Undo Last Pick</button>
       <button onclick="draft.restart()" style="display: block; width: 100%; margin-bottom: 10px;">↻ Restart Draft</button>
       <button onclick="toggleMode()" id="mode-btn" style="display: block; width: 100%; margin-bottom: 10px;">Mode: Manual</button>
+      <button onclick="toggleAdminMode()" id="admin-btn" style="display: block; width: 100%; margin-bottom: 10px;">🔒 Public ADP</button>
       <button onclick="simulateToEnd()" style="display: block; width: 100%; margin-bottom: 10px;">⏩ Simulate to End</button>
       <button onclick="toggleMenu()" style="display: block; width: 100%; background: #666;">Close</button>
     </div>
@@ -288,11 +289,40 @@
       if (modeBtn) {
         modeBtn.textContent = `Mode: ${this.manualMode ? 'Manual' : 'Auto'}`;
       }
+      const adminBtn = document.getElementById('admin-btn');
+      if (adminBtn) {
+        if (this.adminMode) {
+          adminBtn.innerHTML = '🔓 Custom ADP';
+          adminBtn.style.background = '#50fa7b';
+          adminBtn.style.color = '#000';
+        } else {
+          adminBtn.innerHTML = '🔒 Public ADP';
+          adminBtn.style.background = '';
+          adminBtn.style.color = '';
+        }
+      }
     };
     
     function toggleMode() {
       if (draft && draft.toggleMode) {
         draft.toggleMode();
+      }
+    }
+    
+    function toggleAdminMode() {
+      if (!draft) return;
+      
+      if (!draft.adminMode) {
+        const password = prompt('Enter admin password:');
+        if (password) {
+          draft.toggleAdminMode(password).then(success => {
+            if (!success) {
+              alert('Invalid password');
+            }
+          });
+        }
+      } else {
+        draft.toggleAdminMode('xyz'); // Toggle off
       }
     }
     

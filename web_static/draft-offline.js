@@ -13,6 +13,9 @@ class DraftSimulator {
     this.manualMode = true; // Default to manual mode
     this.positionFilter = 'ALL'; // Position filter
     this.sortBy = 'adp'; // Sort by 'adp' or 'var'
+    this.adminMode = false; // Admin mode for custom ADP
+    this.customPlayersData = null; // Store custom ADP data
+    this.publicPlayersData = null; // Store public ADP data
     this.rosterSpots = {
       QB: 2,
       RB: 5,
@@ -94,24 +97,143 @@ class DraftSimulator {
     }
   }
 
+  formatName(name) {
+    // Match the format_name function from Python
+    name = name.split('(')[0];
+    name = name.trim().toUpperCase();
+    name = name.replace(/[,+.*]/g, '');
+    name = name.replace(/\s+(JR|SR|III|II|IV|V)/g, '');
+    name = name.replace(/'/g, '').replace(/-/g, ' ');
+    
+    const replacements = {
+      'MITCHELL T': 'MITCH T',
+      'ROBBY ANDERSON': 'ROBBIE ANDERSON',
+      'WILLIAM ': 'WILL ',
+      'OLABISI': 'BISI',
+      'ELI MITCHELL': 'ELIJAH MITCHELL',
+      'CADILLAC WILLIAMS': 'CARNELL WILLIAMS',
+      'GABE DAVIS': 'GABRIEL DAVIS',
+      'JEFFERY ': 'JEFF ',
+      'JOSHUA ': 'JOSH ',
+      'CHAUNCEY GARDNER': 'CJ GARDNER',
+      'BENNETT SKOWRONEK': 'BEN SKOWRONEK',
+      'NATHANIEL DELL': 'TANK DELL'
+    };
+    
+    for (const [old, newStr] of Object.entries(replacements)) {
+      name = name.replace(old, newStr);
+    }
+    
+    if (name.startsWith('MICHAEL ')) {
+      name = name.replace('MICHAEL ', 'MIKE ', 1);
+    }
+    if (name.startsWith('KENNETH ')) {
+      name = name.replace('KENNETH ', 'KEN ', 1);
+    }
+    
+    return name;
+  }
+  
+  async loadPublicADP() {
+    // Try multiple methods to load public ADP
+    const methods = [
+      // Method 1: CORS proxy (allorigins)
+      async () => {
+        const corsProxy = 'https://api.allorigins.win/raw?url=';
+        const apiUrl = 'https://fantasyfootballcalculator.com/api/v1/adp/ppr?teams=10&year=2025&position=all';
+        const response = await fetch(corsProxy + encodeURIComponent(apiUrl));
+        return await response.json();
+      },
+      // Method 2: Another CORS proxy
+      async () => {
+        const corsProxy = 'https://corsproxy.io/?';
+        const apiUrl = 'https://fantasyfootballcalculator.com/api/v1/adp/ppr?teams=10&year=2025&position=all';
+        const response = await fetch(corsProxy + encodeURIComponent(apiUrl));
+        return await response.json();
+      },
+      // Method 3: Static fallback file
+      async () => {
+        const response = await fetch('web_static/public_adp.json');
+        return await response.json();
+      }
+    ];
+    
+    for (const method of methods) {
+      try {
+        const data = await method();
+        
+        if (data && (data.status === 'Success' || data.players)) {
+          // Convert the API data to our format
+          const players = data.players.map((p, index) => {
+            const formattedName = this.formatName(p.name);
+            return {
+              id: `public-${index}`,
+              name: formattedName,
+              position: p.position || 'UNK',
+              team: p.team || 'FA',
+              adp: parseFloat(p.adp) || 999,
+              rank: index + 1,
+              projection: 0,
+              bye_week: p.bye || 0,
+              var: 0,
+              points_2024: 0
+            };
+          });
+          
+          // Sort by ADP
+          players.sort((a, b) => a.adp - b.adp);
+          console.log('Successfully loaded public ADP');
+          return { players };
+        }
+      } catch (error) {
+        console.log('Method failed, trying next:', error.message);
+      }
+    }
+    
+    console.error('All methods to load public ADP failed');
+    return null;
+  }
+  
   async loadPlayers() {
+    // First, load the custom players data (your good ADP)
     try {
       const response = await fetch('web_static/players_data.json');
       const data = await response.json();
-      this.allPlayers = data.players;
-      this.availablePlayers = [...this.allPlayers];
-      console.log(`Loaded ${this.allPlayers.length} players`);
+      this.customPlayersData = data;
+      console.log(`Loaded ${data.players.length} custom players`);
     } catch (error) {
-      console.error('Error loading players:', error);
-      // Try to load from localStorage if offline
+      console.error('Error loading custom players:', error);
+    }
+    
+    // Load public ADP data
+    const publicData = await this.loadPublicADP();
+    if (publicData) {
+      this.publicPlayersData = publicData;
+      console.log(`Loaded ${publicData.players.length} public ADP players`);
+    }
+    
+    // Use appropriate data based on admin mode
+    if (this.adminMode && this.customPlayersData) {
+      this.allPlayers = this.customPlayersData.players;
+    } else if (this.publicPlayersData) {
+      this.allPlayers = this.publicPlayersData.players;
+    } else if (this.customPlayersData) {
+      // Fallback to custom if public failed to load
+      this.allPlayers = this.customPlayersData.players;
+    } else {
+      // Try to load from localStorage if everything else fails
       const cached = localStorage.getItem('playersData');
       if (cached) {
         const data = JSON.parse(cached);
         this.allPlayers = data.players;
-        this.availablePlayers = [...this.allPlayers];
         console.log(`Loaded ${this.allPlayers.length} players from cache`);
+      } else {
+        this.allPlayers = [];
       }
     }
+    
+    this.availablePlayers = [...this.allPlayers];
+    console.log(`Using ${this.adminMode ? 'custom' : 'public'} ADP with ${this.allPlayers.length} players`);
   }
 
   initializeTeams() {
@@ -301,6 +423,41 @@ class DraftSimulator {
     this.render();
   }
 
+  async toggleAdminMode(password) {
+    if (password === 'xyz') {
+      this.adminMode = !this.adminMode;
+      console.log(`Admin mode ${this.adminMode ? 'enabled' : 'disabled'}`);
+      
+      // Reload players with appropriate ADP
+      await this.loadPlayers();
+      
+      // If draft is in progress, we need to update available players
+      if (this.draftStarted) {
+        // Get the IDs of already drafted players
+        const draftedNames = new Set(this.draftedPlayers.map(d => d.player.name));
+        
+        // Filter out drafted players from new player list
+        this.availablePlayers = this.allPlayers.filter(p => !draftedNames.has(p.name));
+        
+        // Re-sort available players
+        if (this.sortBy === 'adp') {
+          this.availablePlayers.sort((a, b) => (a.adp || 999) - (b.adp || 999));
+        } else if (this.sortBy === 'var') {
+          this.availablePlayers.sort((a, b) => {
+            const varA = parseFloat(a.var) || -999;
+            const varB = parseFloat(b.var) || -999;
+            return varB - varA;
+          });
+        }
+      }
+      
+      this.saveState();
+      this.render();
+      return true;
+    }
+    return false;
+  }
+  
   restart() {
     this.availablePlayers = [...this.allPlayers];
     this.draftedPlayers = [];
@@ -322,7 +479,8 @@ class DraftSimulator {
       draftStarted: this.draftStarted,
       manualMode: this.manualMode,
       positionFilter: this.positionFilter,
-      sortBy: this.sortBy || 'adp'
+      sortBy: this.sortBy || 'adp',
+      adminMode: this.adminMode
     };
     localStorage.setItem('draftState', JSON.stringify(state));
     localStorage.setItem('playersData', JSON.stringify({ players: this.allPlayers }));
@@ -340,6 +498,7 @@ class DraftSimulator {
       this.manualMode = data.manualMode !== undefined ? data.manualMode : true;
       this.positionFilter = data.positionFilter || 'ALL';
       this.sortBy = data.sortBy || 'adp';
+      this.adminMode = data.adminMode || false;
       
       // Rebuild available players
       const draftedIds = new Set(this.draftedPlayers.map(d => d.player.id));
@@ -357,8 +516,13 @@ class DraftSimulator {
     const statusEl = document.getElementById('draft-status');
     if (statusEl) {
       if (!this.draftStarted || !this.userTeamId) {
-        // Show draft spot selection
-        let spotsHtml = '<div style="padding: 5px;"><div style="font-size: 14px; margin-bottom: 10px;">Select Draft Position:</div><div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px;">';
+        // Show draft spot selection with admin status
+        let spotsHtml = '<div style="padding: 5px;">';
+        spotsHtml += `<div style="font-size: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">`;
+        spotsHtml += `<span>Select Draft Position:</span>`;
+        spotsHtml += `<span style="font-size: 11px; color: ${this.adminMode ? '#50fa7b' : '#888'};">ADP: ${this.adminMode ? 'Custom' : 'Public'}</span>`;
+        spotsHtml += `</div>`;
+        spotsHtml += '<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px;">';
         for (let i = 1; i <= this.numTeams; i++) {
           spotsHtml += `<button onclick="draft.selectDraftSpot(${i})" style="padding: 15px; font-size: 16px;">${i}</button>`;
         }
@@ -434,6 +598,7 @@ class DraftSimulator {
         statusEl.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 3px; gap: 5px;">
             <span style="white-space: nowrap; font-size: 12px;"><strong>P${this.currentPick}</strong></span>
+            <span style="font-size: 10px; color: ${this.adminMode ? '#50fa7b' : '#888'};">${this.adminMode ? 'CUSTOM' : 'PUBLIC'}</span>
             <div style="display: flex; gap: 2px; flex-grow: 1; justify-content: center;">
               ${filterButtons}
             </div>

@@ -35,7 +35,8 @@
       "Bash(pip3 install:*)",
       "Bash(/dev/null)",
       "Bash(timeout:*)",
-      "Bash(node test_draft_order.js)"
+      "Bash(node test_draft_order.js)",
+      "WebFetch(domain:fantasyfootballcalculator.com)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
