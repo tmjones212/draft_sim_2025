@@ -1,12 +1,14 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
+from .draft_trade_service import DraftTradeService
 
 
 class DraftOrderService:
     """Service for managing draft order calculations and pick information"""
     
-    def __init__(self, num_teams: int, reversal_round: int = 3):
+    def __init__(self, num_teams: int, reversal_round: int = 3, trade_service: Optional[DraftTradeService] = None):
         self.num_teams = num_teams
         self.reversal_round = reversal_round
+        self.trade_service = trade_service
     
     def get_draft_order_for_round(self, round_num: int) -> List[int]:
         """
@@ -29,6 +31,7 @@ class DraftOrderService:
     def get_pick_info(self, pick_number: int, total_rounds: int) -> Tuple[int, int, int]:
         """
         Get round number, pick in round, and team ID for a given pick number.
+        Takes into account any trades that have been configured.
         
         Returns:
             Tuple of (round_number, pick_in_round, team_id)
@@ -42,8 +45,14 @@ class DraftOrderService:
         # Get team order for this round
         order = self.get_draft_order_for_round(round_num)
         
-        # Get the team ID (position in order)
-        team_id = order[pick_in_round - 1]
+        # Get the original team ID (position in order)
+        original_team_id = order[pick_in_round - 1]
+        
+        # Check if this pick has been traded
+        if self.trade_service:
+            team_id = self.trade_service.get_pick_owner(original_team_id, round_num)
+        else:
+            team_id = original_team_id
         
         return round_num, pick_in_round, team_id
     

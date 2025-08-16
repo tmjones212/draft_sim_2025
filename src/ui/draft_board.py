@@ -7,10 +7,11 @@ from ..models import Team
 from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
 from ..services.manager_notes_service import ManagerNotesService
+from ..services.draft_trade_service import DraftTradeService
 
 
 class DraftBoard(StyledFrame):
-    def __init__(self, parent, teams: Dict[int, Team], total_rounds: int, max_visible_rounds: int = 9, on_team_select=None, on_pick_click=None, image_service=None, on_pick_change=None, get_top_players=None, on_draft_name_change=None, on_draft_load=None, get_draft_list=None, **kwargs):
+    def __init__(self, parent, teams: Dict[int, Team], total_rounds: int, max_visible_rounds: int = 9, on_team_select=None, on_pick_click=None, image_service=None, on_pick_change=None, get_top_players=None, on_draft_name_change=None, on_draft_load=None, get_draft_list=None, trade_service: Optional[DraftTradeService] = None, **kwargs):
         super().__init__(parent, bg_type='secondary', **kwargs)
         self.teams = teams
         self.num_teams = len(teams)
@@ -36,6 +37,7 @@ class DraftBoard(StyledFrame):
         self.tooltip = None
         self.draft_name_var = tk.StringVar()
         self.draft_dropdown = None
+        self.trade_service = trade_service
         self.setup_ui()
         # Start glowing animation if no team selected
         if not self.selected_team_id:
@@ -183,6 +185,13 @@ class DraftBoard(StyledFrame):
             
             # Create pick slots
             for pos, team_id in enumerate(order):
+                # Check if this pick has been traded
+                actual_owner = team_id
+                is_traded = False
+                if self.trade_service:
+                    actual_owner = self.trade_service.get_pick_owner(team_id, round_num)
+                    is_traded = actual_owner != team_id
+                
                 pick_frame = StyledFrame(
                     self.scrollable_frame,
                     bg_type='tertiary',
@@ -218,6 +227,17 @@ class DraftBoard(StyledFrame):
                     font=(DARK_THEME['font_family'], 8)
                 )
                 pick_num_label.place(relx=0.95, y=5, anchor='ne')
+                
+                # Trade indicator if pick was traded
+                if is_traded:
+                    trade_label = tk.Label(
+                        pick_frame,
+                        text=f"→T{actual_owner}",
+                        bg=DARK_THEME['bg_tertiary'],
+                        fg='#FFC107',  # Yellow for traded picks
+                        font=(DARK_THEME['font_family'], 8, 'bold')
+                    )
+                    trade_label.place(relx=0.5, y=5, anchor='n')
                 
                 # Store reference
                 self.pick_widgets[pick_number] = pick_frame

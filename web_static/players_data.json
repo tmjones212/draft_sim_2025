@@ -1,7 +1,7 @@
 {
   "players": [
     {
-      "id": "-7879525303666169947",
+      "id": "-5339391844518106573",
       "name": "JAMARR CHASE",
       "position": "WR",
       "team": "CIN",
@@ -13,7 +13,7 @@
       "points_2024": 729.5
     },
     {
-      "id": "-2465858941113980044",
+      "id": "-3955271356383258572",
       "name": "BIJAN ROBINSON",
       "position": "RB",
       "team": "ATL",
@@ -25,7 +25,7 @@
       "points_2024": 607.9
     },
     {
-      "id": "2016106447751631016",
+      "id": "7959943600212839234",
       "name": "JUSTIN JEFFERSON",
       "position": "WR",
       "team": "MIN",
@@ -37,7 +37,7 @@
       "points_2024": 591.55
     },
     {
-      "id": "-5281664734588995595",
+      "id": "354779957776703554",
       "name": "SAQUON BARKLEY",
       "position": "RB",
       "team": "PHI",
@@ -49,7 +49,7 @@
       "points_2024": 647.35
     },
     {
-      "id": "2169327487940138353",
+      "id": "1384146343302782849",
       "name": "JAHMYR GIBBS",
       "position": "RB",
       "team": "DET",
@@ -61,7 +61,7 @@
       "points_2024": 626.55
     },
     {
-      "id": "-63207856198060483",
+      "id": "-2080225501556930183",
       "name": "CEEDEE LAMB",
       "position": "WR",
       "team": "DAL",
@@ -73,7 +73,7 @@
       "points_2024": 505.05
     },
     {
-      "id": "3811504184910974497",
+      "id": "1183029940043136856",
       "name": "MALIK NABERS",
       "position": "WR",
       "team": "NYG",
@@ -85,7 +85,7 @@
       "points_2024": 510.2
     },
     {
-      "id": "-5428287417319603946",
+      "id": "-296845522805407881",
       "name": "AMON RA ST BROWN",
       "position": "WR",
       "team": "DET",
@@ -97,7 +97,7 @@
       "points_2024": 581.65
     },
     {
-      "id": "-3243704391447011193",
+      "id": "2698360725774185311",
       "name": "ASHTON JEANTY",
       "position": "RB",
       "team": "LV",
@@ -109,7 +109,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "-1044689518969372694",
+      "id": "-7107476258454173706",
       "name": "PUKA NACUA",
       "position": "WR",
       "team": "LA",
@@ -121,7 +121,7 @@
       "points_2024": 407.7
     },
     {
-      "id": "-9171488740720456888",
+      "id": "-1865516312991272949",
       "name": "BRIAN THOMAS",
       "position": "WR",
       "team": "JAX",
@@ -133,7 +133,7 @@
       "points_2024": 513.75
     },
     {
-      "id": "8142718644348975420",
+      "id": "7525209764514476482",
       "name": "DERRICK HENRY",
       "position": "RB",
       "team": "BAL",
@@ -145,7 +145,7 @@
       "points_2024": 595.8
     },
     {
-      "id": "-88261165550778868",
+      "id": "7408564791892317370",
       "name": "CHRISTIAN MCCAFFREY",
       "position": "RB",
       "team": "SF",
@@ -157,7 +157,7 @@
       "points_2024": 99.6
     },
     {
-      "id": "4577748511085957172",
+      "id": "-2511198151595896048",
       "name": "NICO COLLINS",
       "position": "WR",
       "team": "HOU",
@@ -169,7 +169,7 @@
       "points_2024": 394.7
     },
     {
-      "id": "-4044779069793109039",
+      "id": "6069092539365550462",
       "name": "DEVON ACHANE",
       "position": "RB",
       "team": "MIA",
@@ -181,7 +181,7 @@
       "points_2024": 535.55
     },
     {
-      "id": "2835329423833490734",
+      "id": "-4655935465792977767",
       "name": "DRAKE LONDON",
       "position": "WR",
       "team": "ATL",
@@ -193,7 +193,7 @@
       "points_2024": 523.6
     },
     {
-      "id": "-8088053588349310552",
+      "id": "-1820149608898479984",
       "name": "BROCK BOWERS",
       "position": "TE",
       "team": "LV",
@@ -201,11 +201,11 @@
       "rank": 17,
       "projection": 425.28,
       "bye_week": 5,
-      "var": 151.76,
+      "var": 148.80999999999995,
       "points_2024": 506.65
     },
     {
-      "id": "-1287939197887725426",
+      "id": "1862356150259284917",
       "name": "JOSH ALLEN",
       "position": "QB",
       "team": "BUF",
@@ -217,7 +217,7 @@
       "points_2024": 713.4
     },
     {
-      "id": "-5636086083619562999",
+      "id": "499446621100269651",
       "name": "BUCKY IRVING",
       "position": "RB",
       "team": "TB",
@@ -229,7 +229,7 @@
       "points_2024": 455.55
     },
     {
-      "id": "-8486534044882872576",
+      "id": "-3611446266926108383",
       "name": "LADD MCCONKEY",
       "position": "WR",
       "team": "LAC",
@@ -241,7 +241,7 @@
       "points_2024": 448.3
     },
     {
-      "id": "2079438800740093156",
+      "id": "7316779210104549869",
       "name": "LAMAR JACKSON",
       "position": "QB",
       "team": "BAL",
@@ -253,7 +253,7 @@
       "points_2024": 838.1
     },
     {
-      "id": "-2035793303327557883",
+      "id": "-2852215022471924769",
       "name": "AJ BROWN",
       "position": "WR",
       "team": "PHI",
@@ -265,7 +265,7 @@
       "points_2024": 408.55
     },
     {
-      "id": "-3124004543163816435",
+      "id": "3497097287344515026",
       "name": "JONATHAN TAYLOR",
       "position": "RB",
       "team": "IND",
@@ -277,7 +277,7 @@
       "points_2024": 447.15
     },
     {
-      "id": "-1006990870740448914",
+      "id": "4468470626349769742",
       "name": "JOSH JACOBS",
       "position": "RB",
       "team": "GB",
@@ -289,7 +289,7 @@
       "points_2024": 512.95
     },
     {
-      "id": "7142481699046493517",
+      "id": "2300963906675261222",
       "name": "JOE BURROW",
       "position": "QB",
       "team": "CIN",
@@ -301,7 +301,7 @@
       "points_2024": 828.1
     },
     {
-      "id": "-3446938977412000654",
+      "id": "197839826636857365",
       "name": "TREY MCBRIDE",
       "position": "TE",
       "team": "ARZ",
@@ -309,11 +309,11 @@
       "rank": 26,
       "projection": 422.85,
       "bye_week": 9,
-      "var": 149.33000000000004,
+      "var": 146.38,
       "points_2024": 478.6
     },
     {
-      "id": "8175905622340237036",
+      "id": "-3016151593325959091",
       "name": "JAYDEN DANIELS",
       "position": "QB",
       "team": "WAS",
@@ -325,7 +325,7 @@
       "points_2024": 718.85
     },
     {
-      "id": "-5979136361925587073",
+      "id": "-6729481617569470659",
       "name": "KYREN WILLIAMS",
       "position": "RB",
       "team": "LA",
@@ -337,7 +337,7 @@
       "points_2024": 473.95
     },
     {
-      "id": "-4333115167877460841",
+      "id": "-5898282184603332842",
       "name": "GARRETT WILSON",
       "position": "WR",
       "team": "NYJ",
@@ -349,7 +349,7 @@
       "points_2024": 479.55
     },
     {
-      "id": "7281391991224209087",
+      "id": "-4485231034944424794",
       "name": "CHASE BROWN",
       "position": "RB",
       "team": "CIN",
@@ -361,7 +361,7 @@
       "points_2024": 447.0
     },
     {
-      "id": "6730499685377842650",
+      "id": "7323250561211535879",
       "name": "JAXON SMITH NJIGBA",
       "position": "WR",
       "team": "SEA",
@@ -373,7 +373,7 @@
       "points_2024": 485.45
     },
     {
-      "id": "2367990860287907991",
+      "id": "4735245207494488341",
       "name": "TEE HIGGINS",
       "position": "WR",
       "team": "CIN",
@@ -385,7 +385,7 @@
       "points_2024": 395.95
     },
     {
-      "id": "1143586084177205682",
+      "id": "8412760378796440745",
       "name": "JALEN HURTS",
       "position": "QB",
       "team": "PHI",
@@ -397,7 +397,7 @@
       "points_2024": 594.9
     },
     {
-      "id": "5901309868224658892",
+      "id": "-3370863415705555289",
       "name": "RASHEE RICE",
       "position": "WR",
       "team": "KC",
@@ -409,7 +409,7 @@
       "points_2024": 130.3
     },
     {
-      "id": "-6867750484109421492",
+      "id": "-7562523977239157778",
       "name": "BREECE HALL",
       "position": "RB",
       "team": "NYJ",
@@ -421,7 +421,7 @@
       "points_2024": 441.55
     },
     {
-      "id": "8241755346137719857",
+      "id": "1407163478740553475",
       "name": "MARVIN HARRISON",
       "position": "WR",
       "team": "ARZ",
@@ -433,7 +433,7 @@
       "points_2024": 356.75
     },
     {
-      "id": "3807794373837294852",
+      "id": "800028471730204487",
       "name": "TYREEK HILL",
       "position": "WR",
       "team": "MIA",
@@ -445,7 +445,7 @@
       "points_2024": 412.9
     },
     {
-      "id": "-8059702484690879249",
+      "id": "3479006626705081939",
       "name": "DAVANTE ADAMS",
       "position": "WR",
       "team": "LA",
@@ -457,7 +457,7 @@
       "points_2024": 443.1
     },
     {
-      "id": "375705008542208474",
+      "id": "7904633314056830902",
       "name": "TERRY MCLAURIN",
       "position": "WR",
       "team": "WAS",
@@ -469,7 +469,7 @@
       "points_2024": 478.35
     },
     {
-      "id": "768319171159258145",
+      "id": "-1470369541445448629",
       "name": "MIKE EVANS",
       "position": "WR",
       "team": "TB",
@@ -481,7 +481,7 @@
       "points_2024": 424.3
     },
     {
-      "id": "-8601646148333004230",
+      "id": "1440883129849013003",
       "name": "JAMES COOK",
       "position": "RB",
       "team": "BUF",
@@ -493,7 +493,7 @@
       "points_2024": 437.4
     },
     {
-      "id": "-6153311023246609725",
+      "id": "3588097667384390955",
       "name": "GEORGE KITTLE",
       "position": "TE",
       "team": "SF",
@@ -501,11 +501,11 @@
       "rank": 42,
       "projection": 378.07,
       "bye_week": 6,
-      "var": 104.55000000000001,
+      "var": 101.59999999999997,
       "points_2024": 442.45
     },
     {
-      "id": "2471286787411339048",
+      "id": "-1581317268296793485",
       "name": "DJ MOORE",
       "position": "WR",
       "team": "CHI",
@@ -517,7 +517,7 @@
       "points_2024": 447.95
     },
     {
-      "id": "6126187694575451639",
+      "id": "2114765894516533301",
       "name": "XAVIER WORTHY",
       "position": "WR",
       "team": "KC",
@@ -529,7 +529,7 @@
       "points_2024": 322.15
     },
     {
-      "id": "8577130629540592463",
+      "id": "6947727878025008591",
       "name": "OMARION HAMPTON",
       "position": "RB",
       "team": "LAC",
@@ -541,7 +541,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "-3324287656204656718",
+      "id": "6951454195893785329",
       "name": "COURTLAND SUTTON",
       "position": "WR",
       "team": "DEN",
@@ -553,7 +553,7 @@
       "points_2024": 447.2
     },
     {
-      "id": "7383715576020631218",
+      "id": "8193465800223113453",
       "name": "DK METCALF",
       "position": "WR",
       "team": "PIT",
@@ -565,7 +565,7 @@
       "points_2024": 369.4
     },
     {
-      "id": "6135198051182266726",
+      "id": "1907719304394390685",
       "name": "PATRICK MAHOMES",
       "position": "QB",
       "team": "KC",
@@ -577,7 +577,7 @@
       "points_2024": 642.2
     },
     {
-      "id": "-8463087117725422953",
+      "id": "-7224709344462665001",
       "name": "ALVIN KAMARA",
       "position": "RB",
       "team": "NO",
@@ -589,7 +589,7 @@
       "points_2024": 493.35
     },
     {
-      "id": "-6421095136073592651",
+      "id": "-3387270962184981359",
       "name": "CHUBA HUBBARD",
       "position": "RB",
       "team": "CAR",
@@ -601,7 +601,7 @@
       "points_2024": 437.2
     },
     {
-      "id": "7989597844431700206",
+      "id": "6638099815863763172",
       "name": "KEN WALKER",
       "position": "RB",
       "team": "SEA",
@@ -613,7 +613,7 @@
       "points_2024": 322.65
     },
     {
-      "id": "-544347283427067508",
+      "id": "252716102507480142",
       "name": "JAMESON WILLIAMS",
       "position": "WR",
       "team": "DET",
@@ -625,7 +625,7 @@
       "points_2024": 390.65
     },
     {
-      "id": "2637847799821896256",
+      "id": "-3551886272864676746",
       "name": "DEVONTA SMITH",
       "position": "WR",
       "team": "PHI",
@@ -637,7 +637,7 @@
       "points_2024": 358.55
     },
     {
-      "id": "-9091583551174814182",
+      "id": "6801051370924909640",
       "name": "TETAIROA MCMILLAN",
       "position": "WR",
       "team": "CAR",
@@ -649,7 +649,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "-5714920365117553180",
+      "id": "-3663802620061913951",
       "name": "ZAY FLOWERS",
       "position": "WR",
       "team": "BAL",
@@ -661,7 +661,7 @@
       "points_2024": 411.75
     },
     {
-      "id": "918306074655873861",
+      "id": "-4258301755659757903",
       "name": "JOE MIXON",
       "position": "RB",
       "team": "HOU",
@@ -673,7 +673,7 @@
       "points_2024": 431.75
     },
     {
-      "id": "-3349698019274182687",
+      "id": "-539965231410155343",
       "name": "JAMES CONNER",
       "position": "RB",
       "team": "ARZ",
@@ -685,7 +685,7 @@
       "points_2024": 475.85
     },
     {
-      "id": "-3206783130281999210",
+      "id": "-5995444959435515587",
       "name": "BAKER MAYFIELD",
       "position": "QB",
       "team": "TB",
@@ -697,7 +697,7 @@
       "points_2024": 804.1
     },
     {
-      "id": "4610686273416245214",
+      "id": "-9210842163029451632",
       "name": "JERRY JEUDY",
       "position": "WR",
       "team": "CLE",
@@ -709,7 +709,7 @@
       "points_2024": 460.55
     },
     {
-      "id": "-1175504456510538505",
+      "id": "4070714555451386849",
       "name": "TREVEYON HENDERSON",
       "position": "RB",
       "team": "NE",
@@ -721,7 +721,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "19356254420207308",
+      "id": "-5401644471848323386",
       "name": "BO NIX",
       "position": "QB",
       "team": "DEN",
@@ -733,7 +733,7 @@
       "points_2024": 681.15
     },
     {
-      "id": "-3381740881760550007",
+      "id": "5778323864566321681",
       "name": "CHRIS GODWIN",
       "position": "WR",
       "team": "TB",
@@ -745,7 +745,7 @@
       "points_2024": 255.1
     },
     {
-      "id": "-7870190287731551662",
+      "id": "8366203151280891167",
       "name": "DAVID MONTGOMERY",
       "position": "RB",
       "team": "DET",
@@ -757,7 +757,7 @@
       "points_2024": 376.85
     },
     {
-      "id": "2223020817995589072",
+      "id": "62830407146805631",
       "name": "JAYLEN WADDLE",
       "position": "WR",
       "team": "MIA",
@@ -769,7 +769,7 @@
       "points_2024": 288.7
     },
     {
-      "id": "4406077888980697598",
+      "id": "-2856324222603091067",
       "name": "SAM LAPORTA",
       "position": "TE",
       "team": "DET",
@@ -777,11 +777,11 @@
       "rank": 65,
       "projection": 332.05,
       "bye_week": 6,
-      "var": 58.53000000000003,
+      "var": 55.579999999999984,
       "points_2024": 313.7
     },
     {
-      "id": "-5281439168117425345",
+      "id": "-6722400712286466701",
       "name": "ROME ODUNZE",
       "position": "WR",
       "team": "CHI",
@@ -793,7 +793,7 @@
       "points_2024": 283.55
     },
     {
-      "id": "-7713175995522247690",
+      "id": "-3440146723687374513",
       "name": "GEORGE PICKENS",
       "position": "WR",
       "team": "DAL",
@@ -805,7 +805,7 @@
       "points_2024": 322.55
     },
     {
-      "id": "-6075299205437975273",
+      "id": "5980828080518952105",
       "name": "CALVIN RIDLEY",
       "position": "WR",
       "team": "TEN",
@@ -817,7 +817,7 @@
       "points_2024": 378.9
     },
     {
-      "id": "3713991662897624629",
+      "id": "-836075109936738966",
       "name": "JORDAN ADDISON",
       "position": "WR",
       "team": "MIN",
@@ -829,7 +829,7 @@
       "points_2024": 374.5
     },
     {
-      "id": "-1372778301965458458",
+      "id": "8496284994697189334",
       "name": "RJ HARVEY",
       "position": "RB",
       "team": "DEN",
@@ -841,7 +841,19 @@
       "points_2024": 0.0
     },
     {
-      "id": "-6580223710636321439",
+      "id": "3827714915475861254",
+      "name": "ANTHONY RICHARDSON",
+      "position": "QB",
+      "team": "IND",
+      "adp": 70.0,
+      "rank": 156,
+      "projection": 527.08,
+      "bye_week": 10,
+      "var": -39.08999999999992,
+      "points_2024": 341.05
+    },
+    {
+      "id": "-7818599463211430661",
       "name": "QUINSHON JUDKINS",
       "position": "RB",
       "team": "CLE",
@@ -853,7 +865,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "4344786773468933347",
+      "id": "-6270619480683621671",
       "name": "KALEB JOHNSON",
       "position": "RB",
       "team": "PIT",
@@ -865,7 +877,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "1106561227619498125",
+      "id": "-5704978288913420594",
       "name": "JAUAN JENNINGS",
       "position": "WR",
       "team": "SF",
@@ -877,7 +889,7 @@
       "points_2024": 389.75
     },
     {
-      "id": "1150123177753259152",
+      "id": "8844173207637988542",
       "name": "DANDRE SWIFT",
       "position": "RB",
       "team": "CHI",
@@ -889,7 +901,7 @@
       "points_2024": 392.0
     },
     {
-      "id": "-7565844836494261421",
+      "id": "-5589010444347639305",
       "name": "JAKOBI MEYERS",
       "position": "WR",
       "team": "LV",
@@ -901,7 +913,19 @@
       "points_2024": 422.25
     },
     {
-      "id": "5561564646701965041",
+      "id": "-5597432931320697765",
+      "name": "AMARI COOPER",
+      "position": "WR",
+      "team": "BUF",
+      "adp": 75.0,
+      "rank": 182,
+      "projection": 0.0,
+      "bye_week": 10,
+      "var": -340.29,
+      "points_2024": 221.4
+    },
+    {
+      "id": "2838784123676633997",
       "name": "AARON JONES",
       "position": "RB",
       "team": "MIN",
@@ -913,7 +937,7 @@
       "points_2024": 462.7
     },
     {
-      "id": "-2458839397770912393",
+      "id": "-1846506233390206085",
       "name": "TRAVIS HUNTER",
       "position": "WR",
       "team": "JAX",
@@ -925,7 +949,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "8325611516627012953",
+      "id": "6537393355401046766",
       "name": "CHRIS OLAVE",
       "position": "WR",
       "team": "NO",
@@ -937,7 +961,7 @@
       "points_2024": 157.9
     },
     {
-      "id": "6675963891744516179",
+      "id": "-8092124204146324640",
       "name": "TONY POLLARD",
       "position": "RB",
       "team": "TEN",
@@ -949,7 +973,7 @@
       "points_2024": 386.15
     },
     {
-      "id": "8153408919352945203",
+      "id": "-3998197755609525543",
       "name": "KYLER MURRAY",
       "position": "QB",
       "team": "ARZ",
@@ -961,7 +985,19 @@
       "points_2024": 660.95
     },
     {
-      "id": "-5253044473515326813",
+      "id": "3906828575809502217",
+      "name": "DIONTAE JOHNSON",
+      "position": "WR",
+      "team": "BAL",
+      "adp": 80.0,
+      "rank": 183,
+      "projection": 158.42,
+      "bye_week": 9,
+      "var": -181.87000000000003,
+      "points_2024": 164.95
+    },
+    {
+      "id": "-8585462479363161871",
       "name": "TJ HOCKENSON",
       "position": "TE",
       "team": "MIN",
@@ -969,11 +1005,11 @@
       "rank": 81,
       "projection": 320.77,
       "bye_week": 9,
-      "var": 47.25,
+      "var": 44.299999999999955,
       "points_2024": 176.0
     },
     {
-      "id": "-3746793383454431588",
+      "id": "7905517276732949154",
       "name": "KHALIL SHAKIR",
       "position": "WR",
       "team": "BUF",
@@ -985,7 +1021,7 @@
       "points_2024": 347.0
     },
     {
-      "id": "-462798649321812103",
+      "id": "-99264259625092487",
       "name": "ISIAH PACHECO",
       "position": "RB",
       "team": "KC",
@@ -997,7 +1033,7 @@
       "points_2024": 107.8
     },
     {
-      "id": "-5373918720475168287",
+      "id": "-8572496225678386245",
       "name": "JARED GOFF",
       "position": "QB",
       "team": "DET",
@@ -1009,7 +1045,7 @@
       "points_2024": 708.55
     },
     {
-      "id": "-8918423352005943207",
+      "id": "4330444383704599491",
       "name": "DEEBO SAMUEL",
       "position": "WR",
       "team": "WAS",
@@ -1021,7 +1057,43 @@
       "points_2024": 296.7
     },
     {
-      "id": "-1049260919731946186",
+      "id": "87231630478154918",
+      "name": "JEROME FORD",
+      "position": "RB",
+      "team": "CLE",
+      "adp": 85.0,
+      "rank": 164,
+      "projection": 164.51,
+      "bye_week": 5,
+      "var": -163.59000000000003,
+      "points_2024": 250.0
+    },
+    {
+      "id": "-5760168936212145437",
+      "name": "TANK DELL",
+      "position": "WR",
+      "team": "HOU",
+      "adp": 85.0,
+      "rank": 203,
+      "projection": 55.52,
+      "bye_week": 7,
+      "var": -284.77000000000004,
+      "points_2024": 270.25
+    },
+    {
+      "id": "-3009667936259739312",
+      "name": "DALLAS GOEDERT",
+      "position": "TE",
+      "team": "DAL",
+      "adp": 85.0,
+      "rank": 222,
+      "projection": 277.35,
+      "bye_week": 7,
+      "var": 0.8799999999999955,
+      "points_2024": 199.95
+    },
+    {
+      "id": "-6639401549891493082",
       "name": "COOPER KUPP",
       "position": "WR",
       "team": "SEA",
@@ -1033,7 +1105,7 @@
       "points_2024": 323.0
     },
     {
-      "id": "640461313659083602",
+      "id": "4623010268121109782",
       "name": "BRIAN ROBINSON",
       "position": "RB",
       "team": "WAS",
@@ -1045,7 +1117,7 @@
       "points_2024": 290.35
     },
     {
-      "id": "-180062172601411099",
+      "id": "-4241187243035865730",
       "name": "TRAVIS KELCE",
       "position": "TE",
       "team": "KC",
@@ -1053,11 +1125,11 @@
       "rank": 88,
       "projection": 312.2,
       "bye_week": 11,
-      "var": 38.68000000000001,
+      "var": 35.72999999999996,
       "points_2024": 381.55
     },
     {
-      "id": "2659119044642536170",
+      "id": "3535244334164673101",
       "name": "RICKY PEARSALL",
       "position": "WR",
       "team": "SF",
@@ -1069,7 +1141,7 @@
       "points_2024": 173.75
     },
     {
-      "id": "4994461116401962274",
+      "id": "944892925348174974",
       "name": "MARK ANDREWS",
       "position": "TE",
       "team": "BAL",
@@ -1077,11 +1149,23 @@
       "rank": 90,
       "projection": 291.29,
       "bye_week": 9,
-      "var": 17.77000000000004,
+      "var": 14.819999999999993,
       "points_2024": 311.6
     },
     {
-      "id": "5975466614085887382",
+      "id": "-7777761360130042634",
+      "name": "NICK CHUBB",
+      "position": "RB",
+      "team": "CLE",
+      "adp": 90.0,
+      "rank": 165,
+      "projection": 0.0,
+      "bye_week": 5,
+      "var": -328.1,
+      "points_2024": 111.85
+    },
+    {
+      "id": "4116317854005663323",
       "name": "STEFON DIGGS",
       "position": "WR",
       "team": "NE",
@@ -1093,7 +1177,7 @@
       "points_2024": 221.7
     },
     {
-      "id": "653946113393793452",
+      "id": "108891041380932540",
       "name": "TYRONE TRACY",
       "position": "RB",
       "team": "NYG",
@@ -1105,7 +1189,7 @@
       "points_2024": 347.35
     },
     {
-      "id": "-8667975716645623362",
+      "id": "-8257864078145677245",
       "name": "CALEB WILLIAMS",
       "position": "QB",
       "team": "CHI",
@@ -1117,7 +1201,7 @@
       "points_2024": 594.35
     },
     {
-      "id": "2438248896818608051",
+      "id": "-2255562252730833645",
       "name": "BROCK PURDY",
       "position": "QB",
       "team": "SF",
@@ -1129,7 +1213,7 @@
       "points_2024": 589.55
     },
     {
-      "id": "-342509466605351661",
+      "id": "-3035588060075023050",
       "name": "JAYDEN REED",
       "position": "WR",
       "team": "GB",
@@ -1141,7 +1225,31 @@
       "points_2024": 365.0
     },
     {
-      "id": "-5635277021888052127",
+      "id": "-7752466709922371076",
+      "name": "RICO DOWDLE",
+      "position": "RB",
+      "team": "DAL",
+      "adp": 95.0,
+      "rank": 172,
+      "projection": 163.39,
+      "bye_week": 7,
+      "var": -164.71000000000004,
+      "points_2024": 387.35
+    },
+    {
+      "id": "-1692574455804260040",
+      "name": "COLE KMET",
+      "position": "TE",
+      "team": "CHI",
+      "adp": 95.0,
+      "rank": 223,
+      "projection": 157.42,
+      "bye_week": 8,
+      "var": -119.05000000000004,
+      "points_2024": 214.55
+    },
+    {
+      "id": "-8629921188756448300",
       "name": "JOSH DOWNS",
       "position": "WR",
       "team": "IND",
@@ -1153,7 +1261,7 @@
       "points_2024": 343.5
     },
     {
-      "id": "-2958217804543445711",
+      "id": "3567591637280993573",
       "name": "JUSTIN HERBERT",
       "position": "QB",
       "team": "LAC",
@@ -1165,7 +1273,7 @@
       "points_2024": 584.45
     },
     {
-      "id": "-1890429315170597841",
+      "id": "-8444486793563340464",
       "name": "JAYLEN WARREN",
       "position": "RB",
       "team": "PIT",
@@ -1177,7 +1285,7 @@
       "points_2024": 246.2
     },
     {
-      "id": "-3395067161922176920",
+      "id": "-4089471105420846282",
       "name": "DAK PRESCOTT",
       "position": "QB",
       "team": "DAL",
@@ -1189,7 +1297,7 @@
       "points_2024": 287.95
     },
     {
-      "id": "7449576325952604901",
+      "id": "-5279814564731691262",
       "name": "JUSTIN FIELDS",
       "position": "QB",
       "team": "NYJ",
@@ -1201,7 +1309,19 @@
       "points_2024": 232.1
     },
     {
-      "id": "2571922302678988909",
+      "id": "-1068692516454620293",
+      "name": "HOLLYWOOD BROWN",
+      "position": "WR",
+      "team": "KC",
+      "adp": 100.0,
+      "rank": 184,
+      "projection": 240.49,
+      "bye_week": 11,
+      "var": -99.80000000000001,
+      "points_2024": 36.2
+    },
+    {
+      "id": "-7921010845107180374",
       "name": "TRAVIS ETIENNE",
       "position": "RB",
       "team": "JAX",
@@ -1213,7 +1333,7 @@
       "points_2024": 254.15
     },
     {
-      "id": "-1907277718104929684",
+      "id": "-4629467452771298331",
       "name": "NAJEE HARRIS",
       "position": "RB",
       "team": "LAC",
@@ -1225,7 +1345,7 @@
       "points_2024": 382.2
     },
     {
-      "id": "-6471984165818257267",
+      "id": "-3114142268324583507",
       "name": "JONNU SMITH",
       "position": "TE",
       "team": "MIA",
@@ -1233,11 +1353,11 @@
       "rank": 103,
       "projection": 276.47,
       "bye_week": 10,
-      "var": 2.9500000000000455,
+      "var": 0.0,
       "points_2024": 408.35
     },
     {
-      "id": "-8230416056089351338",
+      "id": "-4501056415943816732",
       "name": "EVAN ENGRAM",
       "position": "TE",
       "team": "DEN",
@@ -1245,11 +1365,11 @@
       "rank": 104,
       "projection": 273.52,
       "bye_week": 6,
-      "var": 0.0,
+      "var": -2.9500000000000455,
       "points_2024": 177.75
     },
     {
-      "id": "3171534947724136450",
+      "id": "395473826112224552",
       "name": "EMEKA EGBUKA",
       "position": "WR",
       "team": "TB",
@@ -1261,7 +1381,43 @@
       "points_2024": 0.0
     },
     {
-      "id": "-7460957556850400270",
+      "id": "8062219807506907033",
+      "name": "GENO SMITH",
+      "position": "QB",
+      "team": "SEA",
+      "adp": 105.0,
+      "rank": 158,
+      "projection": 540.82,
+      "bye_week": 5,
+      "var": -25.34999999999991,
+      "points_2024": 641.9
+    },
+    {
+      "id": "-3064289860092200387",
+      "name": "TYLER LOCKETT",
+      "position": "WR",
+      "team": "SEA",
+      "adp": 105.0,
+      "rank": 185,
+      "projection": 178.78,
+      "bye_week": 5,
+      "var": -161.51000000000002,
+      "points_2024": 230.0
+    },
+    {
+      "id": "6563087989294671218",
+      "name": "HUNTER HENRY",
+      "position": "TE",
+      "team": "NE",
+      "adp": 105.0,
+      "rank": 224,
+      "projection": 252.4,
+      "bye_week": 10,
+      "var": -24.07000000000002,
+      "points_2024": 281.8
+    },
+    {
+      "id": "3846935356875418677",
       "name": "DARNELL MOONEY",
       "position": "WR",
       "team": "ATL",
@@ -1273,7 +1429,7 @@
       "points_2024": 362.4
     },
     {
-      "id": "-5226779649741092753",
+      "id": "-2257100792492121752",
       "name": "MIKE PITTMAN",
       "position": "WR",
       "team": "IND",
@@ -1285,7 +1441,7 @@
       "points_2024": 327.1
     },
     {
-      "id": "8655680869206314824",
+      "id": "-7561406748040016351",
       "name": "CAM SKATTEBO",
       "position": "RB",
       "team": "NYG",
@@ -1297,7 +1453,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "-7865758525768398231",
+      "id": "3788191490603898569",
       "name": "JAVONTE WILLIAMS",
       "position": "RB",
       "team": "DAL",
@@ -1309,7 +1465,7 @@
       "points_2024": 301.55
     },
     {
-      "id": "-3683150089207900220",
+      "id": "5629352895155201382",
       "name": "DRAKE MAYE",
       "position": "QB",
       "team": "NE",
@@ -1321,7 +1477,43 @@
       "points_2024": 414.25
     },
     {
-      "id": "5082723777675845156",
+      "id": "5499630277286520518",
+      "name": "DEVIN SINGLETARY",
+      "position": "RB",
+      "team": "NYG",
+      "adp": 110.0,
+      "rank": 166,
+      "projection": 98.3,
+      "bye_week": 6,
+      "var": -229.8,
+      "points_2024": 178.95
+    },
+    {
+      "id": "3627481926238653955",
+      "name": "DEMARIO DOUGLAS",
+      "position": "WR",
+      "team": "NE",
+      "adp": 110.0,
+      "rank": 186,
+      "projection": 233.0,
+      "bye_week": 10,
+      "var": -107.29000000000002,
+      "points_2024": 279.15
+    },
+    {
+      "id": "3141106559219533809",
+      "name": "CADE OTTON",
+      "position": "TE",
+      "team": "TB",
+      "adp": 110.0,
+      "rank": 225,
+      "projection": 200.54,
+      "bye_week": 11,
+      "var": -75.93000000000004,
+      "points_2024": 271.2
+    },
+    {
+      "id": "1480533209764425497",
       "name": "JORDAN LOVE",
       "position": "QB",
       "team": "GB",
@@ -1333,7 +1525,7 @@
       "points_2024": 482.05
     },
     {
-      "id": "3829907697327373370",
+      "id": "4773158168905670765",
       "name": "DAVID NJOKU",
       "position": "TE",
       "team": "CLE",
@@ -1341,11 +1533,11 @@
       "rank": 112,
       "projection": 284.1,
       "bye_week": 5,
-      "var": 10.580000000000041,
+      "var": 7.6299999999999955,
       "points_2024": 266.0
     },
     {
-      "id": "7057650217426385009",
+      "id": "7503840927362363336",
       "name": "JK DOBBINS",
       "position": "RB",
       "team": "DEN",
@@ -1357,7 +1549,7 @@
       "points_2024": 335.6
     },
     {
-      "id": "6114196976229083316",
+      "id": "-5490815076637863467",
       "name": "MATTHEW GOLDEN",
       "position": "WR",
       "team": "GB",
@@ -1369,7 +1561,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "4984103484135522659",
+      "id": "-8097856045309045202",
       "name": "ZACH CHARBONNET",
       "position": "RB",
       "team": "SEA",
@@ -1381,7 +1573,43 @@
       "points_2024": 326.3
     },
     {
-      "id": "-4733002885504841463",
+      "id": "-8388485870520705405",
+      "name": "RAHEEM MOSTERT",
+      "position": "RB",
+      "team": "MIA",
+      "adp": 115.0,
+      "rank": 167,
+      "projection": 125.89,
+      "bye_week": 10,
+      "var": -202.21000000000004,
+      "points_2024": 137.8
+    },
+    {
+      "id": "-6912389526212866404",
+      "name": "JOSH PALMER",
+      "position": "WR",
+      "team": "LAC",
+      "adp": 115.0,
+      "rank": 187,
+      "projection": 239.35,
+      "bye_week": 9,
+      "var": -100.94000000000003,
+      "points_2024": 200.8
+    },
+    {
+      "id": "-8133117992164069297",
+      "name": "TAYSOM HILL",
+      "position": "TE",
+      "team": "NO",
+      "adp": 115.0,
+      "rank": 226,
+      "projection": 54.87,
+      "bye_week": 10,
+      "var": -221.60000000000002,
+      "points_2024": 184.8
+    },
+    {
+      "id": "1916970177182942938",
       "name": "JJ MCCARTHY",
       "position": "QB",
       "team": "MIN",
@@ -1393,7 +1621,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "4918152185367730334",
+      "id": "-7374091412762533545",
       "name": "CJ STROUD",
       "position": "QB",
       "team": "HOU",
@@ -1405,7 +1633,7 @@
       "points_2024": 532.95
     },
     {
-      "id": "4269388150074603585",
+      "id": "8365112712543271708",
       "name": "TYLER WARREN",
       "position": "TE",
       "team": "IND",
@@ -1413,11 +1641,11 @@
       "rank": 118,
       "projection": 273.4,
       "bye_week": 10,
-      "var": -0.12000000000000455,
+      "var": -3.07000000000005,
       "points_2024": 0.0
     },
     {
-      "id": "167349708716915653",
+      "id": "4133465619599984194",
       "name": "KEON COLEMAN",
       "position": "WR",
       "team": "BUF",
@@ -1429,7 +1657,7 @@
       "points_2024": 199.75
     },
     {
-      "id": "3737933663775962617",
+      "id": "9114811611584567338",
       "name": "RHAMONDRE STEVENSON",
       "position": "RB",
       "team": "NE",
@@ -1441,7 +1669,43 @@
       "points_2024": 310.8
     },
     {
-      "id": "-3922651185745191702",
+      "id": "7193406647234792624",
+      "name": "KIRK COUSINS",
+      "position": "QB",
+      "team": "ATL",
+      "adp": 120.0,
+      "rank": 159,
+      "projection": 89.12,
+      "bye_week": 11,
+      "var": -477.04999999999995,
+      "points_2024": 452.9
+    },
+    {
+      "id": "3657755770829437024",
+      "name": "MIKE THOMAS",
+      "position": "WR",
+      "team": "NO",
+      "adp": 120.0,
+      "rank": 188,
+      "projection": 0.0,
+      "bye_week": 10,
+      "var": -340.29,
+      "points_2024": 0.0
+    },
+    {
+      "id": "-6690496196830765719",
+      "name": "ISAIAH LIKELY",
+      "position": "TE",
+      "team": "BAL",
+      "adp": 120.0,
+      "rank": 227,
+      "projection": 200.59,
+      "bye_week": 9,
+      "var": -75.88000000000002,
+      "points_2024": 218.4
+    },
+    {
+      "id": "2439478669801206357",
       "name": "TUCKER KRAFT",
       "position": "TE",
       "team": "GB",
@@ -1449,11 +1713,11 @@
       "rank": 121,
       "projection": 246.58,
       "bye_week": 5,
-      "var": -26.93999999999997,
+      "var": -29.890000000000015,
       "points_2024": 284.6
     },
     {
-      "id": "938333826903692511",
+      "id": "5999797206392848806",
       "name": "TREVOR LAWRENCE",
       "position": "QB",
       "team": "JAX",
@@ -1465,7 +1729,7 @@
       "points_2024": 308.8
     },
     {
-      "id": "-1247171725624131371",
+      "id": "-1891955853092128996",
       "name": "JORDAN MASON",
       "position": "RB",
       "team": "MIN",
@@ -1477,7 +1741,7 @@
       "points_2024": 225.0
     },
     {
-      "id": "-7022303807746946642",
+      "id": "-1477715792901378812",
       "name": "CHRISTIAN KIRK",
       "position": "WR",
       "team": "HOU",
@@ -1489,7 +1753,7 @@
       "points_2024": 139.3
     },
     {
-      "id": "-3623355145485067217",
+      "id": "3538814797254147884",
       "name": "MARVIN MIMS",
       "position": "WR",
       "team": "DEN",
@@ -1501,7 +1765,55 @@
       "points_2024": 232.5
     },
     {
-      "id": "-4121296560060376751",
+      "id": "-8652388102315100530",
+      "name": "AARON RODGERS",
+      "position": "QB",
+      "team": "NYJ",
+      "adp": 125.0,
+      "rank": 160,
+      "projection": 522.71,
+      "bye_week": 7,
+      "var": -43.45999999999992,
+      "points_2024": 574.25
+    },
+    {
+      "id": "-4374671480786065532",
+      "name": "ALEXANDER MATTISON",
+      "position": "RB",
+      "team": "LV",
+      "adp": 125.0,
+      "rank": 170,
+      "projection": 60.06,
+      "bye_week": 5,
+      "var": -268.04,
+      "points_2024": 248.3
+    },
+    {
+      "id": "-7068696659921497551",
+      "name": "GABRIEL DAVIS",
+      "position": "WR",
+      "team": "JAX",
+      "adp": 125.0,
+      "rank": 189,
+      "projection": 0.0,
+      "bye_week": 6,
+      "var": -340.29,
+      "points_2024": 103.3
+    },
+    {
+      "id": "-1184378081862359115",
+      "name": "NOAH FANT",
+      "position": "TE",
+      "team": "SEA",
+      "adp": 125.0,
+      "rank": 229,
+      "projection": 156.46,
+      "bye_week": 5,
+      "var": -120.01000000000002,
+      "points_2024": 205.5
+    },
+    {
+      "id": "-4477620399910190854",
       "name": "DALTON KINCAID",
       "position": "TE",
       "team": "BUF",
@@ -1509,11 +1821,11 @@
       "rank": 126,
       "projection": 252.97,
       "bye_week": 10,
-      "var": -20.549999999999983,
+      "var": -23.50000000000003,
       "points_2024": 189.6
     },
     {
-      "id": "-2050361322662716541",
+      "id": "1707389712552892730",
       "name": "MATTHEW STAFFORD",
       "position": "QB",
       "team": "LA",
@@ -1525,7 +1837,7 @@
       "points_2024": 498.3
     },
     {
-      "id": "-771127669200139590",
+      "id": "737109816954004291",
       "name": "BRANDON AIYUK",
       "position": "WR",
       "team": "SF",
@@ -1537,7 +1849,7 @@
       "points_2024": 127.8
     },
     {
-      "id": "-142564591628646907",
+      "id": "-7324772482315938711",
       "name": "MIKE PENIX",
       "position": "QB",
       "team": "ATL",
@@ -1549,7 +1861,55 @@
       "points_2024": 103.2
     },
     {
-      "id": "-1100269329793894875",
+      "id": "-657628821971947994",
+      "name": "DEREK CARR",
+      "position": "QB",
+      "team": "NO",
+      "adp": 130.0,
+      "rank": 161,
+      "projection": 0.0,
+      "bye_week": 10,
+      "var": -566.17,
+      "points_2024": 311.95
+    },
+    {
+      "id": "3981296117810996508",
+      "name": "DAMEON PIERCE",
+      "position": "RB",
+      "team": "HOU",
+      "adp": 130.0,
+      "rank": 169,
+      "projection": 116.16,
+      "bye_week": 7,
+      "var": -211.94000000000003,
+      "points_2024": 79.75
+    },
+    {
+      "id": "6431056896834684794",
+      "name": "ROMEO DOUBS",
+      "position": "WR",
+      "team": "GB",
+      "adp": 130.0,
+      "rank": 190,
+      "projection": 199.39,
+      "bye_week": 5,
+      "var": -140.90000000000003,
+      "points_2024": 237.95
+    },
+    {
+      "id": "9165091777236275464",
+      "name": "JUWAN JOHNSON",
+      "position": "TE",
+      "team": "NO",
+      "adp": 130.0,
+      "rank": 230,
+      "projection": 161.24,
+      "bye_week": 10,
+      "var": -115.23000000000002,
+      "points_2024": 227.6
+    },
+    {
+      "id": "7736109304520707112",
       "name": "RASHID SHAHEED",
       "position": "WR",
       "team": "NO",
@@ -1561,7 +1921,7 @@
       "points_2024": 138.85
     },
     {
-      "id": "-7103504215193172830",
+      "id": "-1280430654642552952",
       "name": "LUTHER BURDEN",
       "position": "WR",
       "team": "CHI",
@@ -1573,7 +1933,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "-5565482806816928345",
+      "id": "7623809764761166125",
       "name": "PAT FREIERMUTH",
       "position": "TE",
       "team": "PIT",
@@ -1581,11 +1941,11 @@
       "rank": 133,
       "projection": 259.17,
       "bye_week": 6,
-      "var": -14.349999999999966,
+      "var": -17.30000000000001,
       "points_2024": 302.6
     },
     {
-      "id": "-7853959017206112519",
+      "id": "-3592775770336517344",
       "name": "JAYDEN HIGGINS",
       "position": "WR",
       "team": "HOU",
@@ -1597,7 +1957,55 @@
       "points_2024": 0.0
     },
     {
-      "id": "4054912831301601736",
+      "id": "4667485977561760677",
+      "name": "SAM DARNOLD",
+      "position": "QB",
+      "team": "MIN",
+      "adp": 135.0,
+      "rank": 157,
+      "projection": 538.82,
+      "bye_week": 9,
+      "var": -27.34999999999991,
+      "points_2024": 676.35
+    },
+    {
+      "id": "-9191600050965471778",
+      "name": "TYLER ALLGEIER",
+      "position": "RB",
+      "team": "ATL",
+      "adp": 135.0,
+      "rank": 171,
+      "projection": 173.65,
+      "bye_week": 11,
+      "var": -154.45000000000002,
+      "points_2024": 198.65
+    },
+    {
+      "id": "-1151854519553612009",
+      "name": "CHRISTIAN WATSON",
+      "position": "WR",
+      "team": "GB",
+      "adp": 135.0,
+      "rank": 191,
+      "projection": 85.56,
+      "bye_week": 5,
+      "var": -254.73000000000002,
+      "points_2024": 209.85
+    },
+    {
+      "id": "-1115744688194432658",
+      "name": "ZACH ERTZ",
+      "position": "TE",
+      "team": "WAS",
+      "adp": 135.0,
+      "rank": 231,
+      "projection": 245.78,
+      "bye_week": 11,
+      "var": -30.690000000000026,
+      "points_2024": 308.3
+    },
+    {
+      "id": "4649513685053291911",
       "name": "TYJAE SPEARS",
       "position": "RB",
       "team": "TEN",
@@ -1609,7 +2017,7 @@
       "points_2024": 200.7
     },
     {
-      "id": "-8691897805242252910",
+      "id": "-2277908971983550895",
       "name": "RASHOD BATEMAN",
       "position": "WR",
       "team": "BAL",
@@ -1621,7 +2029,7 @@
       "points_2024": 299.95
     },
     {
-      "id": "-8971460516011946967",
+      "id": "458154668568671510",
       "name": "WANDALE ROBINSON",
       "position": "WR",
       "team": "NYG",
@@ -1633,7 +2041,7 @@
       "points_2024": 347.4
     },
     {
-      "id": "4300830315641807157",
+      "id": "3881181089085717494",
       "name": "RACHAAD WHITE",
       "position": "RB",
       "team": "TB",
@@ -1645,7 +2053,55 @@
       "points_2024": 358.95
     },
     {
-      "id": "1809055191945195722",
+      "id": "-4968900417780307299",
+      "name": "RUSSELL WILSON",
+      "position": "QB",
+      "team": "PIT",
+      "adp": 140.0,
+      "rank": 162,
+      "projection": 361.72,
+      "bye_week": 6,
+      "var": -204.44999999999993,
+      "points_2024": 376.1
+    },
+    {
+      "id": "-3911825448228862009",
+      "name": "JUSTICE HILL",
+      "position": "RB",
+      "team": "BAL",
+      "adp": 140.0,
+      "rank": 173,
+      "projection": 169.59,
+      "bye_week": 9,
+      "var": -158.51000000000002,
+      "points_2024": 231.95
+    },
+    {
+      "id": "-3031239042788114186",
+      "name": "JAHAN DOTSON",
+      "position": "WR",
+      "team": "PHI",
+      "adp": 140.0,
+      "rank": 192,
+      "projection": 72.87,
+      "bye_week": 10,
+      "var": -267.42,
+      "points_2024": 83.8
+    },
+    {
+      "id": "-7713786322070678145",
+      "name": "WILL DISSLY",
+      "position": "TE",
+      "team": "LAC",
+      "adp": 140.0,
+      "rank": 232,
+      "projection": 137.71,
+      "bye_week": 9,
+      "var": -138.76000000000002,
+      "points_2024": 208.2
+    },
+    {
+      "id": "-4993610708535556819",
       "name": "TRE HARRIS",
       "position": "WR",
       "team": "LAC",
@@ -1657,7 +2113,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "3286516687475572091",
+      "id": "2291086181418781369",
       "name": "JAKE FERGUSON",
       "position": "TE",
       "team": "DAL",
@@ -1665,11 +2121,11 @@
       "rank": 142,
       "projection": 267.1,
       "bye_week": 7,
-      "var": -6.419999999999959,
+      "var": -9.370000000000005,
       "points_2024": 220.3
     },
     {
-      "id": "-309478385155971069",
+      "id": "-2009524518720627550",
       "name": "ADAM THIELEN",
       "position": "WR",
       "team": "CAR",
@@ -1681,7 +2137,7 @@
       "points_2024": 256.75
     },
     {
-      "id": "5019889919014575245",
+      "id": "-7578952846711107980",
       "name": "TUA TAGOVAILOA",
       "position": "QB",
       "team": "MIA",
@@ -1693,7 +2149,7 @@
       "points_2024": 438.4
     },
     {
-      "id": "6161442949391168518",
+      "id": "-3553750144706989404",
       "name": "TANK BIGSBY",
       "position": "RB",
       "team": "JAX",
@@ -1705,7 +2161,55 @@
       "points_2024": 229.5
     },
     {
-      "id": "1779128867722862901",
+      "id": "-8382177295500642106",
+      "name": "WILL LEVIS",
+      "position": "QB",
+      "team": "TEN",
+      "adp": 145.0,
+      "rank": 163,
+      "projection": 52.8,
+      "bye_week": 7,
+      "var": -513.37,
+      "points_2024": 314.15
+    },
+    {
+      "id": "3030060060080980603",
+      "name": "KAREEM HUNT",
+      "position": "RB",
+      "team": "KC",
+      "adp": 145.0,
+      "rank": 174,
+      "projection": 86.12,
+      "bye_week": 11,
+      "var": -241.98000000000002,
+      "points_2024": 274.8
+    },
+    {
+      "id": "-4668833050585969702",
+      "name": "ELIJAH MOORE",
+      "position": "WR",
+      "team": "CLE",
+      "adp": 145.0,
+      "rank": 193,
+      "projection": 86.01,
+      "bye_week": 5,
+      "var": -254.28000000000003,
+      "points_2024": 244.05
+    },
+    {
+      "id": "3625171654905931593",
+      "name": "DAWSON KNOX",
+      "position": "TE",
+      "team": "BUF",
+      "adp": 145.0,
+      "rank": 233,
+      "projection": 102.89,
+      "bye_week": 10,
+      "var": -173.58000000000004,
+      "points_2024": 112.2
+    },
+    {
+      "id": "3388442494467543021",
       "name": "ISAAC GUERENDO",
       "position": "RB",
       "team": "SF",
@@ -1717,7 +2221,7 @@
       "points_2024": 168.4
     },
     {
-      "id": "1046909619064111321",
+      "id": "981935461052926988",
       "name": "BHAYSHUL TUTEN",
       "position": "RB",
       "team": "JAX",
@@ -1729,7 +2233,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "9163400990860030928",
+      "id": "3348817766321555664",
       "name": "QUENTIN JOHNSTON",
       "position": "WR",
       "team": "LAC",
@@ -1741,7 +2245,7 @@
       "points_2024": 309.15
     },
     {
-      "id": "9182325062825536201",
+      "id": "-2301094020596744436",
       "name": "TREY BENSON",
       "position": "RB",
       "team": "ARZ",
@@ -1753,7 +2257,55 @@
       "points_2024": 91.5
     },
     {
-      "id": "-7010299129477920297",
+      "id": "2204992922990509857",
+      "name": "TREY SERMON",
+      "position": "RB",
+      "team": "IND",
+      "adp": 150.0,
+      "rank": 168,
+      "projection": 48.72,
+      "bye_week": 10,
+      "var": -279.38,
+      "points_2024": 97.35
+    },
+    {
+      "id": "6185289447463669027",
+      "name": "ROSCHON JOHNSON",
+      "position": "RB",
+      "team": "CHI",
+      "adp": 150.0,
+      "rank": 175,
+      "projection": 145.52,
+      "bye_week": 8,
+      "var": -182.58,
+      "points_2024": 120.55
+    },
+    {
+      "id": "2519125794657490630",
+      "name": "SKYY MOORE",
+      "position": "WR",
+      "team": "KC",
+      "adp": 150.0,
+      "rank": 194,
+      "projection": 0.0,
+      "bye_week": 11,
+      "var": -340.29,
+      "points_2024": 0.0
+    },
+    {
+      "id": "-4890017453854791959",
+      "name": "NOAH GRAY",
+      "position": "TE",
+      "team": "KC",
+      "adp": 150.0,
+      "rank": 234,
+      "projection": 157.95,
+      "bye_week": 11,
+      "var": -118.52000000000004,
+      "points_2024": 196.6
+    },
+    {
+      "id": "8340354777831949143",
       "name": "JAYDON BLUE",
       "position": "RB",
       "team": "DAL",
@@ -1765,7 +2317,7 @@
       "points_2024": 0.0
     },
     {
-      "id": "-3720751572579814619",
+      "id": "5951262623542946678",
       "name": "KYLE PITTS",
       "position": "TE",
       "team": "ATL",
@@ -1773,11 +2325,11 @@
       "rank": 153,
       "projection": 225.35,
       "bye_week": 11,
-      "var": -48.16999999999999,
+      "var": -51.12000000000003,
       "points_2024": 238.4
     },
     {
-      "id": "8177480164537062194",
+      "id": "-4656585720840681412",
       "name": "JALEN MCMILLAN",
       "position": "WR",
       "team": "TB",
@@ -1789,7 +2341,7 @@
       "points_2024": 224.55
     },
     {
-      "id": "-5543608276527157667",
+      "id": "523146604079978735",
       "name": "RAY DAVIS",
       "position": "RB",
       "team": "BUF",
@@ -1801,7 +2353,475 @@
       "points_2024": 196.2
     },
     {
-      "id": "-5067345323440575878",
+      "id": "7782866412500562564",
+      "name": "EMANUEL WILSON",
+      "position": "RB",
+      "team": "GB",
+      "adp": 155.0,
+      "rank": 176,
+      "projection": 91.36,
+      "bye_week": 5,
+      "var": -236.74,
+      "points_2024": 162.0
+    },
+    {
+      "id": "162805800011489244",
+      "name": "TYLER BOYD",
+      "position": "WR",
+      "team": "TEN",
+      "adp": 155.0,
+      "rank": 195,
+      "projection": 0.0,
+      "bye_week": 7,
+      "var": -340.29,
+      "points_2024": 158.35
+    },
+    {
+      "id": "-7791270325421624896",
+      "name": "JACORY CROSKEY MERRITT",
+      "position": "RB",
+      "team": "ARI",
+      "adp": 155.0,
+      "rank": 206,
+      "projection": 0.0,
+      "bye_week": 9,
+      "var": -328.1,
+      "points_2024": 0.0
+    },
+    {
+      "id": "1558545039190224189",
+      "name": "MIKE GESICKI",
+      "position": "TE",
+      "team": "CIN",
+      "adp": 155.0,
+      "rank": 235,
+      "projection": 242.24,
+      "bye_week": 7,
+      "var": -34.23000000000002,
+      "points_2024": 278.0
+    },
+    {
+      "id": "4098736144420444263",
+      "name": "BLAKE CORUM",
+      "position": "RB",
+      "team": "LA",
+      "adp": 160.0,
+      "rank": 177,
+      "projection": 136.71,
+      "bye_week": 8,
+      "var": -191.39000000000001,
+      "points_2024": 67.0
+    },
+    {
+      "id": "-6176906624018394690",
+      "name": "ALLEN LAZARD",
+      "position": "WR",
+      "team": "NYJ",
+      "adp": 160.0,
+      "rank": 196,
+      "projection": 160.93,
+      "bye_week": 7,
+      "var": -179.36,
+      "points_2024": 220.75
+    },
+    {
+      "id": "-8832347194110406475",
+      "name": "DYLAN SAMPSON",
+      "position": "RB",
+      "team": "TEN",
+      "adp": 160.0,
+      "rank": 207,
+      "projection": 138.44,
+      "bye_week": 7,
+      "var": -189.66000000000003,
+      "points_2024": 0.0
+    },
+    {
+      "id": "416488306640015055",
+      "name": "MARSHAWN LLOYD",
+      "position": "RB",
+      "team": "GB",
+      "adp": 165.0,
+      "rank": 178,
+      "projection": 55.24,
+      "bye_week": 5,
+      "var": -272.86,
+      "points_2024": 5.6
+    },
+    {
+      "id": "1037004754555779409",
+      "name": "DEMARCUS ROBINSON",
+      "position": "WR",
+      "team": "LA",
+      "adp": 165.0,
+      "rank": 197,
+      "projection": 131.51,
+      "bye_week": 8,
+      "var": -208.78000000000003,
+      "points_2024": 208.5
+    },
+    {
+      "id": "2360136593588112549",
+      "name": "KEATON MITCHELL",
+      "position": "RB",
+      "team": "BAL",
+      "adp": 165.0,
+      "rank": 208,
+      "projection": 52.71,
+      "bye_week": 9,
+      "var": -275.39000000000004,
+      "points_2024": 13.6
+    },
+    {
+      "id": "-6236774104346521298",
+      "name": "AUDRIC ESTIME",
+      "position": "RB",
+      "team": "DEN",
+      "adp": 170.0,
+      "rank": 179,
+      "projection": 104.94,
+      "bye_week": 6,
+      "var": -223.16000000000003,
+      "points_2024": 89.4
+    },
+    {
+      "id": "-722826393641985521",
+      "name": "TUTU ATWELL",
+      "position": "WR",
+      "team": "LA",
+      "adp": 170.0,
+      "rank": 198,
+      "projection": 174.02,
+      "bye_week": 8,
+      "var": -166.27,
+      "points_2024": 199.55
+    },
+    {
+      "id": "-2425864043503102782",
+      "name": "JORDAN WHITTINGTON",
+      "position": "RB",
+      "team": "LA",
+      "adp": 170.0,
+      "rank": 209,
+      "projection": 198.9,
+      "bye_week": 8,
+      "var": -129.20000000000002,
+      "points_2024": 105.0
+    },
+    {
+      "id": "3743079589374986899",
+      "name": "DYLAN LAUBE",
+      "position": "RB",
+      "team": "LV",
+      "adp": 175.0,
+      "rank": 180,
+      "projection": 14.4,
+      "bye_week": 5,
+      "var": -313.70000000000005,
+      "points_2024": 0.0
+    },
+    {
+      "id": "-715249921057474144",
+      "name": "KADARIUS TONEY",
+      "position": "WR",
+      "team": "KC",
+      "adp": 175.0,
+      "rank": 199,
+      "projection": 0.0,
+      "bye_week": 11,
+      "var": -340.29,
+      "points_2024": -0.8
+    },
+    {
+      "id": "-1425189746742694872",
+      "name": "SAMAJE PERINE",
+      "position": "RB",
+      "team": "KC",
+      "adp": 175.0,
+      "rank": 210,
+      "projection": 88.06,
+      "bye_week": 11,
+      "var": -240.04000000000002,
+      "points_2024": 150.8
+    },
+    {
+      "id": "7295051734175712489",
+      "name": "BRAELON ALLEN",
+      "position": "RB",
+      "team": "NYJ",
+      "adp": 180.0,
+      "rank": 181,
+      "projection": 111.8,
+      "bye_week": 7,
+      "var": -216.3,
+      "points_2024": 152.4
+    },
+    {
+      "id": "-278979992902703979",
+      "name": "ALEC PIERCE",
+      "position": "WR",
+      "team": "IND",
+      "adp": 180.0,
+      "rank": 200,
+      "projection": 218.23,
+      "bye_week": 10,
+      "var": -122.06000000000003,
+      "points_2024": 298.55
+    },
+    {
+      "id": "-6121734091648689456",
+      "name": "JALEEL MCLAUGHLIN",
+      "position": "RB",
+      "team": "DEN",
+      "adp": 180.0,
+      "rank": 211,
+      "projection": 161.15,
+      "bye_week": 6,
+      "var": -166.95000000000002,
+      "points_2024": 182.15
+    },
+    {
+      "id": "1539984178994679190",
+      "name": "BROCK WRIGHT",
+      "position": "TE",
+      "team": "DET",
+      "adp": 180.0,
+      "rank": 228,
+      "projection": 52.58,
+      "bye_week": 6,
+      "var": -223.89000000000004,
+      "points_2024": 58.0
+    },
+    {
+      "id": "-5178317579100135093",
+      "name": "JOHN METCHIE",
+      "position": "WR",
+      "team": "HOU",
+      "adp": 185.0,
+      "rank": 201,
+      "projection": 47.89,
+      "bye_week": 7,
+      "var": -292.40000000000003,
+      "points_2024": 108.3
+    },
+    {
+      "id": "-7776580579129429957",
+      "name": "PIERRE STRONG",
+      "position": "RB",
+      "team": "CLE",
+      "adp": 185.0,
+      "rank": 212,
+      "projection": 15.93,
+      "bye_week": 5,
+      "var": -312.17,
+      "points_2024": 70.4
+    },
+    {
+      "id": "7629426015199388220",
+      "name": "THEO JOHNSON",
+      "position": "TE",
+      "team": "NYG",
+      "adp": 185.0,
+      "rank": 236,
+      "projection": 173.98,
+      "bye_week": 6,
+      "var": -102.49000000000004,
+      "points_2024": 130.2
+    },
+    {
+      "id": "-4415311923863242320",
+      "name": "MIKE WILSON",
+      "position": "WR",
+      "team": "ARI",
+      "adp": 190.0,
+      "rank": 202,
+      "projection": 206.96,
+      "bye_week": 9,
+      "var": -133.33,
+      "points_2024": 232.5
+    },
+    {
+      "id": "4048257609625012426",
+      "name": "CHRIS RODRIGUEZ",
+      "position": "RB",
+      "team": "ARI",
+      "adp": 190.0,
+      "rank": 213,
+      "projection": 84.73,
+      "bye_week": 9,
+      "var": -243.37,
+      "points_2024": 51.0
+    },
+    {
+      "id": "8224248777460804740",
+      "name": "BEN SINNOTT",
+      "position": "TE",
+      "team": "MIA",
+      "adp": 190.0,
+      "rank": 237,
+      "projection": 103.48,
+      "bye_week": 10,
+      "var": -172.99,
+      "points_2024": 21.6
+    },
+    {
+      "id": "3660130610863924588",
+      "name": "JONATHAN MINGO",
+      "position": "WR",
+      "team": "CAR",
+      "adp": 195.0,
+      "rank": 204,
+      "projection": 18.8,
+      "bye_week": 7,
+      "var": -321.49,
+      "points_2024": 70.15
+    },
+    {
+      "id": "-7006156804295655878",
+      "name": "KENDRE MILLER",
+      "position": "RB",
+      "team": "NO",
+      "adp": 195.0,
+      "rank": 214,
+      "projection": 93.07,
+      "bye_week": 10,
+      "var": -235.03000000000003,
+      "points_2024": 52.2
+    },
+    {
+      "id": "1018395879332741198",
+      "name": "JATAVION SANDERS",
+      "position": "TE",
+      "team": "CAR",
+      "adp": 195.0,
+      "rank": 238,
+      "projection": 193.57,
+      "bye_week": 7,
+      "var": -82.90000000000003,
+      "points_2024": 140.4
+    },
+    {
+      "id": "299197853716515255",
+      "name": "PARKER WASHINGTON",
+      "position": "WR",
+      "team": "JAX",
+      "adp": 200.0,
+      "rank": 205,
+      "projection": 56.39,
+      "bye_week": 6,
+      "var": -283.90000000000003,
+      "points_2024": 166.5
+    },
+    {
+      "id": "1224508832201867826",
+      "name": "EZEKIEL ELLIOTT",
+      "position": "RB",
+      "team": "DAL",
+      "adp": 200.0,
+      "rank": 215,
+      "projection": 0.0,
+      "bye_week": 7,
+      "var": -328.1,
+      "points_2024": 102.75
+    },
+    {
+      "id": "8331362702654953173",
+      "name": "ERICK ALL",
+      "position": "TE",
+      "team": "CIN",
+      "adp": 200.0,
+      "rank": 239,
+      "projection": 0.0,
+      "bye_week": 7,
+      "var": -276.47,
+      "points_2024": 71.6
+    },
+    {
+      "id": "-6562599156436668925",
+      "name": "LATAVIUS MURRAY",
+      "position": "RB",
+      "team": "BUF",
+      "adp": 205.0,
+      "rank": 216,
+      "projection": 0.0,
+      "bye_week": 10,
+      "var": -328.1,
+      "points_2024": 0.0
+    },
+    {
+      "id": "589617660350780913",
+      "name": "BRENDEN BATES",
+      "position": "TE",
+      "team": "KC",
+      "adp": 205.0,
+      "rank": 240,
+      "projection": 0.0,
+      "bye_week": 11,
+      "var": -276.47,
+      "points_2024": 0.0
+    },
+    {
+      "id": "-1249414173212023837",
+      "name": "CLYDE EDWARDS HELAIRE",
+      "position": "RB",
+      "team": "KC",
+      "adp": 210.0,
+      "rank": 217,
+      "projection": 17.1,
+      "bye_week": 11,
+      "var": -311.0,
+      "points_2024": 20.0
+    },
+    {
+      "id": "-7093161835194379831",
+      "name": "MIKE CARTER",
+      "position": "RB",
+      "team": "ARI",
+      "adp": 215.0,
+      "rank": 218,
+      "projection": 53.76,
+      "bye_week": 9,
+      "var": -274.34000000000003,
+      "points_2024": 65.6
+    },
+    {
+      "id": "-4612460215355392445",
+      "name": "HASSAN HASKINS",
+      "position": "RB",
+      "team": "LA",
+      "adp": 220.0,
+      "rank": 219,
+      "projection": 12.74,
+      "bye_week": 8,
+      "var": -315.36,
+      "points_2024": 51.6
+    },
+    {
+      "id": "5340027786995048359",
+      "name": "KENNY MCINTOSH",
+      "position": "RB",
+      "team": "TB",
+      "adp": 225.0,
+      "rank": 220,
+      "projection": 53.84,
+      "bye_week": 11,
+      "var": -274.26,
+      "points_2024": 44.8
+    },
+    {
+      "id": "1786687757422194564",
+      "name": "ISRAEL ABANIKANDA",
+      "position": "RB",
+      "team": "NYJ",
+      "adp": 230.0,
+      "rank": 221,
+      "projection": 0.0,
+      "bye_week": 7,
+      "var": -328.1,
+      "points_2024": 0.0
+    },
+    {
+      "id": "-1650768683202635662",
       "name": "ZAIRE FRANKLIN",
       "position": "LB",
       "team": "IND",
@@ -1813,7 +2833,7 @@
       "points_2024": 297.8
     },
     {
-      "id": "8755381707097050692",
+      "id": "-4282885950873990909",
       "name": "ZACK BAUN",
       "position": "LB",
       "team": "PHI",
@@ -1825,7 +2845,7 @@
       "points_2024": 265.0
     },
     {
-      "id": "-7118737351153274193",
+      "id": "6637218259424855364",
       "name": "ROBERT SPILLANE",
       "position": "LB",
       "team": "LV",
@@ -1837,7 +2857,7 @@
       "points_2024": 256.8
     },
     {
-      "id": "-8476792846757268449",
+      "id": "-326269589024680767",
       "name": "KADEN ELLISS",
       "position": "LB",
       "team": "ATL",
@@ -1849,7 +2869,7 @@
       "points_2024": 247.5
     },
     {
-      "id": "-8299900599141014823",
+      "id": "8893791001757245578",
       "name": "JAMIEN SHERWOOD",
       "position": "LB",
       "team": "NYJ",
@@ -1861,7 +2881,7 @@
       "points_2024": 237.8
     },
     {
-      "id": "9085002748814381047",
+      "id": "-3334471582978970694",
       "name": "ROQUAN SMITH",
       "position": "LB",
       "team": "BAL",
@@ -1873,7 +2893,7 @@
       "points_2024": 236.8
     },
     {
-      "id": "1782223622408479404",
+      "id": "-2776256523394043693",
       "name": "FRED WARNER",
       "position": "LB",
       "team": "SF",
@@ -1885,7 +2905,7 @@
       "points_2024": 236.5
     },
     {
-      "id": "8593987150882771503",
+      "id": "6495937041135240196",
       "name": "GERMAINE PRATT",
       "position": "LB",
       "team": "CIN",
@@ -1897,7 +2917,7 @@
       "points_2024": 232.0
     },
     {
-      "id": "-7115692440726134019",
+      "id": "-7757675816156519820",
       "name": "ERIC KENDRICKS",
       "position": "LB",
       "team": "DAL",
@@ -1909,7 +2929,7 @@
       "points_2024": 231.8
     },
     {
-      "id": "7941832040904844898",
+      "id": "3128630813302831772",
       "name": "JORDYN BROOKS",
       "position": "LB",
       "team": "MIA",
@@ -1921,7 +2941,7 @@
       "points_2024": 228.5
     },
     {
-      "id": "-1590736422791960560",
+      "id": "6694906193514828179",
       "name": "LAVONTE DAVID",
       "position": "LB",
       "team": "TB",
@@ -1933,7 +2953,7 @@
       "points_2024": 228.0
     },
     {
-      "id": "2315252012262724776",
+      "id": "5402483691865547298",
       "name": "DAIYAN HENLEY",
       "position": "LB",
       "team": "LAC",
@@ -1945,7 +2965,7 @@
       "points_2024": 225.5
     },
     {
-      "id": "-4420017558536252843",
+      "id": "-5290052056589219070",
       "name": "EJ SPEED",
       "position": "LB",
       "team": "IND",
@@ -1957,7 +2977,7 @@
       "points_2024": 225.2
     },
     {
-      "id": "1244612365974643754",
+      "id": "-2273383218044002269",
       "name": "TJ EDWARDS",
       "position": "LB",
       "team": "CHI",
@@ -1969,7 +2989,7 @@
       "points_2024": 218.8
     },
     {
-      "id": "-910084371642869749",
+      "id": "4563733442281527416",
       "name": "NAKOBE DEAN",
       "position": "LB",
       "team": "PHI",
@@ -1981,7 +3001,7 @@
       "points_2024": 216.0
     },
     {
-      "id": "5272216454275551227",
+      "id": "-5262740030859991321",
       "name": "ERNEST JONES",
       "position": "LB",
       "team": "SEA",
@@ -1993,7 +3013,7 @@
       "points_2024": 213.8
     },
     {
-      "id": "-6979155639326441374",
+      "id": "153943134599438719",
       "name": "DEMARIO DAVIS",
       "position": "LB",
       "team": "NO",
@@ -2005,7 +3025,7 @@
       "points_2024": 212.2
     },
     {
-      "id": "83900008445839271",
+      "id": "-3768184215724791926",
       "name": "BOBBY WAGNER",
       "position": "LB",
       "team": "WAS",
@@ -2017,7 +3037,7 @@
       "points_2024": 206.2
     },
     {
-      "id": "-5005378240955041625",
+      "id": "1992932845936068605",
       "name": "KYZIR WHITE",
       "position": "LB",
       "team": "ARI",
@@ -2029,7 +3049,7 @@
       "points_2024": 202.5
     },
     {
-      "id": "2711635223333494493",
+      "id": "-1281759228583844791",
       "name": "QUINCY WILLIAMS",
       "position": "LB",
       "team": "NYJ",
@@ -2041,7 +3061,7 @@
       "points_2024": 201.5
     },
     {
-      "id": "5497780625365252655",
+      "id": "-2760849714016576475",
       "name": "CHRISTIAN ROZEBOOM",
       "position": "LB",
       "team": "LAR",
@@ -2053,7 +3073,7 @@
       "points_2024": 200.8
     },
     {
-      "id": "132908209654768837",
+      "id": "-836552419254767200",
       "name": "PATRICK QUEEN",
       "position": "LB",
       "team": "PIT",
@@ -2065,7 +3085,7 @@
       "points_2024": 200.2
     },
     {
-      "id": "1004269158464512750",
+      "id": "-9125570650089049097",
       "name": "ANDREWAN GINKEL",
       "position": "LB",
       "team": "MIN",
@@ -2077,7 +3097,7 @@
       "points_2024": 199.5
     },
     {
-      "id": "-561583905376313763",
+      "id": "6722159091582294001",
       "name": "FRANKIE LUVU",
       "position": "LB",
       "team": "WAS",
@@ -2089,7 +3109,7 @@
       "points_2024": 192.0
     },
     {
-      "id": "9058262154886627819",
+      "id": "-6868953158365636632",
       "name": "BLAKE CASHMAN",
       "position": "LB",
       "team": "MIN",
@@ -2101,7 +3121,7 @@
       "points_2024": 192.0
     },
     {
-      "id": "-7776840027303022985",
+      "id": "2553968950913586914",
       "name": "JACK CAMPBELL",
       "position": "LB",
       "team": "DET",
@@ -2113,7 +3133,7 @@
       "points_2024": 192.0
     },
     {
-      "id": "-2482872798892141512",
+      "id": "6095056973672348906",
       "name": "NICK BOLTON",
       "position": "LB",
       "team": "KC",
@@ -2125,7 +3145,7 @@
       "points_2024": 191.8
     },
     {
-      "id": "6248971211362206498",
+      "id": "-2219261861043785148",
       "name": "TYREL DODSON",
       "position": "LB",
       "team": "MIA",
@@ -2137,7 +3157,7 @@
       "points_2024": 190.2
     },
     {
-      "id": "3629896487125741230",
+      "id": "-1231800228831875883",
       "name": "DEVIN LLOYD",
       "position": "LB",
       "team": "JAX",
@@ -2149,7 +3169,7 @@
       "points_2024": 182.8
     },
     {
-      "id": "6921657382457225694",
+      "id": "3694016794492041141",
       "name": "TREMAINE EDMUNDS",
       "position": "LB",
       "team": "CHI",
@@ -2161,7 +3181,7 @@
       "points_2024": 181.0
     },
     {
-      "id": "6214546974060094704",
+      "id": "1130997948687605172",
       "name": "JEREMY CHINN",
       "position": "DB",
       "team": "WAS",
@@ -2173,7 +3193,7 @@
       "points_2024": 365.5
     },
     {
-      "id": "7793200934064337181",
+      "id": "2645265563063585110",
       "name": "JOSH METELLUS",
       "position": "DB",
       "team": "MIN",
@@ -2185,7 +3205,7 @@
       "points_2024": 347.5
     },
     {
-      "id": "-5195490414577097785",
+      "id": "-8373985162716476334",
       "name": "BUDDA BAKER",
       "position": "DB",
       "team": "ARI",
@@ -2197,7 +3217,7 @@
       "points_2024": 254.8
     },
     {
-      "id": "-9013385095729682482",
+      "id": "-3171546330097462719",
       "name": "NICK CROSS",
       "position": "DB",
       "team": "IND",
@@ -2209,7 +3229,7 @@
       "points_2024": 243.0
     },
     {
-      "id": "-5200866815629937253",
+      "id": "7716610418551500824",
       "name": "BRIAN BRANCH",
       "position": "DB",
       "team": "DET",
@@ -2221,7 +3241,7 @@
       "points_2024": 224.2
     },
     {
-      "id": "8354210490913559617",
+      "id": "-4671964149777875477",
       "name": "KEVIN BYARD",
       "position": "DB",
       "team": "CHI",
@@ -2233,7 +3253,7 @@
       "points_2024": 218.5
     },
     {
-      "id": "3823634524858311655",
+      "id": "2177775850628547446",
       "name": "JESSIE BATES",
       "position": "DB",
       "team": "ATL",
@@ -2245,7 +3265,7 @@
       "points_2024": 213.5
     },
     {
-      "id": "-7308573987713198082",
+      "id": "6481110156868384477",
       "name": "BRANDON JONES",
       "position": "DB",
       "team": "DEN",
@@ -2257,7 +3277,7 @@
       "points_2024": 211.2
     },
     {
-      "id": "-4077468013512722273",
+      "id": "6098812598440913740",
       "name": "JULIAN LOVE",
       "position": "DB",
       "team": "SEA",
@@ -2269,7 +3289,7 @@
       "points_2024": 207.0
     },
     {
-      "id": "2707935330801459184",
+      "id": "3497242673747531736",
       "name": "KERBY JOSEPH",
       "position": "DB",
       "team": "DET",
@@ -2281,7 +3301,7 @@
       "points_2024": 203.5
     },
     {
-      "id": "-4595222515265889816",
+      "id": "4916769289247168786",
       "name": "KYLE HAMILTON",
       "position": "DB",
       "team": "BAL",
@@ -2293,7 +3313,7 @@
       "points_2024": 200.2
     },
     {
-      "id": "1537839721897876619",
+      "id": "5962793549533252272",
       "name": "XAVIER WOODS",
       "position": "DB",
       "team": "CAR",
@@ -2305,7 +3325,7 @@
       "points_2024": 200.0
     },
     {
-      "id": "-6027543299106492933",
+      "id": "5897750251915806540",
       "name": "XAVIER MCKINNEY",
       "position": "DB",
       "team": "GB",
@@ -2317,7 +3337,7 @@
       "points_2024": 197.0
     },
     {
-      "id": "-7736333758855025309",
+      "id": "1345670942574111260",
       "name": "DESHON ELLIOTT",
       "position": "DB",
       "team": "PIT",
@@ -2329,7 +3349,7 @@
       "points_2024": 185.0
     },
     {
-      "id": "-7601027752924023258",
+      "id": "-5772110186938909436",
       "name": "TREVON MOEHRIG",
       "position": "DB",
       "team": "LV",
@@ -2341,7 +3361,7 @@
       "points_2024": 183.0
     },
     {
-      "id": "6528152286374553481",
+      "id": "6350914638904708904",
       "name": "ALONTAE TAYLOR",
       "position": "DB",
       "team": "NO",
@@ -2353,7 +3373,7 @@
       "points_2024": 182.8
     },
     {
-      "id": "-9178434538683396163",
+      "id": "-1152855866553579228",
       "name": "QUENTIN LAKE",
       "position": "DB",
       "team": "LAR",
@@ -2365,7 +3385,7 @@
       "points_2024": 181.2
     },
     {
-      "id": "1385633939169202218",
+      "id": "1617302825452285315",
       "name": "DERWIN JAMES",
       "position": "DB",
       "team": "LAC",
@@ -2377,7 +3397,7 @@
       "points_2024": 176.5
     },
     {
-      "id": "1112842703377011261",
+      "id": "-2042505267519360606",
       "name": "MIKE SAINRISTIL",
       "position": "DB",
       "team": "WAS",
@@ -2389,7 +3409,7 @@
       "points_2024": 172.8
     },
     {
-      "id": "1034794464369307677",
+      "id": "-7844084404179287407",
       "name": "CAM TAYLOR BRITT",
       "position": "DB",
       "team": "CIN",

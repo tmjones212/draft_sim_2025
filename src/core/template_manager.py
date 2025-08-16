@@ -16,6 +16,7 @@ class DraftTemplate:
         self.team_states = {}
         self.player_pool = {}
         self.user_settings = {}
+        self.notes = ""
         
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -25,7 +26,8 @@ class DraftTemplate:
             "draft_results": self.draft_results,
             "team_states": self.team_states,
             "player_pool": self.player_pool,
-            "user_settings": self.user_settings
+            "user_settings": self.user_settings,
+            "notes": self.notes
         }
     
     @classmethod
@@ -37,6 +39,7 @@ class DraftTemplate:
         template.team_states = data.get("team_states", {})
         template.player_pool = data.get("player_pool", {})
         template.user_settings = data.get("user_settings", {})
+        template.notes = data.get("notes", "")
         return template
 
 
@@ -178,4 +181,23 @@ class TemplateManager:
             return True
         except Exception as e:
             print(f"Error deleting template: {e}")
+            return False
+    
+    def update_template_notes(self, filename: str, notes: str) -> bool:
+        """Update the notes for a template"""
+        try:
+            template = self.load_template(filename)
+            if not template:
+                return False
+            
+            template.notes = notes
+            
+            # Write back to file
+            filepath = os.path.join(self.templates_dir, filename)
+            with open(filepath, 'w') as f:
+                json.dump(template.to_dict(), f, indent=2)
+            
+            return True
+        except Exception as e:
+            print(f"Error updating template notes: {e}")
             return False

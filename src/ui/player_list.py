@@ -14,8 +14,9 @@ from ..nfc_adp_fetcher import NFCADPFetcher
 
 
 class PlayerList(StyledFrame):
-    def __init__(self, parent, on_select: Optional[Callable] = None, on_draft: Optional[Callable] = None, on_adp_change: Optional[Callable] = None, image_service=None, **kwargs):
+    def __init__(self, parent, on_select: Optional[Callable] = None, on_draft: Optional[Callable] = None, on_adp_change: Optional[Callable] = None, image_service=None, parent_app=None, **kwargs):
         super().__init__(parent, bg_type='secondary', **kwargs)
+        self.parent_app = parent_app  # Store reference to main app for template viewer
         self.on_select = on_select
         self.on_draft = on_draft
         self.on_adp_change = on_adp_change
@@ -229,7 +230,8 @@ class PlayerList(StyledFrame):
             ('Proj Rank', 85, 'position_rank_proj'),  # Added 10px
             ('Proj Pts', 75, 'points_2025_proj'),  # Added 10px
             ('VAR', 60, 'var'),  # Added 10px
-            ('Vegas', 160, None)  # Vegas props column - reduced to accommodate SOS
+            ('Temps', 50, None),  # View Temps button column  
+            ('Vegas', 140, None)  # Vegas props column - reduced to accommodate Temps button
         ]
         
         for text, width, sort_key in headers:
@@ -1001,6 +1003,35 @@ class PlayerList(StyledFrame):
         # VAR
         var_text = f"{player.var:.0f}" if hasattr(player, 'var') and player.var is not None else '-'
         self.create_cell(row, var_text, 60, bg, select_row, field_type='var')
+        
+        # View Temps button
+        temps_frame = tk.Frame(row, bg=bg, width=50)
+        temps_frame.pack(side='left', fill='y')
+        temps_frame.pack_propagate(False)
+        
+        if self.parent_app and hasattr(self.parent_app, 'show_template_viewer'):
+            view_temps_btn = tk.Button(
+                temps_frame,
+                text="Temps",
+                bg=DARK_THEME['button_bg'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 8),
+                command=lambda p=player: self.parent_app.show_template_viewer(filter_player=p),
+                activebackground=DARK_THEME['button_active'],
+                borderwidth=0,
+                padx=2,
+                pady=1,
+                cursor='hand2'
+            )
+            view_temps_btn.pack(expand=True)
+            view_temps_btn.bind('<Enter>', lambda e, btn=view_temps_btn: btn.config(bg=DARK_THEME['button_active']))
+            view_temps_btn.bind('<Leave>', lambda e, btn=view_temps_btn: btn.config(bg=DARK_THEME['button_bg']))
+        else:
+            # If no parent_app, just show empty cell
+            empty_label = tk.Label(temps_frame, text="", bg=bg)
+            empty_label.pack(expand=True)
+        
+        temps_frame.bind('<Button-1>', select_row)
         
         # Vegas Props
         vegas_text = self.vegas_props_service.get_summary_string(player.name)

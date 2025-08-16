@@ -23,6 +23,8 @@ from src.utils.player_extensions import format_name
 from src.services.player_pool_service import PlayerPoolService
 from src.services.draft_save_manager import DraftSaveManager
 from src.services.draft_preset_manager import DraftPresetManager
+from src.services.draft_trade_service import DraftTradeService
+from src.ui.trade_dialog import TradeDialog
 # from src.services.draft_history_manager import DraftHistoryManager  # Removed - using templates
 
 
@@ -46,13 +48,17 @@ class MockDraftApp:
         if not self.draft_preset_manager.list_preset_names():
             self.draft_preset_manager.create_default_preset()
         
+        # Initialize draft trade service
+        self.trade_service = DraftTradeService()
+        
         # Initialize draft components
         self.teams = self._create_teams()
         self.draft_engine = DraftEngine(
             num_teams=config.num_teams,
             roster_spots=config.roster_spots,
             draft_type=config.draft_type,
-            reversal_round=config.reversal_round
+            reversal_round=config.reversal_round,
+            trade_service=self.trade_service
         )
         
         # Initialize players as empty lists - will be loaded in background
@@ -263,6 +269,18 @@ class MockDraftApp:
         )
         self.repick_button.pack(side='left', padx=(0, 10))
         
+        # Trades button
+        self.trades_button = StyledButton(
+            button_container,
+            text="TRADES",
+            command=self.show_trades_dialog,
+            bg=DARK_THEME['button_bg'],
+            font=(DARK_THEME['font_family'], 11, 'bold'),
+            padx=20,
+            pady=10
+        )
+        self.trades_button.pack(side='left', padx=(0, 10))
+        
         # Update NFC ADP button
         self.update_nfc_button = StyledButton(
             button_container,
@@ -424,6 +442,7 @@ class MockDraftApp:
             get_top_players=self.get_top_available_players,
             image_service=self.image_service,
             on_draft_name_change=self.on_draft_name_change,
+            trade_service=self.trade_service,
             # on_draft_load removed - using templates instead
             get_draft_list=self.get_draft_list
         )
@@ -439,7 +458,7 @@ class MockDraftApp:
         # Bottom section - Available players
         player_panel = StyledFrame(paned_window, bg_type='secondary')
         
-        self.player_list = PlayerList(player_panel, on_draft=self.draft_player, on_adp_change=self.on_adp_change, image_service=self.image_service)
+        self.player_list = PlayerList(player_panel, on_draft=self.draft_player, on_adp_change=self.on_adp_change, image_service=self.image_service, parent_app=self)
         self.player_list.pack(fill='both', expand=True, padx=10, pady=10)
         
         # Apply custom rankings if they were already loaded
@@ -1325,8 +1344,17 @@ class MockDraftApp:
         if hasattr(self.player_list, 'disable_draft_buttons'):
             self.player_list.disable_draft_buttons()
     
-    def restart_draft(self):
-        """Reset the draft but keep user team selection"""
+    def restart_draft(self, skip_confirmation=False):
+        """Reset the draft but keep user team selection
+        
+        Args:
+            skip_confirmation: If True, skip the confirmation dialog
+        """
+        # Ask for confirmation unless skipped
+        if not skip_confirmation:
+            if not messagebox.askyesno("Restart Draft", "Are you sure you want to restart the draft?"):
+                return
+        
         # Save current user team selection
         saved_user_team = self.user_team_id
         
@@ -1336,12 +1364,13 @@ class MockDraftApp:
         # Reset teams
         self.teams = self._create_teams()
         
-        # Reset draft engine
+        # Reset draft engine (keep trade service)
         self.draft_engine = DraftEngine(
             num_teams=config.num_teams,
             roster_spots=config.roster_spots,
             draft_type=config.draft_type,
-            reversal_round=config.reversal_round
+            reversal_round=config.reversal_round,
+            trade_service=self.trade_service
         )
         
         # Reset players - load in background if needed
@@ -1435,12 +1464,13 @@ class MockDraftApp:
         # Reset teams
         self.teams = self._create_teams()
         
-        # Reset draft engine
+        # Reset draft engine (keep trade service)
         self.draft_engine = DraftEngine(
             num_teams=config.num_teams,
             roster_spots=config.roster_spots,
             draft_type=config.draft_type,
-            reversal_round=config.reversal_round
+            reversal_round=config.reversal_round,
+            trade_service=self.trade_service
         )
         
         # Reset players - load in background if needed
@@ -2263,11 +2293,15 @@ class MockDraftApp:
         # Save on Enter
         entry.bind('<Return>', lambda e: save())
     
-    def show_template_viewer(self):
-        """Show dialog with all templates and their team rosters"""
+    def show_template_viewer(self, filter_player=None):
+        """Show dialog with all templates and their team rosters
+        
+        Args:
+            filter_player: Optional player to filter templates by (only show templates with this player drafted)
+        """
         dialog = tk.Toplevel(self.root)
         dialog.title("Template Viewer")
-        dialog.geometry("1200x700")
+        dialog.geometry("1400x900")
         dialog.configure(bg=DARK_THEME['bg_primary'])
         
         # Center dialog on parent
@@ -2276,27 +2310,89 @@ class MockDraftApp:
         
         # Center the dialog on parent window
         dialog.update_idletasks()
-        x = (self.root.winfo_x() + (self.root.winfo_width() // 2) - 600)
-        y = (self.root.winfo_y() + (self.root.winfo_height() // 2) - 350)
-        dialog.geometry(f"1200x700+{x}+{y}")
+        x = (self.root.winfo_x() + (self.root.winfo_width() // 2) - 700)
+        y = (self.root.winfo_y() + (self.root.winfo_height() // 2) - 450)
+        dialog.geometry(f"1400x900+{x}+{y}")
         
         # Main container with padding
         main_frame = tk.Frame(dialog, bg=DARK_THEME['bg_primary'])
         main_frame.pack(fill='both', expand=True, padx=20, pady=20)
         
-        # Title
+        # Create notebook for different views
+        notebook = ttk.Notebook(main_frame)
+        notebook.pack(fill='both', expand=True)
+        
+        # Tab 1: Template List View
+        list_view_frame = tk.Frame(notebook, bg=DARK_THEME['bg_primary'])
+        notebook.add(list_view_frame, text="Template List")
+        
+        # Tab 2: Side-by-Side Comparison
+        comparison_frame = tk.Frame(notebook, bg=DARK_THEME['bg_primary'])
+        notebook.add(comparison_frame, text="Compare Templates")
+        
+        # Title for list view
+        if filter_player:
+            title_text = f"Templates where you drafted {filter_player.name} - Click to preview, Double-click to load"
+        else:
+            title_text = "Template Viewer - Drag to reorder, Click to preview, Double-click to load"
+        
         title_label = tk.Label(
-            main_frame,
-            text="Template Viewer - Click to preview, Double-click to load",
+            list_view_frame,
+            text=title_text,
             bg=DARK_THEME['bg_primary'],
             fg=DARK_THEME['text_primary'],
             font=(DARK_THEME['font_family'], 14, 'bold')
         )
-        title_label.pack(pady=(0, 15))
+        title_label.pack(pady=(10, 5))
+        
+        # Add filter controls
+        filter_frame = tk.Frame(list_view_frame, bg=DARK_THEME['bg_primary'])
+        filter_frame.pack(fill='x', padx=20, pady=(0, 10))
+        
+        # Position filter
+        tk.Label(
+            filter_frame,
+            text="Filter by early picks:",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 10)
+        ).pack(side='left', padx=(0, 10))
+        
+        filter_var = tk.StringVar(value="All")
+        filter_options = [
+            "All",
+            "R1 RB", "R1 WR", "R1 TE", "R1 QB",
+            "RB-RB (R1-2)", "WR-WR (R1-2)", "RB-WR (R1-2)", "WR-RB (R1-2)",
+            "3 RBs (R1-3)", "3 WRs (R1-3)", "Zero RB (R1-3)"
+        ]
+        
+        filter_menu = ttk.Combobox(
+            filter_frame,
+            textvariable=filter_var,
+            values=filter_options,
+            state='readonly',
+            width=20
+        )
+        filter_menu.pack(side='left')
+        
+        # Clear filter button
+        clear_filter_btn = tk.Button(
+            filter_frame,
+            text="Clear Filter",
+            bg=DARK_THEME['button_bg'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 9),
+            command=lambda: filter_var.set("All"),
+            activebackground=DARK_THEME['button_active'],
+            borderwidth=0,
+            padx=10,
+            pady=3
+        )
+        clear_filter_btn.pack(side='left', padx=10)
         
         # Create paned window for template list and team view
         paned = tk.PanedWindow(
-            main_frame,
+            list_view_frame,
             orient='horizontal',
             bg=DARK_THEME['bg_secondary'],
             sashwidth=8,
@@ -2318,7 +2414,7 @@ class MockDraftApp:
         )
         list_header.pack(pady=(10, 5))
         
-        # Template listbox with scrollbar
+        # Template listbox with scrollbar (with drag-and-drop support)
         list_container = tk.Frame(left_frame, bg=DARK_THEME['bg_secondary'])
         list_container.pack(fill='both', expand=True, padx=10, pady=5)
         
@@ -2339,13 +2435,31 @@ class MockDraftApp:
         template_listbox.pack(side='left', fill='both', expand=True)
         scrollbar.config(command=template_listbox.yview)
         
-        # Right side - Team roster view
+        # Variables for drag-and-drop
+        drag_start_index = None
+        template_order = []  # Store template order
+        
+        # Right side - Team roster view and notes
         right_frame = tk.Frame(paned, bg=DARK_THEME['bg_secondary'])
         paned.add(right_frame, minsize=700)
         
+        # Create vertical paned window for roster and notes
+        right_paned = tk.PanedWindow(
+            right_frame,
+            orient='vertical',
+            bg=DARK_THEME['bg_secondary'],
+            sashwidth=8,
+            showhandle=False
+        )
+        right_paned.pack(fill='both', expand=True)
+        
+        # Top frame for roster
+        roster_frame = tk.Frame(right_paned, bg=DARK_THEME['bg_secondary'])
+        right_paned.add(roster_frame, minsize=350)
+        
         # Team roster header
         roster_header = tk.Label(
-            right_frame,
+            roster_frame,
             text="Your Team in Selected Template",
             bg=DARK_THEME['bg_secondary'],
             fg=DARK_THEME['text_primary'],
@@ -2354,7 +2468,7 @@ class MockDraftApp:
         roster_header.pack(pady=(10, 5))
         
         # Roster display area with scrollbar
-        roster_container = tk.Frame(right_frame, bg=DARK_THEME['bg_secondary'])
+        roster_container = tk.Frame(roster_frame, bg=DARK_THEME['bg_secondary'])
         roster_container.pack(fill='both', expand=True, padx=10, pady=5)
         
         roster_scroll = tk.Scrollbar(roster_container, bg=DARK_THEME['bg_tertiary'])
@@ -2373,26 +2487,230 @@ class MockDraftApp:
         roster_text.pack(side='left', fill='both', expand=True)
         roster_scroll.config(command=roster_text.yview)
         
+        # Bottom frame for notes
+        notes_frame = tk.Frame(right_paned, bg=DARK_THEME['bg_secondary'])
+        right_paned.add(notes_frame, minsize=150)
+        
+        # Notes header with save button
+        notes_header_frame = tk.Frame(notes_frame, bg=DARK_THEME['bg_secondary'])
+        notes_header_frame.pack(fill='x', pady=(10, 5), padx=10)
+        
+        notes_header = tk.Label(
+            notes_header_frame,
+            text="Template Notes",
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 12, 'bold')
+        )
+        notes_header.pack(side='left')
+        
+        save_notes_btn = tk.Button(
+            notes_header_frame,
+            text="Save Notes",
+            bg=DARK_THEME['button_bg'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 9),
+            command=lambda: save_notes(),
+            activebackground=DARK_THEME['button_active'],
+            borderwidth=0,
+            padx=10,
+            pady=3
+        )
+        save_notes_btn.pack(side='right')
+        
+        # Notes text area
+        notes_container = tk.Frame(notes_frame, bg=DARK_THEME['bg_secondary'])
+        notes_container.pack(fill='both', expand=True, padx=10, pady=5)
+        
+        notes_scroll = tk.Scrollbar(notes_container, bg=DARK_THEME['bg_tertiary'])
+        notes_scroll.pack(side='right', fill='y')
+        
+        notes_text = tk.Text(
+            notes_container,
+            bg=DARK_THEME['bg_tertiary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            wrap='word',
+            yscrollcommand=notes_scroll.set,
+            height=8
+        )
+        notes_text.pack(side='left', fill='both', expand=True)
+        notes_scroll.config(command=notes_text.yview)
+        
         # Store template data
         templates = self.template_manager.list_templates()
         template_data = {}
+        template_metadata = {}  # Store extra info about templates
+        current_template_filename = None
         
-        # Load templates and populate list
-        for t in templates:
-            template_listbox.insert('end', t['name'])
-            # Load template data
-            template = self.template_manager.load_template(t['filename'])
-            if template:
-                template_data[t['name']] = template
+        def check_template_filter(template, filter_type):
+            """Check if template matches the selected filter"""
+            if filter_type == "All":
+                return True
+            
+            user_team_id = template.user_settings.get('user_team_id')
+            
+            # Get player data
+            player_dict = {p['player_id']: p for p in template.player_pool['all_players']}
+            
+            # Get user's first 3 picks
+            user_picks = []
+            for pick in template.draft_results:
+                if pick['team_id'] == user_team_id and pick['player_id']:
+                    if pick['player_id'] in player_dict:
+                        p = player_dict[pick['player_id']]
+                        user_picks.append({
+                            'round': pick['round'],
+                            'position': p['position'],
+                            'name': p['name']
+                        })
+                    if len(user_picks) >= 3:
+                        break
+            
+            if not user_picks:
+                return False
+            
+            # Check filters
+            if filter_type == "R1 RB":
+                return len(user_picks) > 0 and user_picks[0]['round'] == 1 and user_picks[0]['position'] == 'RB'
+            elif filter_type == "R1 WR":
+                return len(user_picks) > 0 and user_picks[0]['round'] == 1 and user_picks[0]['position'] == 'WR'
+            elif filter_type == "R1 TE":
+                return len(user_picks) > 0 and user_picks[0]['round'] == 1 and user_picks[0]['position'] == 'TE'
+            elif filter_type == "R1 QB":
+                return len(user_picks) > 0 and user_picks[0]['round'] == 1 and user_picks[0]['position'] == 'QB'
+            elif filter_type == "RB-RB (R1-2)":
+                return (len(user_picks) >= 2 and 
+                       user_picks[0]['position'] == 'RB' and 
+                       user_picks[1]['position'] == 'RB')
+            elif filter_type == "WR-WR (R1-2)":
+                return (len(user_picks) >= 2 and 
+                       user_picks[0]['position'] == 'WR' and 
+                       user_picks[1]['position'] == 'WR')
+            elif filter_type == "RB-WR (R1-2)":
+                return (len(user_picks) >= 2 and 
+                       user_picks[0]['position'] == 'RB' and 
+                       user_picks[1]['position'] == 'WR')
+            elif filter_type == "WR-RB (R1-2)":
+                return (len(user_picks) >= 2 and 
+                       user_picks[0]['position'] == 'WR' and 
+                       user_picks[1]['position'] == 'RB')
+            elif filter_type == "3 RBs (R1-3)":
+                rb_count = sum(1 for p in user_picks[:3] if p['position'] == 'RB')
+                return rb_count == 3
+            elif filter_type == "3 WRs (R1-3)":
+                wr_count = sum(1 for p in user_picks[:3] if p['position'] == 'WR')
+                return wr_count == 3
+            elif filter_type == "Zero RB (R1-3)":
+                rb_count = sum(1 for p in user_picks[:3] if p['position'] == 'RB')
+                return rb_count == 0
+            
+            return False
+        
+        def load_templates_to_list():
+            """Load templates into the listbox based on current filter"""
+            nonlocal template_order
+            
+            # Clear listbox
+            template_listbox.delete(0, 'end')
+            
+            # Get current filter
+            current_filter = filter_var.get()
+            
+            # Load templates
+            templates_found = 0
+            temp_list = []
+            
+            for t in templates:
+                # Load template data
+                template = self.template_manager.load_template(t['filename'])
+                if template:
+                    should_include = True
+                    
+                    # Check if we should filter by player
+                    if filter_player and filter_player.player_id:
+                        # Get the user's team ID from this template
+                        user_team_id = template.user_settings.get('user_team_id')
+                        
+                        # Check if this player was drafted BY THE USER in this template
+                        player_on_user_team = False
+                        target_id = str(filter_player.player_id)
+                        
+                        # Check all draft picks by the user's team
+                        for pick in template.draft_results:
+                            # Only check picks made by the user's team
+                            if pick.get('team_id') == user_team_id and pick.get('player_id'):
+                                if str(pick['player_id']) == target_id:
+                                    player_on_user_team = True
+                                    break
+                        
+                        should_include = player_on_user_team
+                    
+                    # Apply position filter
+                    if should_include and current_filter != "All":
+                        should_include = check_template_filter(template, current_filter)
+                    
+                    if should_include:
+                        template_data[t['name']] = template
+                        template_metadata[t['name']] = t
+                        temp_list.append(t['name'])
+                        templates_found += 1
+            
+            # Use saved order if available, otherwise alphabetical
+            if template_order:
+                # Reorder based on saved order
+                ordered_list = []
+                for name in template_order:
+                    if name in temp_list:
+                        ordered_list.append(name)
+                # Add any new templates not in order
+                for name in temp_list:
+                    if name not in ordered_list:
+                        ordered_list.append(name)
+                temp_list = ordered_list
+            else:
+                template_order = temp_list[:]
+            
+            # Populate listbox
+            for name in temp_list:
+                template_listbox.insert('end', name)
+            
+            return templates_found
+        
+        # Load templates initially
+        templates_found = load_templates_to_list()
+        
+        # Show appropriate message based on results
+        if templates_found == 0:
+            if filter_player:
+                template_listbox.insert('end', f'No templates where you drafted {filter_player.name}')
+                template_listbox.insert('end', '')
+                template_listbox.insert('end', 'This player is either:')
+                template_listbox.insert('end', '  • Not on your team in any saved template')
+                template_listbox.insert('end', '  • Drafted by other teams')
+            else:
+                template_listbox.insert('end', 'No saved templates found')
+                template_listbox.insert('end', '')
+                template_listbox.insert('end', 'Save a template using the')
+                template_listbox.insert('end', 'Save Template button to see it here')
         
         def on_template_select(event=None):
-            """Display selected template's team roster"""
+            """Display selected template's team roster and notes"""
+            nonlocal current_template_filename
+            
             selection = template_listbox.curselection()
             if not selection:
                 return
             
             template_name = template_listbox.get(selection[0])
             template = template_data.get(template_name)
+            
+            # Get the filename for this template
+            current_template_filename = None
+            for t in templates:
+                if t['name'] == template_name:
+                    current_template_filename = t['filename']
+                    break
             
             if not template:
                 return
@@ -2457,9 +2775,132 @@ class MockDraftApp:
                                  foreground=DARK_THEME['text_primary'])
             
             roster_text.config(state='disabled')
+            
+            # Display notes
+            notes_text.delete('1.0', 'end')
+            if template:
+                notes_text.insert('1.0', template.notes)
+        
+        # Function to save notes
+        def save_notes():
+            if current_template_filename:
+                notes_content = notes_text.get('1.0', 'end-1c')
+                if self.template_manager.update_template_notes(current_template_filename, notes_content):
+                    # Update the template data in memory
+                    selection = template_listbox.curselection()
+                    if selection:
+                        template_name = template_listbox.get(selection[0])
+                        if template_name in template_data:
+                            template_data[template_name].notes = notes_content
+                    messagebox.showinfo("Success", "Notes saved successfully")
+                else:
+                    messagebox.showerror("Error", "Failed to save notes")
+            else:
+                messagebox.showwarning("No Selection", "Please select a template first")
         
         # Bind selection event
         template_listbox.bind('<<ListboxSelect>>', on_template_select)
+        
+        # Bind filter change
+        def on_filter_change(*args):
+            load_templates_to_list()
+            # Auto-select first if available
+            if template_listbox.size() > 0:
+                template_listbox.selection_set(0)
+                on_template_select()
+        
+        filter_var.trace_add('write', on_filter_change)
+        
+        # Add drag-and-drop functionality
+        def on_drag_start(event):
+            nonlocal drag_start_index
+            # Get the index of the item under the cursor
+            drag_start_index = template_listbox.nearest(event.y)
+            template_listbox.selection_clear(0, 'end')
+            template_listbox.selection_set(drag_start_index)
+        
+        def on_drag_motion(event):
+            if drag_start_index is None:
+                return
+            
+            # Get current position
+            current_index = template_listbox.nearest(event.y)
+            
+            # Visual feedback - highlight the position
+            template_listbox.selection_clear(0, 'end')
+            template_listbox.selection_set(current_index)
+        
+        def on_drag_release(event):
+            nonlocal drag_start_index, template_order
+            
+            if drag_start_index is None:
+                return
+            
+            # Get the index where we're dropping
+            drop_index = template_listbox.nearest(event.y)
+            
+            if drag_start_index != drop_index:
+                # Get the item being moved
+                item = template_listbox.get(drag_start_index)
+                
+                # Update template_order
+                template_order.pop(drag_start_index)
+                template_order.insert(drop_index, item)
+                
+                # Save order to file
+                save_template_order()
+                
+                # Refresh the list
+                load_templates_to_list()
+                
+                # Re-select the moved item
+                template_listbox.selection_set(drop_index)
+                on_template_select()
+            
+            drag_start_index = None
+        
+        def save_template_order():
+            """Save template order to a file"""
+            import json
+            import os
+            
+            order_file = os.path.join(
+                os.path.dirname(__file__),
+                "data", "template_order.json"
+            )
+            
+            try:
+                os.makedirs(os.path.dirname(order_file), exist_ok=True)
+                with open(order_file, 'w') as f:
+                    json.dump(template_order, f)
+            except Exception as e:
+                print(f"Error saving template order: {e}")
+        
+        def load_template_order():
+            """Load template order from file"""
+            import json
+            import os
+            
+            order_file = os.path.join(
+                os.path.dirname(__file__),
+                "data", "template_order.json"
+            )
+            
+            if os.path.exists(order_file):
+                try:
+                    with open(order_file, 'r') as f:
+                        return json.load(f)
+                except:
+                    pass
+            return []
+        
+        # Load saved template order
+        template_order = load_template_order()
+        
+        # Bind drag events
+        template_listbox.bind('<Button-1>', on_drag_start)
+        template_listbox.bind('<B1-Motion>', on_drag_motion)
+        template_listbox.bind('<ButtonRelease-1>', on_drag_release)
         
         # Bind double-click to load
         def on_double_click(event=None):
@@ -2469,14 +2910,14 @@ class MockDraftApp:
                 template_name = template_listbox.get(selection[0])
                 template = template_data.get(template_name)
                 if template:
+                    dialog.destroy()  # Close dialog first
                     self.apply_template(template)
                     messagebox.showinfo("Success", f"Template '{template_name}' loaded successfully")
-                    dialog.destroy()
         
         template_listbox.bind('<Double-Button-1>', on_double_click)
         
-        # Button frame at bottom
-        button_frame = tk.Frame(main_frame, bg=DARK_THEME['bg_primary'])
+        # Button frame at bottom of list view
+        button_frame = tk.Frame(list_view_frame, bg=DARK_THEME['bg_primary'])
         button_frame.pack(pady=(15, 0))
         
         def load_selected():
@@ -2490,9 +2931,9 @@ class MockDraftApp:
             template = template_data.get(template_name)
             
             if template:
+                dialog.destroy()  # Close dialog first
                 self.apply_template(template)
                 messagebox.showinfo("Success", f"Template '{template_name}' loaded successfully")
-                dialog.destroy()
         
         # Load button
         load_btn = StyledButton(
@@ -2568,6 +3009,193 @@ class MockDraftApp:
         if template_listbox.size() > 0:
             template_listbox.selection_set(0)
             on_template_select()
+        
+        # Setup comparison view
+        self._setup_comparison_view(comparison_frame, template_data, templates)
+    
+    def _setup_comparison_view(self, parent_frame, template_data, templates):
+        """Setup the side-by-side comparison view for templates"""
+        # Title
+        title_label = tk.Label(
+            parent_frame,
+            text="Compare Templates Side-by-Side",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 14, 'bold')
+        )
+        title_label.pack(pady=(10, 5))
+        
+        # Instructions
+        instructions = tk.Label(
+            parent_frame,
+            text="Select up to 4 templates to compare their rosters",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 10)
+        )
+        instructions.pack(pady=(0, 10))
+        
+        # Template selection frame
+        selection_frame = tk.Frame(parent_frame, bg=DARK_THEME['bg_primary'])
+        selection_frame.pack(fill='x', padx=20, pady=10)
+        
+        # Get ALL templates for comparison view (not filtered)
+        all_templates = self.template_manager.list_templates()
+        template_names = []
+        all_template_data = {}
+        
+        # Load all template data
+        for t in all_templates:
+            template = self.template_manager.load_template(t['filename'])
+            if template:
+                template_names.append(t['name'])
+                all_template_data[t['name']] = template
+        
+        # Template dropdowns
+        selected_templates = []
+        
+        for i in range(4):
+            col_frame = tk.Frame(selection_frame, bg=DARK_THEME['bg_primary'])
+            col_frame.pack(side='left', padx=10)
+            
+            tk.Label(
+                col_frame,
+                text=f"Template {i+1}:",
+                bg=DARK_THEME['bg_primary'],
+                fg=DARK_THEME['text_secondary'],
+                font=(DARK_THEME['font_family'], 9)
+            ).pack()
+            
+            template_var = tk.StringVar()
+            template_dropdown = ttk.Combobox(
+                col_frame,
+                textvariable=template_var,
+                values=['None'] + template_names,
+                state='readonly',
+                width=25
+            )
+            template_dropdown.set('None')
+            template_dropdown.pack()
+            selected_templates.append(template_var)
+        
+        # Comparison display area
+        display_frame = tk.Frame(parent_frame, bg=DARK_THEME['bg_secondary'])
+        display_frame.pack(fill='both', expand=True, padx=20, pady=10)
+        
+        # Canvas for scrolling
+        canvas = tk.Canvas(display_frame, bg=DARK_THEME['bg_secondary'], highlightthickness=0)
+        scrollbar = tk.Scrollbar(display_frame, orient='vertical', command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=DARK_THEME['bg_secondary'])
+        
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
+        
+        canvas.pack(side='left', fill='both', expand=True)
+        scrollbar.pack(side='right', fill='y')
+        
+        def update_comparison():
+            """Simple table display"""
+            # Clear current display
+            for widget in scrollable_frame.winfo_children():
+                widget.destroy()
+            
+            # Get selected templates
+            active_templates = []
+            for var in selected_templates:
+                name = var.get()
+                if name and name != 'None' and name in all_template_data:
+                    active_templates.append((name, all_template_data[name]))
+            
+            if not active_templates:
+                tk.Label(
+                    scrollable_frame,
+                    text="Select templates above to compare",
+                    bg=DARK_THEME['bg_secondary'],
+                    fg=DARK_THEME['text_muted'],
+                    font=(DARK_THEME['font_family'], 12)
+                ).pack(pady=50)
+                return
+            
+            # SIMPLE TABLE
+            main_frame = tk.Frame(scrollable_frame, bg=DARK_THEME['bg_secondary'])
+            main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+            
+            # Define consistent column widths
+            pick_col_width = 10
+            template_col_width = 35
+            col_padding = 3
+            
+            # Header row
+            header_frame = tk.Frame(main_frame, bg=DARK_THEME['bg_tertiary'])
+            header_frame.pack(fill='x', pady=(0, 5))
+            
+            # Pick header
+            pick_header = tk.Label(header_frame, text="Pick", bg=DARK_THEME['bg_tertiary'], fg='white', 
+                    font=('Arial', 12, 'bold'), width=pick_col_width, anchor='w')
+            pick_header.pack(side='left', padx=col_padding, pady=10)
+            
+            # Template headers
+            for name, _ in active_templates:
+                template_header = tk.Label(header_frame, text=name[:30], bg=DARK_THEME['bg_tertiary'], fg='white',
+                        font=('Arial', 12, 'bold'), width=template_col_width, anchor='w')
+                template_header.pack(side='left', padx=col_padding, pady=10)
+            
+            # Get picks for each template  
+            template_picks = {}
+            max_picks = 0
+            
+            for name, template in active_templates:
+                user_team_id = template.user_settings.get('user_team_id', 0) 
+                players = {p['player_id']: p for p in template.player_pool['all_players']}
+                
+                picks = []
+                for pick in template.draft_results:
+                    if pick['team_id'] == user_team_id and pick['player_id'] in players:
+                        p = players[pick['player_id']]
+                        picks.append(f"{p['name']} ({p['position']})")
+                
+                template_picks[name] = picks
+                max_picks = max(max_picks, len(picks))
+            
+            # Display rows
+            for i in range(max_picks):
+                row_frame = tk.Frame(main_frame, bg=DARK_THEME['bg_primary'] if i % 2 == 0 else DARK_THEME['bg_secondary'])
+                row_frame.pack(fill='x', pady=1)
+                
+                # Pick number - same width as header
+                pick_label = tk.Label(row_frame, text=f"{i+1}", bg=row_frame['bg'], fg='white',
+                        font=('Arial', 11), width=pick_col_width, anchor='w')
+                pick_label.pack(side='left', padx=col_padding, pady=6)
+                
+                # Each template's pick - same width as header
+                for name, _ in active_templates:
+                    picks = template_picks.get(name, [])
+                    text = picks[i] if i < len(picks) else "-"
+                    data_label = tk.Label(row_frame, text=text, bg=row_frame['bg'], fg='white',
+                            font=('Arial', 11), width=template_col_width, anchor='w')
+                    data_label.pack(side='left', padx=col_padding, pady=6)
+            
+            # Update canvas scroll region
+            scrollable_frame.update_idletasks()
+            canvas.configure(scrollregion=canvas.bbox('all'))
+        
+        # Compare button
+        compare_btn = tk.Button(
+            selection_frame,
+            text="COMPARE",
+            bg=DARK_THEME['button_active'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10, 'bold'),
+            command=update_comparison,
+            activebackground=DARK_THEME['button_hover'],
+            borderwidth=0,
+            padx=20,
+            pady=5
+        )
+        compare_btn.pack(side='left', padx=20)
+        
+        # Initial empty display
+        update_comparison()
     
     def delete_template(self):
         """Delete the selected template"""
@@ -2637,6 +3265,9 @@ class MockDraftApp:
     
     def apply_template(self, template):
         """Apply a loaded template to restore draft state"""
+        # Reset the draft completely before applying template
+        self.restart_draft(skip_confirmation=True)
+        
         # Reset teams and draft engine with saved config
         config_data = template.draft_config
         self.teams = self._create_teams()
@@ -2734,8 +3365,9 @@ class MockDraftApp:
         # Update UI
         self.update_display(full_update=True, force_refresh=True)
         
-        # Update draft board
-        self.draft_board.update_picks(self.draft_engine.draft_results)
+        # Update draft board with current pick number
+        pick_num, _, _, _ = self.draft_engine.get_current_pick_info()
+        self.draft_board.update_picks(self.draft_engine.draft_results, pick_num)
         self.draft_board.highlight_current_pick()
         
         # Update status
@@ -3077,6 +3709,29 @@ class MockDraftApp:
                 f"Failed to load draft details: {str(e)}",
                 parent=self.root
             )
+    
+    def show_trades_dialog(self):
+        """Show dialog for configuring draft pick trades"""
+        def on_apply():
+            # Reset draft to apply trades
+            if self.draft_engine.draft_results:
+                response = messagebox.askyesno(
+                    "Apply Trades",
+                    "Applying trades will restart the draft. Continue?",
+                    parent=self.root
+                )
+                if response:
+                    self.restart_draft()
+            # Update draft board to show traded picks
+            self.draft_board.update_display()
+        
+        TradeDialog(
+            self.root,
+            num_teams=config.num_teams,
+            total_rounds=self.draft_engine.total_rounds,
+            trade_service=self.trade_service,
+            on_apply=on_apply
+        )
     
     def show_preset_dialog(self):
         """Show dialog for managing draft presets"""
