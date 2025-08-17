@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test ADP Values</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { margin: 10px; padding: 10px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .public { background-color: #e3f2fd; }
+        .private { background-color: #fff3e0; }
+        .player-info { font-weight: bold; }
+        .adp-value { color: #2196F3; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <h1>ADP Test Page</h1>
+    
+    <div>
+        <button id="loadBtn">1. Load Data</button>
+        <button id="publicBtn" disabled>2. Test Public ADP</button>
+        <button id="privateBtn" disabled>3. Test Private ADP</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/draftLogic.js"></script>
+    
+    <script>
+        let draftManager = null;
+        const resultsDiv = document.getElementById('results');
+        
+        document.getElementById('loadBtn').addEventListener('click', async () => {
+            resultsDiv.innerHTML = '<div class="result">Loading data...</div>';
+            
+            draftManager = new DraftManager();
+            await draftManager.loadPlayers();
+            
+            resultsDiv.innerHTML = '<div class="result">✅ Data loaded successfully!</div>';
+            document.getElementById('publicBtn').disabled = false;
+            document.getElementById('privateBtn').disabled = false;
+        });
+        
+        document.getElementById('publicBtn').addEventListener('click', async () => {
+            if (!draftManager) return;
+            
+            await draftManager.switchADPSource(false);
+            
+            const drake = draftManager.players.find(p => p.name === 'Drake London');
+            const henry = draftManager.players.find(p => p.name === 'Derrick Henry');
+            const lamar = draftManager.players.find(p => p.name === 'Lamar Jackson');
+            
+            let html = '<div class="result public">';
+            html += '<h2>PUBLIC ADP Mode</h2>';
+            html += '<div class="player-info">Drake London: <span class="adp-value">' + (drake ? drake.adp : 'NOT FOUND') + '</span> (should be 16)</div>';
+            html += '<div class="player-info">Derrick Henry: <span class="adp-value">' + (henry ? henry.adp : 'NOT FOUND') + '</span></div>';
+            html += '<div class="player-info">Lamar Jackson: <span class="adp-value">' + (lamar ? lamar.adp : 'NOT FOUND') + '</span></div>';
+            html += '<br>Top 5 players:<br>';
+            draftManager.availablePlayers.slice(0, 5).forEach(p => {
+                html += `${p.name} (${p.position}) - ADP: ${p.adp}<br>`;
+            });
+            html += '</div>';
+            
+            resultsDiv.innerHTML += html;
+        });
+        
+        document.getElementById('privateBtn').addEventListener('click', async () => {
+            if (!draftManager) return;
+            
+            await draftManager.switchADPSource(true);
+            
+            const drake = draftManager.players.find(p => p.name === 'Drake London');
+            const henry = draftManager.players.find(p => p.name === 'Derrick Henry');
+            const lamar = draftManager.players.find(p => p.name === 'Lamar Jackson');
+            
+            let html = '<div class="result private">';
+            html += '<h2>PRIVATE ADP Mode (with custom overrides)</h2>';
+            html += '<div class="player-info">Drake London: <span class="adp-value">' + (drake ? drake.adp : 'NOT FOUND') + '</span> (should be 19.25)</div>';
+            html += '<div class="player-info">Derrick Henry: <span class="adp-value">' + (henry ? henry.adp : 'NOT FOUND') + '</span> (should be 21)</div>';
+            html += '<div class="player-info">Lamar Jackson: <span class="adp-value">' + (lamar ? lamar.adp : 'NOT FOUND') + '</span> (should be 18)</div>';
+            html += '<br>Top 5 players:<br>';
+            draftManager.availablePlayers.slice(0, 5).forEach(p => {
+                html += `${p.name} (${p.position}) - ADP: ${p.adp}<br>`;
+            });
+            html += '</div>';
+            
+            resultsDiv.innerHTML += html;
+        });
+    </script>
+</body>
+</html>

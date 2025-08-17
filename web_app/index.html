@@ -15,6 +15,7 @@
                 <button id="restartBtn" class="btn btn-primary">Restart Draft</button>
                 <button id="repickSpotBtn" class="btn btn-secondary">Repick Spot</button>
                 <button id="undoBtn" class="btn btn-secondary">Undo</button>
+                <button id="adpToggleBtn" class="btn btn-secondary" title="Click to switch ADP source">ADP: Public</button>
                 <button id="settingsBtn" class="btn btn-secondary">Settings</button>
             </div>
         </div>
@@ -87,7 +88,6 @@
                 <!-- Current Pick Info -->
                 <div class="current-pick-info">
                     <div id="currentPickDisplay"></div>
-                    <div id="timerDisplay"></div>
                 </div>
             </div>
 
@@ -207,13 +207,6 @@
         <div class="modal-content">
             <h2>Settings</h2>
             <div class="settings-form">
-                <label>
-                    <input type="checkbox" id="autoPickEnabled"> Enable Auto-Pick
-                </label>
-                <label>
-                    Timer (seconds):
-                    <input type="number" id="timerSeconds" min="5" max="300" value="90">
-                </label>
                 <label>
                     <input type="checkbox" id="soundEnabled"> Enable Sounds
                 </label>

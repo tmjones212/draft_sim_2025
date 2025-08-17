@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Drake London ADP</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .section { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+        .highlight { background-color: yellow; }
+        pre { background: #f4f4f4; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Debug Drake London ADP Issue</h1>
+    
+    <button onclick="runTest()">Run Test</button>
+    
+    <div id="output"></div>
+    
+    <script>
+        async function runTest() {
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+            
+            // Step 1: Load raw data files
+            output.innerHTML += '<div class="section"><h2>Step 1: Loading Raw Data Files</h2>';
+            
+            const players2025Resp = await fetch('data/players_2025.json');
+            const players2025 = await players2025Resp.json();
+            const playersArray = players2025.players || players2025;
+            
+            const customAdpResp = await fetch('data/custom_adp.json');
+            const customADP = await customAdpResp.json();
+            
+            // Find Drake London in raw data
+            const drakeLondonRaw = playersArray.find(p => p.name === 'Drake London');
+            
+            output.innerHTML += `
+                <pre>
+Drake London from players_2025.json:
+  player_id: ${drakeLondonRaw.player_id}
+  base ADP: ${drakeLondonRaw.adp}
+  
+Custom ADP for player ${drakeLondonRaw.player_id}: ${customADP[drakeLondonRaw.player_id]}
+                </pre>
+            </div>`;
+            
+            // Step 2: Test with actual DraftManager
+            output.innerHTML += '<div class="section"><h2>Step 2: Testing with DraftManager</h2>';
+            
+            // Load the scripts
+            const scripts = ['js/config.js', 'js/utils.js', 'js/draftLogic.js'];
+            for (const script of scripts) {
+                await new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = script;
+                    s.onload = resolve;
+                    s.onerror = reject;
+                    document.body.appendChild(s);
+                });
+            }
+            
+            // Create DraftManager and test both modes
+            const dm = new DraftManager();
+            
+            // Load with public mode (default)
+            await dm.loadPlayers();
+            const drakePublic = dm.players.find(p => p.name === 'Drake London');
+            
+            output.innerHTML += `
+                <h3>After loadPlayers() - PUBLIC mode (default):</h3>
+                <pre>
+usePrivateADP: ${dm.usePrivateADP}
+Drake London ADP: ${drakePublic ? drakePublic.adp : 'NOT FOUND'}
+Players array type: ${dm.usePrivateADP ? 'privatePlayersData' : 'publicPlayersData'}
+Total players: ${dm.players.length}
+                </pre>`;
+            
+            // Switch to private mode
+            await dm.switchADPSource(true);
+            const drakePrivate = dm.players.find(p => p.name === 'Drake London');
+            
+            output.innerHTML += `
+                <h3>After switchADPSource(true) - PRIVATE mode:</h3>
+                <pre>
+usePrivateADP: ${dm.usePrivateADP}
+Drake London ADP: ${drakePrivate ? drakePrivate.adp : 'NOT FOUND'}
+Drake London player_id: ${drakePrivate ? drakePrivate.player_id : 'N/A'}
+Custom ADP loaded: ${Object.keys(dm.customADP).length} entries
+Custom ADP for Drake (8112): ${dm.customADP['8112']}
+                </pre>`;
+            
+            // Check if Drake London exists in both data sources
+            output.innerHTML += `
+                <h3>Data Source Analysis:</h3>
+                <pre>
+privatePlayersData has Drake: ${dm.privatePlayersData ? !!dm.privatePlayersData.find(p => p.name === 'Drake London') : 'No data'}
+publicPlayersData has Drake: ${dm.publicPlayersData ? !!dm.publicPlayersData.find(p => p.name === 'Drake London') : 'No data'}
+                </pre>`;
+            
+            // Try to find out what's different
+            if (drakePrivate && drakePrivate.adp !== 19.25) {
+                output.innerHTML += `
+                    <div class="highlight">
+                        <h3>⚠️ ISSUE DETECTED:</h3>
+                        <pre>
+Drake London in private mode shows ADP ${drakePrivate.adp} instead of 19.25
+Expected: base ADP 16 -> custom ADP 19.25
+Actual: ${drakePrivate.original_adp} -> ${drakePrivate.adp}
+                        </pre>
+                    </div>`;
+                
+                // Check the player list for Drake-like names
+                const drakeLike = dm.players.filter(p => p.name && p.name.includes('Drake'));
+                output.innerHTML += `
+                    <h3>All players with "Drake" in name:</h3>
+                    <pre>${drakeLike.map(p => `${p.name} (ID: ${p.player_id}, ADP: ${p.adp})`).join('\n')}</pre>`;
+            }
+            
+            output.innerHTML += '</div>';
+        }
+    </script>
+</body>
+</html>

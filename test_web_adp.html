@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test ADP Values</title>
+</head>
+<body>
+    <h1>Testing ADP Values</h1>
+    <button id="testBtn">Load and Test</button>
+    <div id="results"></div>
+
+    <script>
+        async function testADP() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>Testing...</h2>';
+            
+            // Load players_2025.json
+            const playersResp = await fetch('http://localhost:8000/data/players_2025.json');
+            const playersData = await playersResp.json();
+            const players = playersData.players || playersData;
+            
+            // Load custom_adp.json
+            const customResp = await fetch('http://localhost:8000/data/custom_adp.json');
+            const customADP = await customResp.json();
+            
+            // Find Drake London
+            const drakeLondon = players.find(p => p.name === 'Drake London');
+            
+            let html = '<h2>Results:</h2>';
+            html += '<h3>Drake London Data:</h3>';
+            html += '<ul>';
+            html += `<li>Player ID: ${drakeLondon.player_id}</li>`;
+            html += `<li>Base ADP: ${drakeLondon.adp}</li>`;
+            html += `<li>Custom ADP from file: ${customADP[drakeLondon.player_id]}</li>`;
+            html += '</ul>';
+            
+            // Now test the actual DraftManager
+            html += '<h3>Testing DraftManager:</h3>';
+            
+            // Load the actual app scripts
+            const scriptPaths = [
+                'js/config.js',
+                'js/utils.js',
+                'js/draftLogic.js'
+            ];
+            
+            for (const path of scriptPaths) {
+                const script = document.createElement('script');
+                script.src = 'http://localhost:8000/' + path;
+                document.body.appendChild(script);
+                await new Promise(resolve => script.onload = resolve);
+            }
+            
+            // Create DraftManager and test
+            const dm = new DraftManager();
+            await dm.loadPlayers();
+            
+            // Test public mode
+            const publicDrake = dm.players.find(p => p.name === 'Drake London');
+            html += '<h4>Public Mode (default):</h4>';
+            html += '<ul>';
+            html += `<li>usePrivateADP: ${dm.usePrivateADP}</li>`;
+            html += `<li>Drake London ADP: ${publicDrake ? publicDrake.adp : 'NOT FOUND'}</li>`;
+            html += '</ul>';
+            
+            // Switch to private mode
+            await dm.switchADPSource(true);
+            const privateDrake = dm.players.find(p => p.name === 'Drake London');
+            html += '<h4>Private Mode:</h4>';
+            html += '<ul>';
+            html += `<li>usePrivateADP: ${dm.usePrivateADP}</li>`;
+            html += `<li>Drake London ADP: ${privateDrake ? privateDrake.adp : 'NOT FOUND'}</li>`;
+            html += '</ul>';
+            
+            results.innerHTML = html;
+        }
+        
+        document.getElementById('testBtn').addEventListener('click', testADP);
+    </script>
+</body>
+</html>

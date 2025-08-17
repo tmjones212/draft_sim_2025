@@ -1,0 +1,14 @@
+{
+  "players": [
+    {"player_id": "pub-1", "name": "Christian McCaffrey", "first_name": "Christian", "last_name": "McCaffrey", "position": "RB", "team": "SF", "adp": 1.2},
+    {"player_id": "pub-2", "name": "Tyreek Hill", "first_name": "Tyreek", "last_name": "Hill", "position": "WR", "team": "MIA", "adp": 2.5},
+    {"player_id": "pub-3", "name": "CeeDee Lamb", "first_name": "CeeDee", "last_name": "Lamb", "position": "WR", "team": "DAL", "adp": 3.1},
+    {"player_id": "pub-4", "name": "Justin Jefferson", "first_name": "Justin", "last_name": "Jefferson", "position": "WR", "team": "MIN", "adp": 4.2},
+    {"player_id": "pub-5", "name": "Ja'Marr Chase", "first_name": "Ja'Marr", "last_name": "Chase", "position": "WR", "team": "CIN", "adp": 5.0},
+    {"player_id": "pub-6", "name": "Breece Hall", "first_name": "Breece", "last_name": "Hall", "position": "RB", "team": "NYJ", "adp": 6.3},
+    {"player_id": "pub-7", "name": "Amon-Ra St. Brown", "first_name": "Amon-Ra", "last_name": "St. Brown", "position": "WR", "team": "DET", "adp": 7.8},
+    {"player_id": "pub-8", "name": "Jonathan Taylor", "first_name": "Jonathan", "last_name": "Taylor", "position": "RB", "team": "IND", "adp": 8.5},
+    {"player_id": "pub-9", "name": "Bijan Robinson", "first_name": "Bijan", "last_name": "Robinson", "position": "RB", "team": "ATL", "adp": 9.2},
+    {"player_id": "pub-10", "name": "Saquon Barkley", "first_name": "Saquon", "last_name": "Barkley", "position": "RB", "team": "PHI", "adp": 10.1}
+  ]
+}

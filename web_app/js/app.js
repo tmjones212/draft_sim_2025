@@ -108,11 +108,25 @@ document.addEventListener('DOMContentLoaded', async function initApp() {
     draftManager = new DraftManager();
     window.draftManager = draftManager; // Make it globally accessible
     
+    // Always start with public ADP (don't load saved preference)
+    // const savedADPPreference = utils.loadFromStorage('usePrivateADP');
+    // if (savedADPPreference) {
+    //     draftManager.usePrivateADP = true;
+    // }
+    
     // Load players data
     const loaded = await draftManager.loadPlayers();
     if (!loaded) {
         alert('Failed to load player data. Please refresh the page.');
         return;
+    }
+    
+    // Update ADP button text based on loaded state
+    const adpBtn = document.getElementById('adpToggleBtn');
+    if (draftManager.usePrivateADP) {
+        adpBtn.textContent = 'ADP: Private';
+        adpBtn.classList.remove('btn-secondary');
+        adpBtn.classList.add('btn-primary');
     }
     
     // Setup UI event handlers
@@ -139,6 +153,7 @@ function setupEventHandlers() {
         showDraftSpotModal();
     });
     document.getElementById('undoBtn').addEventListener('click', undoLastPick);
+    document.getElementById('adpToggleBtn').addEventListener('click', toggleADPSource);
     document.getElementById('settingsBtn').addEventListener('click', showSettingsModal);
     
     // Player list controls
@@ -598,13 +613,6 @@ function updateCurrentPick() {
         Round ${pickInfo.round}, Pick ${pickInfo.position}<br>
         <strong>${pickInfo.team.name}</strong> is on the clock
     `;
-    
-    // Update timer if enabled
-    if (draftManager.autoPickEnabled) {
-        draftManager.startTimer((seconds) => {
-            document.getElementById('timerDisplay').textContent = utils.formatTime(seconds);
-        });
-    }
 }
 
 function undoLastPick() {
@@ -649,8 +657,6 @@ function showSettingsModal() {
     const modal = document.getElementById('settingsModal');
     
     // Load current settings
-    document.getElementById('autoPickEnabled').checked = draftManager.autoPickEnabled;
-    document.getElementById('timerSeconds').value = draftManager.timerSeconds;
     document.getElementById('soundEnabled').checked = false; // Not implemented yet
     document.getElementById('adminMode').checked = draftManager.adminMode;
     
@@ -662,14 +668,10 @@ function hideSettingsModal() {
 }
 
 function saveSettings() {
-    draftManager.autoPickEnabled = document.getElementById('autoPickEnabled').checked;
-    draftManager.timerSeconds = parseInt(document.getElementById('timerSeconds').value) || 90;
     draftManager.adminMode = document.getElementById('adminMode').checked;
     
     // Save to localStorage
     utils.saveToStorage('draftSettings', {
-        autoPickEnabled: draftManager.autoPickEnabled,
-        timerSeconds: draftManager.timerSeconds,
         adminMode: draftManager.adminMode
     });
     
@@ -710,6 +712,40 @@ function showManagerNotesModal() {
 
 function hideManagerNotesModal() {
     document.getElementById('managerNotesModal').classList.remove('active');
+}
+
+// ADP Toggle Function
+function toggleADPSource() {
+    const btn = document.getElementById('adpToggleBtn');
+    const currentlyPrivate = draftManager.usePrivateADP;
+    
+    if (!currentlyPrivate) {
+        // Switching to private - require password
+        const password = prompt('Enter password to access private ADP:');
+        
+        // Check password
+        if (password !== 'xyz') {
+            alert('Incorrect password!');
+            return;
+        }
+    }
+    
+    // Switch the ADP source
+    draftManager.switchADPSource(!currentlyPrivate).then(success => {
+        if (success) {
+            btn.textContent = draftManager.usePrivateADP ? 'ADP: Private' : 'ADP: Public';
+            btn.classList.toggle('btn-primary', draftManager.usePrivateADP);
+            btn.classList.toggle('btn-secondary', !draftManager.usePrivateADP);
+            
+            // Update the player list with new data
+            updatePlayerList();
+            
+            // Don't save the state to localStorage
+            // utils.saveToStorage('usePrivateADP', draftManager.usePrivateADP);
+        } else {
+            alert('Failed to switch ADP source. Private data may not be loaded.');
+        }
+    });
 }
 
 // Initialize other tabs

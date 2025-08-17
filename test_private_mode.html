@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Private Mode ADP</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .test { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>Test Private Mode ADP</h1>
+    <button onclick="runTest()">Run Test</button>
+    <div id="output"></div>
+    
+    <script src="web_app/js/config.js"></script>
+    <script src="web_app/js/utils.js"></script>
+    <script src="web_app/js/draftLogic.js"></script>
+    
+    <script>
+        async function runTest() {
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+            
+            // Create a new DraftManager
+            const dm = new DraftManager();
+            
+            // Test 1: Load players (should start in public mode)
+            output.innerHTML += '<div class="test">Test 1: Loading players...</div>';
+            await dm.loadPlayers();
+            
+            let drake = dm.players.find(p => p.name === 'Drake London');
+            output.innerHTML += `<div class="test">
+                After initial load (public mode):
+                <br>usePrivateADP: ${dm.usePrivateADP}
+                <br>Drake London ADP: ${drake ? drake.adp : 'NOT FOUND'}
+                <br>Custom ADP entries: ${Object.keys(dm.customADP).length}
+                <br>Custom ADP for 8112: ${dm.customADP['8112']}
+            </div>`;
+            
+            // Test 2: Switch to private mode
+            output.innerHTML += '<div class="test">Test 2: Switching to private mode...</div>';
+            await dm.switchADPSource(true);
+            
+            drake = dm.players.find(p => p.name === 'Drake London');
+            output.innerHTML += `<div class="test ${drake && drake.adp === 19.25 ? 'success' : 'error'}">
+                After switching to private:
+                <br>usePrivateADP: ${dm.usePrivateADP}
+                <br>Drake London ADP: ${drake ? drake.adp : 'NOT FOUND'}
+                <br>Expected: 19.25
+                <br>Result: ${drake && drake.adp === 19.25 ? 'SUCCESS' : 'FAILED'}
+            </div>`;
+            
+            // Test 3: Check the condition
+            if (drake) {
+                const condition = dm.usePrivateADP && dm.customADP[drake.player_id];
+                output.innerHTML += `<div class="test">
+                    Debug condition check:
+                    <br>drake.player_id: ${drake.player_id}
+                    <br>dm.usePrivateADP: ${dm.usePrivateADP}
+                    <br>dm.customADP[drake.player_id]: ${dm.customADP[drake.player_id]}
+                    <br>Condition result: ${condition}
+                </div>`;
+            }
+            
+            // Test 4: Switch back to public
+            output.innerHTML += '<div class="test">Test 4: Switching back to public...</div>';
+            await dm.switchADPSource(false);
+            
+            drake = dm.players.find(p => p.name === 'Drake London');
+            output.innerHTML += `<div class="test ${drake && drake.adp === 16 ? 'success' : 'error'}">
+                After switching to public:
+                <br>usePrivateADP: ${dm.usePrivateADP}
+                <br>Drake London ADP: ${drake ? drake.adp : 'NOT FOUND'}
+                <br>Expected: 16
+                <br>Result: ${drake && drake.adp === 16 ? 'SUCCESS' : 'FAILED'}
+            </div>`;
+        }
+    </script>
+</body>
+</html>

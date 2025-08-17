@@ -10,6 +10,7 @@ class DraftManager {
         this.currentPick = 1;
         this.userTeamId = null;
         this.customADP = {};
+        this.sosData = {}; // Store SOS data
         this.trades = [];
         this.draftHistory = [];
         this.timerSeconds = CONFIG.DEFAULT_TIMER_SECONDS;
@@ -17,9 +18,13 @@ class DraftManager {
         this.currentTimer = 0;
         this.autoPickEnabled = false;
         this.adminMode = false;
+        this.usePrivateADP = false; // Start with public ADP
+        this.privatePlayersData = null; // Store private/custom ADP
+        this.publicPlayersData = null; // Store public ADP
         
         this.initializeTeams();
-        this.loadCustomADP();
+        // Don't load customADP from localStorage - we load from file instead
+        // this.loadCustomADP();
         this.draftOrder = utils.calculateDraftOrder(CONFIG.NUM_TEAMS, CONFIG.NUM_ROUNDS);
     }
     
@@ -59,28 +64,134 @@ class DraftManager {
         return Math.round(base * decay);
     }
     
+    async loadPublicADP() {
+        // Try to load public ADP from Fantasy Football Calculator via CORS proxy
+        const corsProxies = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?'
+        ];
+        const apiUrl = 'https://fantasyfootballcalculator.com/api/v1/adp/ppr?teams=10&year=2025&position=all';
+        
+        for (const proxy of corsProxies) {
+            try {
+                const response = await fetch(proxy + encodeURIComponent(apiUrl));
+                const data = await response.json();
+                if (data && data.players) {
+                    return data.players.map((p, idx) => ({
+                        player_id: `public-${idx}`,
+                        name: p.name,
+                        first_name: p.name.split(' ')[0] || '',
+                        last_name: p.name.split(' ').slice(1).join(' ') || '',
+                        position: p.position || 'UNK',
+                        team: p.team || 'FA',
+                        adp: parseFloat(p.adp) || 999,
+                        rank: idx + 1
+                    }));
+                }
+            } catch (e) {
+                console.log('CORS proxy failed:', proxy);
+            }
+        }
+        
+        // Fallback: generate garbage ADP data
+        console.log('Using fallback public ADP data');
+        const positions = ['QB', 'RB', 'WR', 'TE'];
+        const players = [];
+        let adp = 1;
+        
+        for (let i = 0; i < 200; i++) {
+            const pos = positions[Math.floor(Math.random() * positions.length)];
+            players.push({
+                player_id: `fallback-${i}`,
+                name: `Player ${i + 1}`,
+                first_name: `Player`,
+                last_name: `${i + 1}`,
+                position: pos,
+                team: 'FA',
+                adp: adp + Math.random() * 2,
+                rank: i + 1
+            });
+            adp += 1.5;
+        }
+        
+        return players;
+    }
+    
+    async loadSOSData() {
+        try {
+            const response = await fetch('data/strength_of_schedule.csv');
+            const csvText = await response.text();
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',');
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values.length > 1) {
+                    const team = values[0];
+                    this.sosData[team] = {
+                        QB: parseInt(values[1]),
+                        RB: parseInt(values[2]),
+                        WR: parseInt(values[3]),
+                        TE: parseInt(values[4])
+                    };
+                }
+            }
+            console.log('Loaded SOS data for', Object.keys(this.sosData).length, 'teams');
+        } catch (e) {
+            console.error('Failed to load SOS data:', e);
+        }
+    }
+    
     async loadPlayers() {
         try {
-            // First try to load custom ADP if it exists
+            // Load SOS data first
+            await this.loadSOSData();
+            
+            // Load custom ADP edits (same file as desktop version)
             try {
                 const customAdpResponse = await fetch('data/custom_adp.json');
                 if (customAdpResponse.ok) {
                     const customAdpData = await customAdpResponse.json();
-                    // Store custom ADP values
+                    console.log('Loading custom ADP data from file...');
+                    console.log('customAdpData type:', typeof customAdpData);
+                    console.log('customAdpData keys:', Object.keys(customAdpData).slice(0, 10));
+                    
+                    // Clear any existing data first
+                    this.customADP = {};
+                    
                     for (const [playerId, adpValue] of Object.entries(customAdpData)) {
                         this.customADP[playerId] = adpValue;
                     }
+                    console.log('Custom ADP loaded:', Object.keys(this.customADP).length, 'entries');
+                    console.log('Drake London (8112) custom ADP after loading:', this.customADP['8112']);
+                    console.log('Type of key "8112":', typeof "8112");
+                    console.log('customADP has "8112"?:', "8112" in this.customADP);
+                    console.log('First 5 custom ADP entries:', Object.entries(this.customADP).slice(0, 5));
+                } else {
+                    console.error('Failed to fetch custom_adp.json, status:', customAdpResponse.status);
                 }
             } catch (e) {
-                // Custom ADP file doesn't exist or can't be loaded, that's okay
+                console.error('Failed to load custom ADP:', e);
             }
             
-            // Try to load local players file first
-            const response = await fetch('data/players_2025.json');
-            const data = await response.json();
+            // Load base ADP data from players_2025.json
+            try {
+                const response = await fetch('data/players_2025.json');
+                const data = await response.json();
+                const basePlayersData = data.players || data;
+                
+                // Use the same base data for both modes
+                this.privatePlayersData = basePlayersData;
+                this.publicPlayersData = basePlayersData;
+                
+                console.log('Loaded base ADP data, player count:', basePlayersData.length);
+            } catch (e) {
+                console.error('Failed to load base ADP data:', e);
+                return false;
+            }
             
-            // Extract players array from the data object
-            const playersArray = data.players || data;
+            // Always use the same player data
+            const playersArray = this.privatePlayersData;
             
             this.players = playersArray.map(p => {
                 // Parse first and last name from the full name
@@ -91,26 +202,54 @@ class DraftManager {
                 // Generate estimated fantasy points based on ADP
                 const estimatedPoints = this.estimateFantasyPoints(p.position, p.adp || p.rank || 999);
                 
+                // Store original ADP
+                const originalADP = p.adp || 999;
+                
+                // Apply custom ADP ONLY when using private ADP
+                let finalADP = originalADP;
+                const customValue = this.customADP[p.player_id];
+                if (this.usePrivateADP && customValue !== undefined) {
+                    finalADP = customValue;
+                    if (p.name === 'Drake London') {
+                        console.log(`>>> INITIAL LOAD APPLYING CUSTOM ADP: ${originalADP} -> ${customValue}`);
+                    }
+                }
+                
+                // Debug Drake London specifically
+                if (p.name && p.name.includes('Drake London')) {
+                    console.log('DRAKE LONDON DEBUG IN LOAD:', {
+                        name: p.name,
+                        player_id: p.player_id,
+                        base_adp: originalADP,
+                        custom_adp: this.customADP[p.player_id],
+                        usePrivateADP: this.usePrivateADP,
+                        finalADP: finalADP
+                    });
+                }
+                
+                // Get real SOS from data (not random!)
+                const sosValue = this.sosData[p.team] ? this.sosData[p.team][p.position] : null;
+                
                 return {
                     ...p,
                     first_name: p.first_name || firstName,
                     last_name: p.last_name || lastName,
-                    adp: this.customADP[p.player_id] || p.adp || 999,
+                    adp: finalADP,
                     drafted: false,
                     draftedBy: null,
                     draftedAt: null,
-                    original_adp: p.adp || 999,
+                    original_adp: originalADP,
                     // Default values for missing properties
-                    tier: p.tier || Math.ceil((p.adp || p.rank || 999) / 12) || 1,
-                    sos: p.sos || Math.floor(Math.random() * 32) + 1,
-                    projected_rank: p.projected_rank || `${p.position}${Math.ceil((p.adp || p.rank || 999) / CONFIG.NUM_TEAMS)}`,
+                    tier: p.tier || Math.ceil(originalADP / 12) || 1,
+                    sos: sosValue || p.sos || null, // Use real SOS data
+                    projected_rank: p.projected_rank || `${p.position}${Math.ceil(originalADP / CONFIG.NUM_TEAMS)}`,
                     projected_points: p.projected_points || estimatedPoints,
                     var: 0 // Will be calculated after all players are loaded
                 };
             });
             
-            // Apply custom ADP values
-            this.applyCustomADP();
+            // Don't apply custom ADP here since it's already applied above when appropriate
+            // this.applyCustomADP();
             
             // Sort by ADP
             this.players.sort((a, b) => (a.adp || 999) - (b.adp || 999));
@@ -120,6 +259,18 @@ class DraftManager {
             
             // Calculate VAR for all players
             this.calculateAllVAR();
+            
+            // Debug logging
+            const drakeLondon = this.players.find(p => p.name === 'Drake London');
+            console.log(`Loaded ${this.players.length} players for ${this.usePrivateADP ? 'PRIVATE' : 'PUBLIC'} ADP mode`);
+            console.log('Drake London after initial load:', drakeLondon ? {
+                name: drakeLondon.name,
+                player_id: drakeLondon.player_id,
+                adp: drakeLondon.adp,
+                original_adp: drakeLondon.original_adp
+            } : 'NOT FOUND');
+            console.log('Custom ADP data loaded:', Object.keys(this.customADP).length, 'entries');
+            console.log('Custom ADP for 8112:', this.customADP['8112']);
             
             return true;
         } catch (error) {
@@ -164,16 +315,9 @@ class DraftManager {
     }
     
     applyCustomADP() {
-        for (const player of this.players) {
-            if (this.customADP[player.player_id]) {
-                player.adp = this.customADP[player.player_id];
-            }
-        }
-        
-        // Re-sort players by ADP
-        this.players.sort((a, b) => (a.adp || 999) - (b.adp || 999));
-        this.availablePlayers = this.players.filter(p => !p.drafted);
-        this.availablePlayers.sort((a, b) => (a.adp || 999) - (b.adp || 999));
+        // This function is now deprecated since we apply custom ADP during loading
+        // Keeping it for compatibility but it doesn't do anything
+        console.log('applyCustomADP called but custom ADP is now applied during loading');
     }
     
     updatePlayerADP(playerId, newADP) {
@@ -531,6 +675,122 @@ class DraftManager {
         this.trades = [];
         this.availablePlayers = [...this.players];
         this.availablePlayers.sort((a, b) => (a.adp || 999) - (b.adp || 999));
+        
+        return true;
+    }
+    
+    async switchADPSource(usePrivate) {
+        console.log('=== switchADPSource called ===');
+        console.log('Switching to:', usePrivate ? 'PRIVATE' : 'PUBLIC');
+        console.log('customADP entries:', Object.keys(this.customADP).length);
+        console.log('customADP["8112"]:', this.customADP["8112"]);
+        
+        this.usePrivateADP = usePrivate;
+        
+        // Always use the same base player data
+        const playersArray = this.privatePlayersData;
+        
+        if (!playersArray) {
+            console.error('No player data available');
+            return false;
+        }
+        
+        // Preserve draft state
+        const draftedInfo = {};
+        for (const histItem of this.draftHistory) {
+            draftedInfo[histItem.player.player_id] = histItem.player;
+        }
+        
+        console.log(`Switching to ${usePrivate ? 'PRIVATE' : 'PUBLIC'} ADP mode`);
+        
+        // Reprocess player data with new ADP values
+        this.players = playersArray.map(p => {
+            const nameParts = (p.name || '').split(' ');
+            const firstName = p.first_name || nameParts[0] || '';
+            const lastName = p.last_name || nameParts.slice(1).join(' ') || '';
+            const estimatedPoints = this.estimateFantasyPoints(p.position, p.adp || 999);
+            
+            // Store original ADP
+            const originalADP = p.adp || 999;
+            
+            // Apply custom ADP ONLY for private mode
+            let finalADP = originalADP;
+            const customValue = this.customADP[p.player_id];
+            if (usePrivate && customValue !== undefined) {
+                finalADP = customValue;
+                if (p.name === 'Drake London') {
+                    console.log(`>>> APPLYING CUSTOM ADP: ${originalADP} -> ${customValue}`);
+                }
+            }
+            
+            // Debug Drake London specifically
+            if (p.name && p.name.includes('Drake London')) {
+                console.log('=== Drake London Debug ===');
+                console.log('player_id:', p.player_id, 'type:', typeof p.player_id);
+                console.log('usePrivate:', usePrivate);
+                console.log('customADP["8112"]:', this.customADP["8112"]);
+                console.log('customADP[p.player_id]:', this.customADP[p.player_id]);
+                console.log('Condition (usePrivate && customADP[id]):', usePrivate && this.customADP[p.player_id]);
+                console.log('Final ADP:', finalADP, '(should be', usePrivate ? '19.25' : '16', ')');
+            }
+            
+            // Get real SOS from data
+            const sosValue = this.sosData[p.team] ? this.sosData[p.team][p.position] : null;
+            
+            const player = {
+                ...p,
+                first_name: firstName,
+                last_name: lastName,
+                adp: finalADP,
+                drafted: false,
+                draftedBy: null,
+                draftedAt: null,
+                original_adp: originalADP,
+                tier: p.tier || Math.ceil(finalADP / 12) || 1,
+                sos: sosValue || p.sos || null, // Use real SOS data
+                projected_rank: p.projected_rank || `${p.position}${Math.ceil(finalADP / CONFIG.NUM_TEAMS)}`,
+                projected_points: p.projected_points || estimatedPoints,
+                var: 0
+            };
+            
+            // Restore draft state if this player was drafted
+            if (draftedInfo[p.player_id]) {
+                player.drafted = true;
+                player.draftedBy = draftedInfo[p.player_id].draftedBy;
+                player.draftedAt = draftedInfo[p.player_id].draftedAt;
+            }
+            
+            return player;
+        });
+        
+        // Sort by ADP
+        this.players.sort((a, b) => (a.adp || 999) - (b.adp || 999));
+        
+        // Update available players
+        this.availablePlayers = this.players.filter(p => !p.drafted);
+        this.availablePlayers.sort((a, b) => (a.adp || 999) - (b.adp || 999));
+        
+        // Recalculate VAR
+        this.calculateAllVAR();
+        
+        // Log first few players to verify
+        const drakeLondon = this.players.find(p => p.name === 'Drake London');
+        const drakeAvailable = this.availablePlayers.find(p => p.name === 'Drake London');
+        
+        console.log(`Mode: ${usePrivate ? 'PRIVATE' : 'PUBLIC'}`);
+        console.log('Drake London in this.players:', drakeLondon ? {
+            name: drakeLondon.name,
+            player_id: drakeLondon.player_id,
+            adp: drakeLondon.adp,
+            original_adp: drakeLondon.original_adp
+        } : 'NOT FOUND');
+        console.log('Drake London in this.availablePlayers:', drakeAvailable ? {
+            name: drakeAvailable.name,
+            player_id: drakeAvailable.player_id,
+            adp: drakeAvailable.adp,
+            original_adp: drakeAvailable.original_adp
+        } : 'NOT FOUND');
+        console.log('Custom ADP for 8112:', this.customADP['8112']);
         
         return true;
     }
