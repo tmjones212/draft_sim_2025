@@ -164,8 +164,10 @@ class DraftManager {
                     }
                     console.log('Custom ADP loaded:', Object.keys(this.customADP).length, 'entries');
                     console.log('Drake London (8112) custom ADP after loading:', this.customADP['8112']);
+                    console.log('Rashee Rice (10229) custom ADP after loading:', this.customADP['10229']);
                     console.log('Type of key "8112":', typeof "8112");
                     console.log('customADP has "8112"?:', "8112" in this.customADP);
+                    console.log('customADP has "10229"?:', "10229" in this.customADP);
                     console.log('First 5 custom ADP entries:', Object.entries(this.customADP).slice(0, 5));
                 } else {
                     console.error('Failed to fetch custom_adp.json, status:', customAdpResponse.status);
@@ -213,6 +215,20 @@ class DraftManager {
                     if (p.name === 'Drake London') {
                         console.log(`>>> INITIAL LOAD APPLYING CUSTOM ADP: ${originalADP} -> ${customValue}`);
                     }
+                }
+                
+                // Debug Rashee Rice
+                if (p.name === 'Rashee Rice') {
+                    console.log('RASHEE RICE DEBUG:', {
+                        name: p.name,
+                        player_id: p.player_id,
+                        original_adp: originalADP,
+                        custom_value: customValue,
+                        customADP_has_key: p.player_id in this.customADP,
+                        usePrivateADP: this.usePrivateADP,
+                        finalADP: finalADP,
+                        customADP_keys_sample: Object.keys(this.customADP).slice(0, 5)
+                    });
                 }
                 
                 // Debug Drake London specifically
