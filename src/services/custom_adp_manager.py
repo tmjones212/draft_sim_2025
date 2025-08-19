@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from typing import Dict, Optional
 
 
@@ -8,7 +9,19 @@ class CustomADPManager:
     
     def __init__(self):
         # Path to store custom ADP values
-        self.data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data')
+        # Use a persistent location that works both in development and when bundled as exe
+        if getattr(sys, 'frozen', False):
+            # Running as bundled exe - use user's AppData folder
+            if sys.platform == 'win32':
+                app_data = os.environ.get('APPDATA', os.path.expanduser('~'))
+                self.data_dir = os.path.join(app_data, 'MockDraftSim2025')
+            else:
+                # Mac/Linux
+                self.data_dir = os.path.join(os.path.expanduser('~'), '.mock_draft_sim_2025')
+        else:
+            # Running from source - use project data directory
+            self.data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data')
+        
         self.custom_adp_file = os.path.join(self.data_dir, 'custom_adp.json')
         self.custom_adp_values: Dict[str, float] = {}
         self.load_custom_adp()

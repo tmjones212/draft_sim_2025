@@ -38,6 +38,7 @@ class DraftBoard(StyledFrame):
         self.draft_name_var = tk.StringVar()
         self.draft_dropdown = None
         self.trade_service = trade_service
+        self.user_picks = set()  # Initialize user's picks set (all picks, made and unmade)
         self.setup_ui()
         # Start glowing animation if no team selected
         if not self.selected_team_id:
@@ -103,6 +104,9 @@ class DraftBoard(StyledFrame):
         row_height = 60  # Height for each pick
         header_height = 40
         button_height = 25
+        
+        # Track user's picks for highlighting
+        self.user_picks = set()  # Will store pick numbers
         
         # Team selection buttons
         for team_id in range(1, self.num_teams + 1):
@@ -192,6 +196,15 @@ class DraftBoard(StyledFrame):
                     actual_owner = self.trade_service.get_pick_owner(team_id, round_num)
                     is_traded = actual_owner != team_id
                 
+                # Check if this pick belongs to the user (for initial highlighting)
+                is_user_pick = False
+                if self.selected_team_id and actual_owner == self.selected_team_id:
+                    is_user_pick = True
+                    self.user_picks.add(pick_number)
+                
+                # Background is always the default
+                pick_bg = DARK_THEME['bg_tertiary']
+                
                 pick_frame = StyledFrame(
                     self.scrollable_frame,
                     bg_type='tertiary',
@@ -199,6 +212,11 @@ class DraftBoard(StyledFrame):
                     width=col_width,
                     height=row_height
                 )
+                
+                # Add green border if it's a user pick
+                if is_user_pick:
+                    pick_frame.config(relief='ridge', borderwidth=3, highlightbackground='#4CAF50', highlightcolor='#4CAF50')
+                    
                 pick_frame.grid(
                     row=round_num + 1,
                     column=team_id - 1,
@@ -212,7 +230,7 @@ class DraftBoard(StyledFrame):
                 round_pick_label = tk.Label(
                     pick_frame,
                     text=f"R{round_num}.{pos + 1}",
-                    bg=DARK_THEME['bg_tertiary'],
+                    bg=pick_bg,
                     fg=DARK_THEME['text_muted'],
                     font=(DARK_THEME['font_family'], 8)
                 )
@@ -222,7 +240,7 @@ class DraftBoard(StyledFrame):
                 pick_num_label = tk.Label(
                     pick_frame,
                     text=f"#{pick_number}",
-                    bg=DARK_THEME['bg_tertiary'],
+                    bg=pick_bg,
                     fg=DARK_THEME['text_muted'],
                     font=(DARK_THEME['font_family'], 8)
                 )
@@ -233,7 +251,7 @@ class DraftBoard(StyledFrame):
                     trade_label = tk.Label(
                         pick_frame,
                         text=f"→T{actual_owner}",
-                        bg=DARK_THEME['bg_tertiary'],
+                        bg=pick_bg,  # Use the same background as the pick frame
                         fg='#FFC107',  # Yellow for traded picks
                         font=(DARK_THEME['font_family'], 8, 'bold')
                     )
@@ -290,6 +308,10 @@ class DraftBoard(StyledFrame):
         # Hide the sit row after selection
         self.hide_sit_row()
         
+        # Calculate and highlight user's picks
+        self.calculate_user_picks(team_id)
+        self.highlight_user_picks()
+        
         # Notify parent if callback provided
         if self.on_team_select:
             self.on_team_select(team_id)
@@ -317,6 +339,10 @@ class DraftBoard(StyledFrame):
         # Only update new picks since last update
         if not hasattr(self, '_last_pick_count'):
             self._last_pick_count = 0
+        
+        # Recalculate user picks when picks update
+        if self.selected_team_id:
+            self.calculate_user_picks(self.selected_team_id)
         
         # Defer the actual update to prevent jarring visual changes
         if not hasattr(self, '_update_pending') or not self._update_pending:
@@ -358,8 +384,13 @@ class DraftBoard(StyledFrame):
                         info = widget.place_info()
                         if info and 'y' in info and int(info['y']) > 15:
                             widget.destroy()
-                # Reset the frame
-                pick_frame.config(cursor="arrow", bg=DARK_THEME['bg_tertiary'], relief='flat')
+                # Reset the frame background
+                pick_frame.config(cursor="arrow", bg=DARK_THEME['bg_tertiary'])
+                # Keep border if it's a user pick
+                if pick_num in self.user_picks:
+                    pick_frame.config(relief='ridge', borderwidth=3, highlightbackground='#4CAF50', highlightcolor='#4CAF50')
+                else:
+                    pick_frame.config(relief='flat', borderwidth=0)
     
     def update_pick_slot(self, pick: DraftPick):
         import time
@@ -531,16 +562,22 @@ class DraftBoard(StyledFrame):
     
     def highlight_current_pick(self):
         # Remove previous highlights
-        for pick_frame in self.pick_widgets.values():
-            pick_frame.config(bg=DARK_THEME['bg_tertiary'], relief='flat')
+        for pick_num, pick_frame in self.pick_widgets.items():
+            # Reset to default background
+            pick_frame.config(bg=DARK_THEME['bg_tertiary'])
+            # Keep border for user's picks
+            if pick_num in self.user_picks:
+                pick_frame.config(relief='ridge', borderwidth=3, highlightbackground='#4CAF50', highlightcolor='#4CAF50')
+            else:
+                pick_frame.config(relief='flat', borderwidth=0)
         
-        # Highlight current pick
+        # Highlight current pick (with green background, overrides border)
         if self.current_pick_num in self.pick_widgets:
             current_frame = self.pick_widgets[self.current_pick_num]
             current_frame.config(
                 bg=DARK_THEME['current_pick'],
                 relief='solid',
-                borderwidth=2
+                borderwidth=4  # Thicker for current pick
             )
     
     def start_glow_animation(self):
@@ -716,6 +753,9 @@ class DraftBoard(StyledFrame):
     def set_user_team(self, team_id: int):
         """Set the user's team and update the UI accordingly"""
         self.select_team(team_id)
+        # Ensure highlights are updated
+        self.calculate_user_picks(team_id)
+        self.highlight_user_picks()
     
     def show_manager_tooltip(self, event, team_name):
         """Show tooltip with manager notes"""
@@ -770,3 +810,86 @@ class DraftBoard(StyledFrame):
         """Set manual mode state in the UI"""
         # This could be used to show an indicator if needed
         pass
+    
+    def on_trades_updated(self):
+        """Called when trades are made or updated to refresh the board"""
+        if self.selected_team_id:
+            # Recalculate which picks belong to the user after trades
+            self.calculate_user_picks(self.selected_team_id)
+            # Refresh all pick highlights
+            self.highlight_user_picks()
+            self.highlight_current_pick()
+            
+            # Also update trade indicators on all picks
+            self.refresh_trade_indicators()
+    
+    def calculate_user_picks(self, team_id: int):
+        """Calculate which picks belong to the user's team (all picks, made and unmade)"""
+        self.user_picks.clear()
+        
+        if not team_id:
+            return
+        
+        pick_number = 1
+        
+        for round_num in range(1, self.total_rounds + 1):
+            # Determine order for this round (with 3rd round reversal)
+            if round_num == 1:
+                order = list(range(1, self.num_teams + 1))  # 1→10
+            elif round_num == 2 or round_num == 3:
+                # Rounds 2 and 3 go the same direction (reverse)
+                order = list(range(self.num_teams, 0, -1))  # 10→1
+            else:
+                # After round 3, normal snake draft resumes
+                if (round_num - 3) % 2 == 1:  # 4-3=1 (odd), so forward
+                    order = list(range(1, self.num_teams + 1))
+                else:  # 5-3=2 (even), so reverse
+                    order = list(range(self.num_teams, 0, -1))
+            
+            # Check each pick in this round
+            for pos, pick_team_id in enumerate(order):
+                # Check if this pick has been traded
+                actual_owner = pick_team_id
+                if self.trade_service:
+                    actual_owner = self.trade_service.get_pick_owner(pick_team_id, round_num)
+                
+                # If this pick belongs to the user's team (either originally or via trade)
+                if actual_owner == team_id:
+                    # Add ALL user picks (both made and unmade)
+                    self.user_picks.add(pick_number)
+                
+                pick_number += 1
+    
+    def highlight_user_picks(self):
+        """Apply border highlighting to all user's picks"""
+        for pick_num in self.user_picks:
+            if pick_num in self.pick_widgets:
+                pick_frame = self.pick_widgets[pick_num]
+                # Apply green border to indicate user's pick
+                pick_frame.config(relief='ridge', borderwidth=3, highlightbackground='#4CAF50', highlightcolor='#4CAF50')
+    
+    def refresh_trade_indicators(self):
+        """Refresh trade indicators on all pick slots"""
+        # This would require rebuilding the entire grid to update trade labels
+        # For now, we'll rely on the board being rebuilt when trades are applied
+        pass
+    
+    def update_display(self):
+        """Update the entire draft board display (used after trades)"""
+        # Clear the existing grid
+        for widget in self.scrollable_frame.winfo_children():
+            widget.destroy()
+        
+        # Recreate the grid with updated trade info
+        self.create_draft_grid()
+        
+        # Restore picks that were already made
+        if hasattr(self, 'draft_results') and self.draft_results:
+            for pick in self.draft_results:
+                self.update_pick_slot(pick)
+        
+        # Update highlights
+        if self.selected_team_id:
+            self.calculate_user_picks(self.selected_team_id)
+            self.highlight_user_picks()
+            self.highlight_current_pick()

@@ -4,3 +4,23 @@ scripts/projections_data/*
 scripts/stats_data/*
 assets/team_logos/*
 assets/player_images/*
+
+# Build artifacts
+build/
+dist/
+*.spec
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+
+# Executable files
+*.exe
+MockDraftSim2025.exe
+
+# Build documentation (local only)
+how_to_build_exe.md

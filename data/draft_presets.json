@@ -18,8 +18,26 @@
       "user_position": 7,
       "player_exclusions": [
         {
-          "team_name": "Luan",
+          "team_name": "Johnson",
           "player_name": "JOSH ALLEN",
+          "enabled": true
+        },
+        {
+          "team_name": "Johnson",
+          "player_name": "BROCK BOWERS",
+          "enabled": true
+        },
+        {
+          "team_name": "Luan",
+          "player_name": "BROCK BOWERS",
+          "enabled": true
+        }
+      ],
+      "forced_picks": [
+        {
+          "team_name": "Luan",
+          "player_name": "NICO COLLINS",
+          "pick_number": 10,
           "enabled": true
         }
       ]

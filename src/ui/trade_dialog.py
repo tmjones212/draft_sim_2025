@@ -10,12 +10,14 @@ class TradeDialog:
     """Dialog for configuring draft pick trades"""
     
     def __init__(self, parent, num_teams: int, total_rounds: int, 
-                 trade_service: DraftTradeService, on_apply: Optional[Callable] = None):
+                 trade_service: DraftTradeService, on_apply: Optional[Callable] = None, 
+                 on_trade_added: Optional[Callable] = None):
         self.parent = parent
         self.num_teams = num_teams
         self.total_rounds = total_rounds
         self.trade_service = trade_service
         self.on_apply = on_apply
+        self.on_trade_added = on_trade_added  # Callback for immediate updates
         
         # Create the dialog window
         self.dialog = tk.Toplevel(parent)
@@ -282,6 +284,11 @@ class TradeDialog:
         """Add the example trade (Team 8's picks 8, 38, 63 for Team 7's picks 14, 24, 77)"""
         self.trade_service.add_trade(8, [1, 4, 7], 7, [2, 3, 8])
         self.update_trades_list()
+        
+        # Call immediate update callback if provided
+        if self.on_trade_added:
+            self.on_trade_added()
+        
         messagebox.showinfo(
             "Trade Added",
             "Added trade: Team 8 (R1, R4, R7) ⇄ Team 7 (R2, R3, R8)\n" +
@@ -307,6 +314,10 @@ class TradeDialog:
         self.trade_service.add_trade(team1, team1_rounds, team2, team2_rounds)
         self.update_trades_list()
         
+        # Call immediate update callback if provided
+        if self.on_trade_added:
+            self.on_trade_added()
+        
         # Clear selections
         for var in self.team1_rounds.values():
             var.set(False)
@@ -317,6 +328,10 @@ class TradeDialog:
         """Clear all trades"""
         self.trade_service.clear_trades()
         self.update_trades_list()
+        
+        # Call immediate update callback if provided
+        if self.on_trade_added:
+            self.on_trade_added()
     
     def update_trades_list(self):
         """Update the trades listbox with current trades"""

@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from typing import Dict, Optional
 
@@ -23,7 +24,22 @@ class ManagerNotesService:
     REVERSE_MAPPINGS = {v.upper(): k for k, v in MANAGER_MAPPINGS.items()}
     
     def __init__(self):
-        self.notes_file = os.path.join("data", "manager_notes.json")
+        # Use a persistent location that works both in development and when bundled as exe
+        if getattr(sys, 'frozen', False):
+            # Running as bundled exe - use user's AppData folder
+            if sys.platform == 'win32':
+                app_data = os.environ.get('APPDATA', os.path.expanduser('~'))
+                data_dir = os.path.join(app_data, 'MockDraftSim2025')
+            else:
+                # Mac/Linux
+                data_dir = os.path.join(os.path.expanduser('~'), '.mock_draft_sim_2025')
+        else:
+            # Running from source - use project data directory
+            data_dir = "data"
+        
+        # Ensure directory exists
+        os.makedirs(data_dir, exist_ok=True)
+        self.notes_file = os.path.join(data_dir, "manager_notes.json")
         self.notes = self._load_notes()
     
     def _load_notes(self) -> Dict[str, str]:

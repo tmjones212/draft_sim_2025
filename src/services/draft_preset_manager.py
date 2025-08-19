@@ -1,7 +1,7 @@
 import json
 import os
 from typing import Dict, Optional
-from src.models.draft_preset import DraftPreset, PlayerExclusion
+from src.models.draft_preset import DraftPreset, PlayerExclusion, ForcedPick
 
 
 class DraftPresetManager:
@@ -30,6 +30,15 @@ class DraftPresetManager:
                                 enabled=exc.get('enabled', True)
                             )
                             for exc in preset_data.get('player_exclusions', [])
+                        ],
+                        forced_picks=[
+                            ForcedPick(
+                                team_name=fp['team_name'],
+                                player_name=fp['player_name'],
+                                pick_number=fp['pick_number'],
+                                enabled=fp.get('enabled', True)
+                            )
+                            for fp in preset_data.get('forced_picks', [])
                         ]
                     )
                     self.presets[name] = preset
@@ -59,6 +68,15 @@ class DraftPresetManager:
                         'enabled': exc.enabled
                     }
                     for exc in preset.player_exclusions
+                ],
+                'forced_picks': [
+                    {
+                        'team_name': fp.team_name,
+                        'player_name': fp.player_name,
+                        'pick_number': fp.pick_number,
+                        'enabled': fp.enabled
+                    }
+                    for fp in preset.forced_picks
                 ]
             }
         
@@ -111,8 +129,26 @@ class DraftPresetManager:
             user_position=7,  # "Me" is at index 7 (8th pick)
             player_exclusions=[
                 PlayerExclusion(
-                    team_name="Luan",
+                    team_name="Johnson",
                     player_name="JOSH ALLEN",
+                    enabled=True
+                ),
+                PlayerExclusion(
+                    team_name="Johnson",
+                    player_name="BROCK BOWERS",
+                    enabled=True
+                ),
+                PlayerExclusion(
+                    team_name="Luan",
+                    player_name="BROCK BOWERS",
+                    enabled=True
+                )
+            ],
+            forced_picks=[
+                ForcedPick(
+                    team_name="Luan",
+                    player_name="NICO COLLINS",
+                    pick_number=10,
                     enabled=True
                 )
             ]

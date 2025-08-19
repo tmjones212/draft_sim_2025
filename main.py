@@ -44,9 +44,8 @@ class MockDraftApp:
         
         # Initialize draft preset manager first (needed by _create_teams)
         self.draft_preset_manager = DraftPresetManager()
-        # Create default preset if no presets exist
-        if not self.draft_preset_manager.list_preset_names():
-            self.draft_preset_manager.create_default_preset()
+        # Always update/create the default preset to ensure latest configuration
+        self.draft_preset_manager.create_default_preset()
         
         # Initialize draft trade service
         self.trade_service = DraftTradeService()
@@ -902,6 +901,39 @@ class MockDraftApp:
         # Check preset exclusions first
         active_preset = self.draft_preset_manager.get_active_preset()
         
+        # Check for forced picks first
+        if active_preset:
+            forced_player_name = active_preset.get_forced_pick(team.name, pick_num)
+            if forced_player_name:
+                # Find and return the forced player
+                for player in self.available_players:
+                    if format_name(player.name).upper() == forced_player_name.upper():
+                        return player
+        
+        # Special logic for Luan in round 3 (pick 21)
+        if team.name.upper() == "LUAN" and pick_num == 21:
+            # Priority order: DRAKE LONDON > DERRICK HENRY > CHASE BROWN > TREY MCBRIDE > any QB
+            priority_players = [
+                "DRAKE LONDON",
+                "DERRICK HENRY", 
+                "CHASE BROWN",
+                "TREY MCBRIDE"
+            ]
+            
+            # Check for priority players first
+            for priority_name in priority_players:
+                for player in self.available_players:
+                    if format_name(player.name).upper() == priority_name:
+                        # 90% chance to take the priority player if available
+                        if random.random() < 0.9:
+                            return player
+            
+            # If none of the priority players are available or random didn't select them,
+            # look for any QB with 70% chance
+            for player in self.available_players[:15]:  # Look at top 15 available
+                if player.position == 'QB' and random.random() < 0.7:
+                    return player
+        
         # Quick path for very early picks
         if pick_num <= 3:
             # Check preset exclusions even for early picks
@@ -1311,15 +1343,15 @@ class MockDraftApp:
             if not result:
                 return
         
-        # Reset everything
-        self.restart_draft()
+        # Clear user team selection BEFORE restarting draft to prevent auto-drafting
+        self.user_team_id = None
+        self.manual_mode = False
+        
+        # Reset everything (with skip_confirmation=True since we already asked)
+        self.restart_draft(skip_confirmation=True)
         
         # Clear draft name
         self.draft_board.set_draft_name("")
-        
-        # Clear user team selection
-        self.user_team_id = None
-        self.manual_mode = False
         
         # Reset UI elements
         self.draft_board.selected_team_id = None
@@ -1355,7 +1387,7 @@ class MockDraftApp:
             if not messagebox.askyesno("Restart Draft", "Are you sure you want to restart the draft?"):
                 return
         
-        # Save current user team selection
+        # Save current user team selection (only save if not None, to allow start_new_draft to clear it)
         saved_user_team = self.user_team_id
         
         # Reset draft saved flag
@@ -1456,8 +1488,9 @@ class MockDraftApp:
         # Highlight pick 1 on the draft board
         self.draft_board.highlight_current_pick()
         
-        # Start auto-drafting from the beginning if needed
-        self.check_auto_draft()
+        # Start auto-drafting from the beginning if needed (only if user has a team selected)
+        if self.user_team_id is not None:
+            self.check_auto_draft()
     
     def repick_spot(self):
         """Reset the draft and clear user team selection to allow repicking"""
@@ -1644,6 +1677,10 @@ class MockDraftApp:
         
         # Enable undo button
         self.undo_button.config(state='normal')
+        
+        # Update roster view to reflect the change
+        self.roster_view.update_roster_display()
+        
         print("=== CHANGE PICK COMPLETE ===\n")
     
     def undo_reversion(self):
@@ -1657,6 +1694,9 @@ class MockDraftApp:
         
         # Restore watch list state
         self._restore_watch_list_state(self.draft_state_before_reversion.get('watched_players', {}))
+        
+        # Update roster view to show restored state
+        self.roster_view.update_roster_display()
         
         # Update display
         self.update_display(force_refresh=True)
@@ -1822,6 +1862,9 @@ class MockDraftApp:
         
         # Update star icons
         self.player_list._update_star_icons()
+        
+        # Update roster view to reflect the reverted state
+        self.roster_view.update_roster_display()
         
         # Final status update
         self.update_display(full_update=False)
@@ -3732,15 +3775,26 @@ class MockDraftApp:
                 )
                 if response:
                     self.restart_draft()
-            # Update draft board to show traded picks
+            # Update draft board to show traded picks and refresh borders
             self.draft_board.update_display()
+            # Also notify the board that trades have been updated
+            self.draft_board.on_trades_updated()
+        
+        def on_trade_added():
+            """Called immediately when a trade is added/removed in the dialog"""
+            # Rebuild the board to show trade indicators and update borders
+            self.draft_board.update_display()
+            # Also update the border highlights for the user's picks
+            if self.draft_board.selected_team_id:
+                self.draft_board.on_trades_updated()
         
         TradeDialog(
             self.root,
             num_teams=config.num_teams,
             total_rounds=self.draft_engine.total_rounds,
             trade_service=self.trade_service,
-            on_apply=on_apply
+            on_apply=on_apply,
+            on_trade_added=on_trade_added
         )
     
     def show_preset_dialog(self):
