@@ -195,21 +195,34 @@ class DraftSimulator {
   }
   
   async loadPlayers() {
-    // First, load the custom players data (your good ADP)
+    // Load the complete players data (has all positions including LB, DB, K, DST)
     try {
       const response = await fetch('web_static/players_data.json');
       const data = await response.json();
       this.customPlayersData = data;
-      console.log(`Loaded ${data.players.length} custom players`);
+      console.log(`Loaded ${data.players.length} custom players with all positions`);
     } catch (error) {
       console.error('Error loading custom players:', error);
     }
     
-    // Load public ADP data
+    // Load public ADP data (but it won't have LB, DB, K, DST)
     const publicData = await this.loadPublicADP();
     if (publicData) {
+      // Add the missing positions from custom data to public data
+      const publicPositions = new Set(publicData.players.map(p => p.position));
+      const missingPositions = ['LB', 'DB', 'K', 'DST'];
+      
+      // Add missing position players from custom data
+      if (this.customPlayersData) {
+        for (const player of this.customPlayersData.players) {
+          if (missingPositions.includes(player.position)) {
+            publicData.players.push(player);
+          }
+        }
+      }
+      
       this.publicPlayersData = publicData;
-      console.log(`Loaded ${publicData.players.length} public ADP players`);
+      console.log(`Loaded ${publicData.players.length} public ADP players (added missing positions)`);
     }
     
     // Use appropriate data based on admin mode
