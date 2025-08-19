@@ -97,14 +97,6 @@
       "player_id": "4034"
     },
     {
-      "position": "RB",
-      "team": "KC",
-      "rank": 210,
-      "name": "Samaje Perine",
-      "adp": 12.0,
-      "player_id": "4034"
-    },
-    {
       "position": "QB",
       "team": "BUF",
       "rank": 18,
@@ -137,14 +129,6 @@
       "player_id": "4881"
     },
     {
-      "position": "QB",
-      "team": "MIN",
-      "rank": 157,
-      "name": "Sam Darnold",
-      "adp": 15.0,
-      "player_id": "4881"
-    },
-    {
       "position": "TE",
       "team": "LV",
       "rank": 17,
@@ -165,14 +149,6 @@
       "team": "ATL",
       "rank": 16,
       "name": "Drake London",
-      "adp": 19.25,
-      "player_id": "8112"
-    },
-    {
-      "position": "WR",
-      "team": "PHI",
-      "rank": 192,
-      "name": "Jahan Dotson",
       "adp": 19.25,
       "player_id": "8112"
     },
@@ -250,25 +226,9 @@
     },
     {
       "position": "WR",
-      "team": "GB",
-      "rank": 191,
-      "name": "Christian Watson",
-      "adp": 28,
-      "player_id": "8150"
-    },
-    {
-      "position": "WR",
       "team": "SEA",
       "rank": 31,
       "name": "Jaxon Smith-Njigba",
-      "adp": 28.5,
-      "player_id": "9488"
-    },
-    {
-      "position": "WR",
-      "team": "ARI",
-      "rank": 202,
-      "name": "Michael Wilson",
       "adp": 28.5,
       "player_id": "9488"
     },
@@ -306,14 +266,6 @@
     },
     {
       "position": "WR",
-      "team": "NO",
-      "rank": 188,
-      "name": "Michael Thomas",
-      "adp": 33,
-      "player_id": "4046"
-    },
-    {
-      "position": "WR",
       "team": "ARZ",
       "rank": 36,
       "name": "Marvin Harrison",
@@ -333,14 +285,6 @@
       "team": "MIA",
       "rank": 37,
       "name": "Tyreek Hill",
-      "adp": 37,
-      "player_id": "3321"
-    },
-    {
-      "position": "RB",
-      "team": "MIA",
-      "rank": 167,
-      "name": "Raheem Mostert",
       "adp": 37,
       "player_id": "3321"
     },
@@ -370,25 +314,9 @@
     },
     {
       "position": "RB",
-      "team": "ATL",
-      "rank": 171,
-      "name": "Tyler Allgeier",
-      "adp": 40,
-      "player_id": "8146"
-    },
-    {
-      "position": "RB",
       "team": "BUF",
       "rank": 41,
       "name": "James Cook",
-      "adp": 42,
-      "player_id": "8138"
-    },
-    {
-      "position": "WR",
-      "team": "HOU",
-      "rank": 201,
-      "name": "John Metchie",
       "adp": 42,
       "player_id": "8138"
     },
@@ -417,14 +345,6 @@
       "player_id": "12529"
     },
     {
-      "position": "TE",
-      "team": "CAR",
-      "rank": 238,
-      "name": "Ja'Tavion Sanders",
-      "adp": 45,
-      "player_id": "11624"
-    },
-    {
       "position": "QB",
       "team": "DEN",
       "rank": 61,
@@ -437,14 +357,6 @@
       "team": "DEN",
       "rank": 46,
       "name": "Courtland Sutton",
-      "adp": 47,
-      "player_id": "5045"
-    },
-    {
-      "position": "TE",
-      "team": "CIN",
-      "rank": 235,
-      "name": "Mike Gesicki",
       "adp": 47,
       "player_id": "5045"
     },
@@ -474,25 +386,9 @@
     },
     {
       "position": "RB",
-      "team": "CLE",
-      "rank": 164,
-      "name": "Jerome Ford",
-      "adp": 48.0,
-      "player_id": "8155"
-    },
-    {
-      "position": "RB",
       "team": "NO",
       "rank": 49,
       "name": "Alvin Kamara",
-      "adp": 49,
-      "player_id": "4035"
-    },
-    {
-      "position": "RB",
-      "team": "KC",
-      "rank": 174,
-      "name": "Kareem Hunt",
       "adp": 49,
       "player_id": "4035"
     },
@@ -517,15 +413,7 @@
       "team": "DET",
       "rank": 52,
       "name": "Jameson Williams",
-      "adp": 53,
-      "player_id": "8148"
-    },
-    {
-      "position": "RB",
-      "team": "CLE",
-      "rank": 212,
-      "name": "Pierre Strong",
-      "adp": 53,
+      "adp": 52.0,
       "player_id": "8148"
     },
     {
@@ -541,14 +429,6 @@
       "team": "PHI",
       "rank": 53,
       "name": "DeVonta Smith",
-      "adp": 54,
-      "player_id": "7525"
-    },
-    {
-      "position": "WR",
-      "team": "LAC",
-      "rank": 187,
-      "name": "Joshua Palmer",
       "adp": 54,
       "player_id": "7525"
     },
@@ -570,14 +450,6 @@
     },
     {
       "position": "WR",
-      "team": "NE",
-      "rank": 186,
-      "name": "DeMario Douglas",
-      "adp": 56.0,
-      "player_id": "10229"
-    },
-    {
-      "position": "WR",
       "team": "DAL",
       "rank": 67,
       "name": "George Pickens",
@@ -591,14 +463,6 @@
       "name": "Kyler Murray",
       "adp": 58.0,
       "player_id": "5849"
-    },
-    {
-      "position": "RB",
-      "team": "HOU",
-      "rank": 169,
-      "name": "Dameon Pierce",
-      "adp": 58.0,
-      "player_id": "8137"
     },
     {
       "position": "WR",
@@ -645,14 +509,6 @@
       "team": "MIA",
       "rank": 64,
       "name": "Jaylen Waddle",
-      "adp": 64,
-      "player_id": "7526"
-    },
-    {
-      "position": "WR",
-      "team": "CLE",
-      "rank": 193,
-      "name": "Elijah Moore",
       "adp": 64,
       "player_id": "7526"
     },
@@ -751,14 +607,6 @@
       "name": "Amari Cooper",
       "adp": 75,
       "player_id": "2976"
-    },
-    {
-      "position": "WR",
-      "team": "CAR",
-      "rank": 204,
-      "name": "Jonathan Mingo",
-      "adp": 75.0,
-      "player_id": "10859"
     },
     {
       "position": "RB",
@@ -954,14 +802,6 @@
     },
     {
       "position": "TE",
-      "team": "DAL",
-      "rank": 222,
-      "name": "Dallas Goedert",
-      "adp": 95,
-      "player_id": "5012"
-    },
-    {
-      "position": "TE",
       "team": "CHI",
       "rank": 223,
       "name": "Cole Kmet",
@@ -989,14 +829,6 @@
       "team": "GB",
       "rank": 95,
       "name": "Jayden Reed",
-      "adp": 98,
-      "player_id": "10222"
-    },
-    {
-      "position": "RB",
-      "team": "GB",
-      "rank": 176,
-      "name": "Emanuel Wilson",
       "adp": 98,
       "player_id": "10222"
     },
@@ -1289,14 +1121,6 @@
       "player_id": "9494"
     },
     {
-      "position": "QB",
-      "team": "NYJ",
-      "rank": 160,
-      "name": "Aaron Rodgers",
-      "adp": 125,
-      "player_id": "421"
-    },
-    {
       "position": "RB",
       "team": "LV",
       "rank": 170,
@@ -1458,14 +1282,6 @@
     },
     {
       "position": "WR",
-      "team": "KC",
-      "rank": 194,
-      "name": "Skyy Moore",
-      "adp": 137,
-      "player_id": "8136"
-    },
-    {
-      "position": "WR",
       "team": "LAC",
       "rank": 141,
       "name": "Tre Harris",
@@ -1530,14 +1346,6 @@
     },
     {
       "position": "RB",
-      "team": "CHI",
-      "rank": 175,
-      "name": "Roschon Johnson",
-      "adp": 142,
-      "player_id": "9225"
-    },
-    {
-      "position": "RB",
       "team": "SF",
       "rank": 146,
       "name": "Isaac Guerendo",
@@ -1567,14 +1375,6 @@
       "name": "Will Levis",
       "adp": 145,
       "player_id": "9786"
-    },
-    {
-      "position": "TE",
-      "team": "BUF",
-      "rank": 233,
-      "name": "Dawson Knox",
-      "adp": 145,
-      "player_id": "6130"
     },
     {
       "position": "RB",
@@ -1705,14 +1505,6 @@
       "player_id": "11636"
     },
     {
-      "position": "WR",
-      "team": "LA",
-      "rank": 198,
-      "name": "Tutu Atwell",
-      "adp": 170,
-      "player_id": "7543"
-    },
-    {
       "position": "RB",
       "team": "LA",
       "rank": 209,
@@ -1727,14 +1519,6 @@
       "name": "Dylan Laube",
       "adp": 175,
       "player_id": "11688"
-    },
-    {
-      "position": "WR",
-      "team": "KC",
-      "rank": 199,
-      "name": "Kadarius Toney",
-      "adp": 175,
-      "player_id": "7523"
     },
     {
       "position": "RB",
