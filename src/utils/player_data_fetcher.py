@@ -199,7 +199,7 @@ def load_sleeper_players() -> Dict[str, Dict]:
                 sleeper_data = json.load(f)
                 # Create a name-to-player mapping for faster lookups
                 name_to_player = {}
-                fantasy_positions = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF', 'LB', 'DB']
+                fantasy_positions = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF', 'DST', 'LB', 'DB']
                 for player_id, player_data in sleeper_data.items():
                     if 'name' in player_data and player_data.get('position') in fantasy_positions:
                         name = player_data['name']
@@ -460,13 +460,16 @@ def get_players_with_fallback() -> List[Dict]:
         # Create a set of existing player names for quick lookup
         existing_names = {p.get('name', '').upper() for p in players}
         
-        # Add top 30 LBs and top 20 DBs from Sleeper with default ADP
+        # Add top LBs, DBs, Ks, and DSTs from Sleeper with default ADP
         lb_players = []
         db_players = []
+        k_players = []
+        dst_players = []
         
         for name, player_data in sleeper_players.items():
             if name.upper() not in existing_names:
-                if player_data.get('position') == 'LB':
+                pos = player_data.get('position')
+                if pos == 'LB':
                     lb_players.append({
                         'name': name.upper(),
                         'position': 'LB',
@@ -475,10 +478,29 @@ def get_players_with_fallback() -> List[Dict]:
                         'adp': 999.0,  # Default ADP
                         'player_id': player_data.get('player_id')
                     })
-                elif player_data.get('position') == 'DB':
+                elif pos == 'DB':
                     db_players.append({
                         'name': name.upper(),
                         'position': 'DB',
+                        'team': player_data.get('team', 'FA'),
+                        'rank': 999,  # Will be updated after sorting
+                        'adp': 999.0,  # Default ADP
+                        'player_id': player_data.get('player_id')
+                    })
+                elif pos == 'K':
+                    k_players.append({
+                        'name': name.upper(),
+                        'position': 'K',
+                        'team': player_data.get('team', 'FA'),
+                        'rank': 999,  # Will be updated after sorting
+                        'adp': 999.0,  # Default ADP
+                        'player_id': player_data.get('player_id')
+                    })
+                elif pos in ['DEF', 'DST']:
+                    # Normalize to DST for consistency
+                    dst_players.append({
+                        'name': name.upper(),
+                        'position': 'DST',
                         'team': player_data.get('team', 'FA'),
                         'rank': 999,  # Will be updated after sorting
                         'adp': 999.0,  # Default ADP
@@ -494,6 +516,7 @@ def get_players_with_fallback() -> List[Dict]:
             top_lbs = lb_players[:30]  # Top 30 LBs
             for i, player in enumerate(top_lbs):
                 player['rank'] = 999 + i
+                player['adp'] = 151 + i  # LBs start around 151
             defensive_players.extend(top_lbs)
             
         if db_players:
@@ -502,12 +525,33 @@ def get_players_with_fallback() -> List[Dict]:
             top_dbs = db_players[:20]  # Top 20 DBs
             for i, player in enumerate(top_dbs):
                 player['rank'] = 999 + 30 + i  # Start after LBs
+                player['adp'] = 181 + i  # DBs start around 181
             defensive_players.extend(top_dbs)
+        
+        # Add kickers - just take top 15 by name (no stats needed)
+        if k_players:
+            # Sort alphabetically for consistency
+            k_players.sort(key=lambda p: p['name'])
+            top_ks = k_players[:15]  # Top 15 kickers
+            for i, player in enumerate(top_ks):
+                player['rank'] = 999 + 50 + i  # Start after DBs
+                player['adp'] = 201 + i  # Kickers start around 201
+            defensive_players.extend(top_ks)
+        
+        # Add DSTs - these are team defenses
+        if dst_players:
+            # Sort alphabetically for consistency
+            dst_players.sort(key=lambda p: p['name'])
+            top_dsts = dst_players[:15]  # Top 15 DSTs
+            for i, player in enumerate(top_dsts):
+                player['rank'] = 999 + 65 + i  # Start after Kickers
+                player['adp'] = 216 + i  # DSTs start around 216
+            defensive_players.extend(top_dsts)
         
         players.extend(defensive_players)
         added_count = len(defensive_players)
         
-        print(f"Added top {added_count} defensive players (30 LB, 20 DB)")
+        print(f"Added {added_count} special teams/defensive players (30 LB, 20 DB, {len(top_ks if k_players else [])} K, {len(top_dsts if dst_players else [])} DST)")
         return players
     
     # Try cache next
