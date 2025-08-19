@@ -43,9 +43,12 @@ for player in players:
         
 print(f"Updated {updated} players with custom ADP")
 
-# Format all names
+# Format all names and ensure ID field exists
 for player in players:
     player['name'] = format_name(player['name'])
+    # Ensure 'id' field exists (JavaScript expects 'id', not 'player_id')
+    if 'player_id' in player and 'id' not in player:
+        player['id'] = player['player_id']
 
 # Sort by ADP
 players.sort(key=lambda p: p.get('adp', 999))
