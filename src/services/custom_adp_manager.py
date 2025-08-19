@@ -18,6 +18,18 @@ class CustomADPManager:
             else:
                 # Mac/Linux
                 self.data_dir = os.path.join(os.path.expanduser('~'), '.mock_draft_sim_2025')
+            
+            # Check for bundled custom_adp.json and copy if needed
+            bundled_data_dir = os.path.join(sys._MEIPASS, 'data') if hasattr(sys, '_MEIPASS') else 'data'
+            bundled_custom_adp = os.path.join(bundled_data_dir, 'custom_adp.json')
+            user_custom_adp = os.path.join(self.data_dir, 'custom_adp.json')
+            
+            # If user doesn't have custom_adp.json but bundled version exists, copy it
+            if not os.path.exists(user_custom_adp) and os.path.exists(bundled_custom_adp):
+                os.makedirs(self.data_dir, exist_ok=True)
+                import shutil
+                shutil.copy2(bundled_custom_adp, user_custom_adp)
+                print(f"Copied bundled custom_adp.json to {user_custom_adp}")
         else:
             # Running from source - use project data directory
             self.data_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data')

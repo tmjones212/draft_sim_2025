@@ -18,7 +18,7 @@ class DraftManager {
         this.currentTimer = 0;
         this.autoPickEnabled = false;
         this.adminMode = false;
-        this.usePrivateADP = false; // Start with public ADP
+        this.usePrivateADP = true; // Start with private ADP (uses custom values)
         this.privatePlayersData = null; // Store private/custom ADP
         this.publicPlayersData = null; // Store public ADP
         
