@@ -298,8 +298,13 @@ class DraftSimulator {
       return false;
     }
     
-    const player = this.availablePlayers.find(p => p.id === playerId);
-    if (!player) return false;
+    // Convert to string for comparison since IDs might be mixed types
+    const playerIdStr = String(playerId);
+    const player = this.availablePlayers.find(p => String(p.id) === playerIdStr);
+    if (!player) {
+      console.error(`Player not found with ID: ${playerId}`);
+      return false;
+    }
 
     const teamId = this.getCurrentTeam();
     const team = this.teams[teamId];
@@ -308,8 +313,8 @@ class DraftSimulator {
     team.roster.push(player);
     team.positionCounts[player.position] = (team.positionCounts[player.position] || 0) + 1;
     
-    // Remove from available
-    this.availablePlayers = this.availablePlayers.filter(p => p.id !== playerId);
+    // Remove from available - convert to string for comparison
+    this.availablePlayers = this.availablePlayers.filter(p => String(p.id) !== playerIdStr);
     this.draftedPlayers.push({
       pick: this.currentPick,
       teamId: teamId,
@@ -371,7 +376,8 @@ class DraftSimulator {
     team.roster.push(player);
     team.positionCounts[player.position] = (team.positionCounts[player.position] || 0) + 1;
     
-    this.availablePlayers = this.availablePlayers.filter(p => p.id !== player.id);
+    // Convert to string for comparison since IDs might be mixed types
+    this.availablePlayers = this.availablePlayers.filter(p => String(p.id) !== String(player.id));
     this.draftedPlayers.push({
       pick: this.currentPick,
       teamId: teamId,
@@ -411,7 +417,8 @@ class DraftSimulator {
     const team = this.teams[lastPick.teamId];
     
     // Remove from team roster
-    team.roster = team.roster.filter(p => p.id !== lastPick.player.id);
+    // Convert to string for comparison since IDs might be mixed types
+    team.roster = team.roster.filter(p => String(p.id) !== String(lastPick.player.id));
     team.positionCounts[lastPick.player.position]--;
     
     // Add back to available
@@ -500,9 +507,9 @@ class DraftSimulator {
       this.sortBy = data.sortBy || 'adp';
       this.adminMode = data.adminMode || false;
       
-      // Rebuild available players
-      const draftedIds = new Set(this.draftedPlayers.map(d => d.player.id));
-      this.availablePlayers = this.allPlayers.filter(p => !draftedIds.has(p.id));
+      // Rebuild available players - convert IDs to strings for consistent comparison
+      const draftedIds = new Set(this.draftedPlayers.map(d => String(d.player.id)));
+      this.availablePlayers = this.allPlayers.filter(p => !draftedIds.has(String(p.id)));
       
       // Resume auto-picking if needed (only if in auto mode)
       if (!this.manualMode && this.draftStarted && this.getCurrentTeam() !== this.userTeamId) {
