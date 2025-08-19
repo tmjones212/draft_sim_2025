@@ -209,7 +209,6 @@ class DraftSimulator {
     const publicData = await this.loadPublicADP();
     if (publicData) {
       // Add the missing positions from custom data to public data
-      const publicPositions = new Set(publicData.players.map(p => p.position));
       const missingPositions = ['LB', 'DB', 'K', 'DST'];
       
       // Add missing position players from custom data
@@ -223,6 +222,13 @@ class DraftSimulator {
       
       this.publicPlayersData = publicData;
       console.log(`Loaded ${publicData.players.length} public ADP players (added missing positions)`);
+    } else {
+      // If public ADP fails to load, use custom data but could modify ADPs here if needed
+      // For now, just use the custom data so all positions are available
+      if (this.customPlayersData) {
+        this.publicPlayersData = { players: [...this.customPlayersData.players] };
+        console.log('Using custom data as fallback for public ADP (all positions available)');
+      }
     }
     
     // Use appropriate data based on admin mode
