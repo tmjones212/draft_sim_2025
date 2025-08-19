@@ -10,13 +10,33 @@ import os
 # Add src to path
 sys.path.insert(0, os.path.dirname(__file__))
 
-from src.utils.player_data_fetcher import get_players_with_fallback
+from src.utils.player_generator import generate_mock_players
 from src.utils.player_extensions import format_name
 
-# Get players with LB/DB included (same as tkinter)
+# Generate players EXACTLY like tkinter does (includes VAR calculation)
 print("Getting players with all positions...")
-players = get_players_with_fallback()
-print(f"Got {len(players)} total players")
+player_objects = generate_mock_players()
+print(f"Got {len(player_objects)} total players")
+
+# Convert player objects to dictionaries
+players = []
+for p in player_objects:
+    player_dict = {
+        'player_id': p.player_id,
+        'id': p.player_id,  # JavaScript expects 'id'
+        'name': p.name,  # Already formatted by generate_mock_players
+        'position': p.position,
+        'team': p.team,
+        'rank': p.rank,
+        'adp': p.adp,
+        'bye_week': p.bye_week,
+        'position_rank_2024': getattr(p, 'position_rank_2024', None),
+        'position_rank_proj': getattr(p, 'position_rank_proj', None),
+        'points_2024': getattr(p, 'points_2024', None),
+        'points_2025_proj': getattr(p, 'points_2025_proj', None),
+        'var': getattr(p, 'var', 0)  # Include VAR!
+    }
+    players.append(player_dict)
 
 # Count by position
 pos_counts = {}
@@ -38,17 +58,8 @@ for player in players:
         original = player.get('adp', 999)
         player['adp'] = custom_adp[pid]
         updated += 1
-        # Format name for display
-        player['name'] = format_name(player['name'])
         
 print(f"Updated {updated} players with custom ADP")
-
-# Format all names and ensure ID field exists
-for player in players:
-    player['name'] = format_name(player['name'])
-    # Ensure 'id' field exists (JavaScript expects 'id', not 'player_id')
-    if 'player_id' in player and 'id' not in player:
-        player['id'] = player['player_id']
 
 # Sort by ADP
 players.sort(key=lambda p: p.get('adp', 999))

@@ -71,6 +71,11 @@ class DraftSimulator {
   }
   
   setSortBy(sortType) {
+    // Only allow VAR sort in admin mode
+    if (sortType === 'var' && !this.adminMode) {
+      return;
+    }
+    
     this.sortBy = sortType;
     // Sort available players
     if (sortType === 'adp') {
@@ -674,11 +679,12 @@ class DraftSimulator {
             color: ${this.sortBy === 'adp' ? '#000' : '#fff'}; border: none; border-radius: 3px;">
             ADP ↑
           </button>
+          ${this.adminMode ? `
           <button onclick="draft.setSortBy('var')" 
             style="padding: 3px 8px; font-size: 11px; background: ${this.sortBy === 'var' ? '#50fa7b' : '#444'}; 
             color: ${this.sortBy === 'var' ? '#000' : '#fff'}; border: none; border-radius: 3px;">
             VAR ↓
-          </button>
+          </button>` : ''}
         </div>
         <div style="font-size: 11px; color: #888;">
           ${this.availablePlayers.length} available
@@ -713,7 +719,7 @@ class DraftSimulator {
           <span style="color: #888; margin-left: 10px;">${player.team}</span>
         </div>
         <div>
-          ${this.sortBy === 'var' ? 
+          ${this.adminMode && this.sortBy === 'var' ? 
             `<span style="color: #50fa7b;">VAR: ${player.var ? player.var.toFixed(1) : '0.0'}</span>` :
             `<span style="color: #888;">ADP: ${player.adp}</span>`
           }
