@@ -43,6 +43,18 @@
 
 ## Important Reminders
 
+### Offline Website Version
+**IMPORTANT**: When the user refers to "the offline website" or "offline web version", they mean:
+- `draft-offline.html` (NOT `web_app/index.html`)
+- `web_static/draft-offline.js` (NOT `web_app/js/draftLogic.js`)
+- Uses `web_static/players_data.json` for player data with custom ADP values
+
+To update player ADPs for the offline website:
+```bash
+python3 regenerate_players_data.py
+```
+This regenerates `web_static/players_data.json` with custom ADP values from `data/custom_adp.json`.
+
 ### Always Sync to Windows
 After making ANY changes, ALWAYS sync to Windows version:
 ```bash
