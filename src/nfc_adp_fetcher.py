@@ -11,10 +11,10 @@ class NFCADPFetcher:
         self.nfc_adp_file = os.path.join(self.data_dir, "nfc_adp.json")
         
     def fetch_nfc_adp(self):
-        """Fetch NFC ADP data from the website for the last 10 days"""
-        # Calculate date range (last 10 days)
+        """Fetch NFC ADP data from the website for the last 3 days"""
+        # Calculate date range (last 3 days)
         to_date = datetime.now()
-        from_date = to_date - timedelta(days=10)
+        from_date = to_date - timedelta(days=3)
         
         # Format dates as YYYY-MM-DD
         from_date_str = from_date.strftime("%Y-%m-%d")

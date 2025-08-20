@@ -71,8 +71,8 @@ class DraftSimulator {
   }
   
   setSortBy(sortType) {
-    // Only allow VAR sort in admin mode
-    if (sortType === 'var' && !this.adminMode) {
+    // Only allow VAR and NFC sort in admin mode
+    if ((sortType === 'var' || sortType === 'nfc') && !this.adminMode) {
       return;
     }
     
@@ -87,6 +87,8 @@ class DraftSimulator {
         const varB = parseFloat(b.var) || -999;
         return varB - varA;
       });
+    } else if (sortType === 'nfc') {
+      this.availablePlayers.sort((a, b) => (a.nfc_adp || 999) - (b.nfc_adp || 999));
     }
     this.saveState();
     this.render();
@@ -479,6 +481,8 @@ class DraftSimulator {
             const varB = parseFloat(b.var) || -999;
             return varB - varA;
           });
+        } else if (this.sortBy === 'nfc') {
+          this.availablePlayers.sort((a, b) => (a.nfc_adp || 999) - (b.nfc_adp || 999));
         }
       }
       
@@ -572,6 +576,15 @@ class DraftSimulator {
             color: ${this.positionFilter === pos ? '#000' : '#fff'}; border: none; border-radius: 2px;">${pos}</button>`
         ).join('');
         
+        // Sort controls - only show VAR and NFC in admin mode
+        const sortOptions = this.adminMode ? ['ADP', 'VAR', 'NFC'] : ['ADP'];
+        const sortButtons = sortOptions.map(sort => {
+          const sortValue = sort.toLowerCase();
+          return `<button onclick="draft.setSortBy('${sortValue}')" 
+            style="padding: 3px 8px; font-size: 10px; background: ${this.sortBy === sortValue ? '#50fa7b' : '#444'}; 
+            color: ${this.sortBy === sortValue ? '#000' : '#fff'}; border: none; border-radius: 2px; margin: 0 1px;">${sort}</button>`;
+        }).join('');
+        
         // Create draft grid visualization
         const currentRound = Math.ceil(this.currentPick / this.numTeams);
         const teamPicking = this.draftOrder[this.currentPick - 1];
@@ -627,17 +640,22 @@ class DraftSimulator {
         gridHtml += '</div>';
         
         statusEl.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 3px; gap: 5px;">
-            <span style="white-space: nowrap; font-size: 12px;"><strong>P${this.currentPick}</strong></span>
-            <span style="font-size: 10px; color: ${this.adminMode ? '#50fa7b' : '#888'};">${this.adminMode ? 'CUSTOM' : 'PUBLIC'}</span>
-            <div style="display: flex; gap: 2px; flex-grow: 1; justify-content: center;">
+          <div style="display: flex; flex-direction: column; gap: 3px; padding: 3px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 5px;">
+              <span style="white-space: nowrap; font-size: 12px;"><strong>P${this.currentPick}</strong></span>
+              <span style="font-size: 10px; color: ${this.adminMode ? '#50fa7b' : '#888'};">${this.adminMode ? 'CUSTOM' : 'PUBLIC'}</span>
+              <div style="display: flex; gap: 2px;">
+                ${sortButtons}
+              </div>
+              ${gridHtml}
+              <span style="background: ${isUserPick ? '#2a4e2a' : 'transparent'}; padding: 2px 6px; border-radius: 3px; white-space: nowrap; font-size: 12px;">
+                ${isUserPick ? 'YOU' : `T${currentTeam}`}
+              </span>
+              ${!isUserPick && this.manualMode ? '<button onclick="draft.makeAutoPick()" style="padding: 2px 8px; font-size: 11px;">CPU</button>' : ''}
+            </div>
+            <div style="display: flex; gap: 2px; justify-content: center;">
               ${filterButtons}
             </div>
-            ${gridHtml}
-            <span style="background: ${isUserPick ? '#2a4e2a' : 'transparent'}; padding: 2px 6px; border-radius: 3px; white-space: nowrap; font-size: 12px;">
-              ${isUserPick ? 'YOU' : `T${currentTeam}`}
-            </span>
-            ${!isUserPick && this.manualMode ? '<button onclick="draft.makeAutoPick()" style="padding: 2px 8px; font-size: 11px;">CPU</button>' : ''}
           </div>
         `;
       }
@@ -721,6 +739,8 @@ class DraftSimulator {
         <div>
           ${this.adminMode && this.sortBy === 'var' ? 
             `<span style="color: #50fa7b;">VAR: ${player.var ? player.var.toFixed(1) : '0.0'}</span>` :
+            this.adminMode && this.sortBy === 'nfc' ?
+            `<span style="color: #ff79c6;">NFC: ${player.nfc_adp ? player.nfc_adp.toFixed(1) : '999'}</span>` :
             `<span style="color: #888;">ADP: ${player.adp}</span>`
           }
         </div>

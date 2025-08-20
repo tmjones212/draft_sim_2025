@@ -5,6 +5,10 @@ Regenerate players_data.json for the offline website with custom ADP values appl
 
 import json
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from src.nfc_adp_fetcher import NFCADPFetcher
+from src.utils.player_extensions import format_name
 
 def calculate_var(players, num_teams=10):
     """Calculate Value Above Replacement for each player using ADP-based approach"""
@@ -62,13 +66,20 @@ def main():
     with open('data/custom_adp.json', 'r') as f:
         custom_adp = json.load(f)
     
+    # Load NFC ADP data
+    nfc_fetcher = NFCADPFetcher()
+    nfc_adp_data = nfc_fetcher.load_nfc_adp()
+    
     print(f"Loaded {len(players)} players")
     print(f"Loaded {len(custom_adp)} custom ADP values")
+    print(f"Loaded {len(nfc_adp_data)} NFC ADP values")
     
-    # Apply custom ADP values to players
+    # Apply custom ADP values and NFC ADP to players
     updated_count = 0
+    nfc_count = 0
     rashee_found = False
     for player in players:
+        # Apply custom ADP
         player_id = player.get('player_id')
         if player_id and player_id in custom_adp:
             original_adp = player.get('adp', 999)
@@ -78,6 +89,14 @@ def main():
             if player.get('name') == 'Rashee Rice':
                 rashee_found = True
                 print(f"Updated Rashee Rice ADP: {original_adp} -> {custom_adp[player_id]}")
+        
+        # Apply NFC ADP
+        player_name = player.get('name')
+        if player_name:
+            formatted_name = format_name(player_name)
+            if formatted_name in nfc_adp_data:
+                player['nfc_adp'] = nfc_adp_data[formatted_name]
+                nfc_count += 1
     
     if not rashee_found:
         # Check if Rashee exists at all
@@ -86,6 +105,7 @@ def main():
                 print(f"Found player: {player.get('name')} with ID {player.get('player_id')}")
     
     print(f"Updated {updated_count} players with custom ADP values")
+    print(f"Added NFC ADP to {nfc_count} players")
     
     # Calculate VAR for all players
     calculate_var(players)
