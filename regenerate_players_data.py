@@ -9,9 +9,10 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from src.nfc_adp_fetcher import NFCADPFetcher
 from src.utils.player_extensions import format_name
+from src.utils.player_data_fetcher import load_projections
 
-def calculate_var(players, num_teams=10):
-    """Calculate Value Above Replacement for each player using ADP-based approach"""
+def calculate_var(players, projections, num_teams=10):
+    """Calculate Value Above Replacement for each player using projected points"""
     # Define replacement level for each position in a 10-team league
     replacement_levels = {
         'QB': 20,    # 2 QBs per team = 20th QB
@@ -32,29 +33,42 @@ def calculate_var(players, num_teams=10):
         if pos:
             if pos not in position_groups:
                 position_groups[pos] = []
+            # Add projection points to player
+            formatted_name = format_name(player['name'])
+            if formatted_name in projections:
+                player['points_2025_proj'] = projections[formatted_name]
+            elif player['name'] in projections:
+                player['points_2025_proj'] = projections[player['name']]
+            else:
+                # Estimate based on ADP if no projection
+                # Top players get ~300 points, decreasing by ADP
+                adp = player.get('adp', 999)
+                if adp < 300:
+                    player['points_2025_proj'] = max(50, 350 - (adp * 1.0))
+                else:
+                    player['points_2025_proj'] = 50
+            
             position_groups[pos].append(player)
     
-    # Calculate VAR for each position using ADP-based approach
+    # Calculate VAR for each position using projected points
     for position, group in position_groups.items():
-        # Sort by ADP (ascending - lower ADP is better)
-        sorted_players = sorted(group, key=lambda p: p.get('adp', 999))
+        # Sort by projected points (descending)
+        sorted_players = sorted(group, key=lambda p: p.get('points_2025_proj', 0), reverse=True)
         
-        # Find replacement level based on position rank
+        # Find replacement level points
         replacement_rank = replacement_levels.get(position, 10)
+        replacement_points = 0
         
-        # Assign VAR based on position rank
-        for idx, player in enumerate(sorted_players):
-            # Calculate VAR as inverse of position rank relative to replacement
-            # Higher ranked players get higher VAR
-            if idx < replacement_rank:
-                # Players above replacement level get positive VAR
-                # Scale from 100 (best) down to 1 at replacement level
-                var_value = round(100 * (replacement_rank - idx) / replacement_rank, 1)
-            else:
-                # Players below replacement get negative or zero VAR
-                var_value = round(-5 * (idx - replacement_rank + 1), 1)
-            
-            player['var'] = var_value
+        if len(sorted_players) >= replacement_rank:
+            replacement_points = sorted_players[replacement_rank - 1].get('points_2025_proj', 0)
+        elif sorted_players:
+            # If we don't have enough players, use the last one
+            replacement_points = sorted_players[-1].get('points_2025_proj', 0)
+        
+        # Calculate VAR for each player
+        for player in group:
+            proj_points = player.get('points_2025_proj', 0)
+            player['var'] = round(proj_points - replacement_points, 1)
 
 def main():
     # Load base players from src
@@ -70,9 +84,13 @@ def main():
     nfc_fetcher = NFCADPFetcher()
     nfc_adp_data = nfc_fetcher.load_nfc_adp()
     
+    # Load projection data
+    projections = load_projections()
+    
     print(f"Loaded {len(players)} players")
     print(f"Loaded {len(custom_adp)} custom ADP values")
     print(f"Loaded {len(nfc_adp_data)} NFC ADP values")
+    print(f"Loaded {len(projections)} player projections")
     
     # Apply custom ADP values and NFC ADP to players
     updated_count = 0
@@ -107,9 +125,9 @@ def main():
     print(f"Updated {updated_count} players with custom ADP values")
     print(f"Added NFC ADP to {nfc_count} players")
     
-    # Calculate VAR for all players
-    calculate_var(players)
-    print(f"Calculated VAR for all players")
+    # Calculate VAR for all players using projections
+    calculate_var(players, projections)
+    print(f"Calculated VAR for all players using projected points")
     
     # Sort by ADP
     players.sort(key=lambda p: p.get('adp', 999))

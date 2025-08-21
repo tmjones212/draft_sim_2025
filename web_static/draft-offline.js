@@ -31,60 +31,7 @@ class DraftSimulator {
     this.init();
   }
   
-  calculateVAR(players) {
-    // Calculate Value Above Replacement for each player
-    // Define replacement level for each position in a 10-team league
-    const replacementLevels = {
-      'QB': 20,    // 2 QBs per team = 20th QB
-      'RB': 22,    // 2.2 RBs per team (with flex) = 22nd RB  
-      'WR': 38,    // 3.8 WRs per team (with flex) = 38th WR
-      'TE': 10,    // 1 TE per team = 10th TE
-      'LB': 30,    // 3 LBs per team = 30th LB
-      'DB': 30,    // 3 DBs per team = 30th DB
-      'K': 10,     // 1 K per team = 10th K
-      'DST': 10    // 1 DST per team = 10th DST
-    };
-    
-    // Group players by position
-    const positionGroups = {};
-    
-    for (const player of players) {
-      const pos = player.position;
-      if (pos) {
-        if (!positionGroups[pos]) {
-          positionGroups[pos] = [];
-        }
-        positionGroups[pos].push(player);
-      }
-    }
-    
-    // Calculate VAR for each position using ADP-based approach
-    for (const [position, group] of Object.entries(positionGroups)) {
-      // Sort by ADP (ascending - lower ADP is better)
-      const sortedPlayers = [...group].sort((a, b) => (a.adp || 999) - (b.adp || 999));
-      
-      // Find replacement level based on position rank
-      const replacementRank = replacementLevels[position] || 10;
-      
-      // Assign VAR based on position rank
-      for (let idx = 0; idx < sortedPlayers.length; idx++) {
-        const player = sortedPlayers[idx];
-        // Calculate VAR as inverse of position rank relative to replacement
-        // Higher ranked players get higher VAR
-        let varValue;
-        if (idx < replacementRank) {
-          // Players above replacement level get positive VAR
-          // Scale from 100 (best) down to 1 at replacement level
-          varValue = Math.round(100 * (replacementRank - idx) / replacementRank * 10) / 10;
-        } else {
-          // Players below replacement get negative or zero VAR
-          varValue = Math.round(-5 * (idx - replacementRank + 1) * 10) / 10;
-        }
-        
-        player.var = varValue;
-      }
-    }
-  }
+  // VAR calculation is no longer needed - values come from JSON data which uses proper projected points
 
   async init() {
     await this.loadPlayers();
@@ -313,8 +260,7 @@ class DraftSimulator {
       }
     }
     
-    // Calculate VAR for all players if not present
-    this.calculateVAR(this.allPlayers);
+    // VAR is already calculated in the JSON data, no need to recalculate
     
     // Create a fresh copy for available players
     this.availablePlayers = [...this.allPlayers];
