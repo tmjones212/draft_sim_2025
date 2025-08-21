@@ -459,6 +459,7 @@ class MockDraftApp:
         
         self.player_list = PlayerList(player_panel, on_draft=self.draft_player, on_adp_change=self.on_adp_change, image_service=self.image_service, parent_app=self)
         self.player_list.pack(fill='both', expand=True, padx=10, pady=10)
+        self.player_list.set_preset_manager(self.draft_preset_manager)
         
         # Apply custom rankings if they were already loaded
         if hasattr(self, 'custom_rankings') and hasattr(self, 'player_tiers'):
@@ -908,6 +909,9 @@ class MockDraftApp:
         # Check preset exclusions first
         active_preset = self.draft_preset_manager.get_active_preset()
         
+        # Calculate current round for round restrictions
+        current_round = ((pick_num - 1) // config.num_teams) + 1
+        
         # Check for forced picks first
         if active_preset:
             forced_player_name = active_preset.get_forced_pick(team.name, pick_num)
@@ -942,10 +946,12 @@ class MockDraftApp:
         
         # Quick path for very early picks
         if pick_num <= 3:
-            # Check preset exclusions even for early picks
+            # Check preset exclusions and round restrictions even for early picks
             for player in self.available_players:
                 if active_preset and active_preset.is_player_excluded(team.name, player.name):
                     continue  # Skip excluded player
+                if active_preset and active_preset.is_player_restricted(team.name, player.name, current_round):
+                    continue  # Skip round-restricted player
                 return player  # Return first non-excluded player
             return None
         
@@ -997,6 +1003,10 @@ class MockDraftApp:
             if active_preset and active_preset.is_player_excluded(team.name, player.name):
                 continue  # Skip excluded player
             
+            # Check round restrictions
+            if active_preset and active_preset.is_player_restricted(team.name, player.name, current_round):
+                continue  # Skip round-restricted player
+            
             # Check if pick is too much of a reach
             if player.adp > pick_num + max_adp_reach:
                 continue  # Don't reach too far
@@ -1031,6 +1041,9 @@ class MockDraftApp:
                 # Check preset exclusions even in fallback
                 if active_preset and active_preset.is_player_excluded(team.name, player.name):
                     continue  # Skip excluded player
+                # Check round restrictions even in fallback
+                if active_preset and active_preset.is_player_restricted(team.name, player.name, current_round):
+                    continue  # Skip round-restricted player
                 if player.position not in ['K', 'DEF'] or pick_num >= 120:
                     return player
             return self.available_players[0] if self.available_players else None
@@ -1301,6 +1314,15 @@ class MockDraftApp:
         """Called when ADP values are changed via UI"""
         # Re-sort available players by ADP to maintain proper draft order
         self.available_players.sort(key=lambda p: p.adp if p.adp else 999)
+        
+        # Mark that ADP has changed and needs refresh
+        self._adp_needs_refresh = True
+        
+        # If we're currently on the Draft tab, refresh immediately
+        if hasattr(self, 'notebook') and self.notebook.tab('current')['text'] == 'Draft':
+            if hasattr(self, 'player_list') and self.player_list:
+                self.player_list.update_players(self.available_players, force_refresh=True)
+                self._adp_needs_refresh = False
     
     def update_nfc_adp(self):
         """Fetch and update NFC ADP data"""
@@ -2155,6 +2177,12 @@ class MockDraftApp:
                 # Update the display to show updated rounds
                 if hasattr(self, 'player_list'):
                     self.player_list.update_table_view()
+            
+            # Check if ADP was changed in ADP tab and needs refresh
+            if hasattr(self, '_adp_needs_refresh') and self._adp_needs_refresh:
+                self._adp_needs_refresh = False
+                if hasattr(self, 'player_list') and self.player_list:
+                    self.player_list.update_players(self.available_players, force_refresh=True)
     
     def show_pick_quality(self, player, pick_num):
         """Show a notification about pick quality"""

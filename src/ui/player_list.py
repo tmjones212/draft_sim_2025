@@ -222,6 +222,22 @@ class PlayerList(StyledFrame):
         )
         self.show_graph_btn.pack(side='left', padx=1)
         
+        # Refresh button to clear any stale drafted players
+        self.refresh_btn = tk.Button(
+            view_toggle_frame,
+            text="Refresh",
+            bg=DARK_THEME['button_bg'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 9, 'bold'),
+            bd=0,
+            relief='flat',
+            padx=12,
+            pady=4,
+            command=self.refresh_available_players,
+            cursor='hand2'
+        )
+        self.refresh_btn.pack(side='left', padx=(10, 1))
+        
         # Show all players checkbox (for graph view)
         self.show_all_players_var = tk.BooleanVar(value=False)
         self.show_all_players_check = tk.Checkbutton(
@@ -299,6 +315,19 @@ class PlayerList(StyledFrame):
         """Handle toggling of show all players checkbox"""
         if self.current_view == 'graph':
             self.draw_tier_graph()
+    
+    def refresh_available_players(self):
+        """Refresh the player list to ensure only undrafted players are shown"""
+        # Force a full refresh of the player list
+        if hasattr(self, 'all_players') and self.all_players:
+            self.update_players(self.all_players, force_refresh=True)
+            
+            # Clear and rebuild the position cache to ensure drafted players are excluded
+            if hasattr(self, '_position_cache'):
+                del self._position_cache
+            
+            # Update the view
+            self.update_table_view()
         
     def draw_tier_graph(self):
         """Draw the tier break visualization graph"""
@@ -370,14 +399,21 @@ class PlayerList(StyledFrame):
         adps = []
         is_drafted = []
         
+        # Determine current pick number for ADP filtering
+        current_pick = self.current_pick if hasattr(self, 'current_pick') else 1
+        adp_cutoff = 120 if current_pick < 90 else 999  # Show all if pick 90+
+        
         for player in filtered_players:
             # Get projected points
             proj_pts = getattr(player, 'points_2025_proj', 0) or 0
-            if proj_pts > 0:  # Only include players with projections
+            player_adp = player.adp if player.adp else 999
+            
+            # Filter by ADP unless we're late in the draft
+            if proj_pts > 0 and player_adp <= adp_cutoff:  # Only include players with projections and ADP within cutoff
                 player_names.append(player.format_name())
                 proj_points.append(proj_pts)
                 positions.append(player.position)
-                adps.append(player.adp if player.adp else 999)
+                adps.append(player_adp)
                 # Check if player is drafted
                 is_drafted.append(player in self.drafted_players)
         
@@ -1113,6 +1149,43 @@ class PlayerList(StyledFrame):
                 menu.add_command(label=f"Draft {player.format_name()}",
                                 command=lambda: self.draft_specific_player(player))
                 menu.add_separator()
+            
+            # Add round restriction submenu
+            if hasattr(self, 'preset_manager'):
+                restrict_menu = tk.Menu(menu, tearoff=0,
+                                      bg=DARK_THEME['bg_secondary'],
+                                      fg=DARK_THEME['text_primary'],
+                                      activebackground=DARK_THEME['button_active'],
+                                      activeforeground='white')
+                
+                # Get current preset
+                preset = self.preset_manager.get_active_preset()
+                if preset and preset.enabled:
+                    # Add team options
+                    for team_name in preset.draft_order:
+                        team_menu = tk.Menu(restrict_menu, tearoff=0,
+                                          bg=DARK_THEME['bg_secondary'],
+                                          fg=DARK_THEME['text_primary'],
+                                          activebackground=DARK_THEME['button_active'],
+                                          activeforeground='white')
+                        
+                        # Add round options (1-8)
+                        for round_num in range(1, 9):
+                            team_menu.add_command(
+                                label=f"Cannot draft before Round {round_num}",
+                                command=lambda t=team_name, r=round_num: self._add_round_restriction(player, t, r)
+                            )
+                        
+                        restrict_menu.add_cascade(label=team_name, menu=team_menu)
+                    
+                    menu.add_cascade(label="Add Round Restriction", menu=restrict_menu)
+                    
+                    # Add option to remove restrictions for this player
+                    if self._has_round_restrictions(player):
+                        menu.add_command(label="Remove Round Restrictions",
+                                       command=lambda: self._remove_round_restrictions(player))
+                    
+                    menu.add_separator()
             
             menu.add_command(label="View Stats",
                             command=lambda: self._show_player_stats(player))
@@ -2553,12 +2626,76 @@ class PlayerList(StyledFrame):
             # Notify main app that ADP has changed
             if self.on_adp_change:
                 self.on_adp_change()
-            
-            messagebox.showinfo(
-                "ADP Reset",
-                "All ADP values have been reset to defaults.",
-                parent=self.winfo_toplevel()
-            )
+    
+    def set_preset_manager(self, preset_manager):
+        """Set the preset manager reference"""
+        self.preset_manager = preset_manager
+    
+    def _add_round_restriction(self, player, team_name, max_round):
+        """Add a round restriction for a player and team"""
+        if not hasattr(self, 'preset_manager'):
+            return
+        
+        preset = self.preset_manager.get_active_preset()
+        if not preset:
+            return
+        
+        # Check if restriction already exists
+        for restriction in preset.round_restrictions:
+            if (restriction.team_name == team_name and 
+                restriction.player_name.upper() == player.name.upper()):
+                # Update existing restriction
+                restriction.max_round = max_round
+                restriction.enabled = True
+                self.preset_manager.save_presets()
+                messagebox.showinfo("Round Restriction Updated", 
+                                  f"{player.format_name()} cannot be drafted by {team_name} before Round {max_round}")
+                return
+        
+        # Add new restriction
+        from src.models.draft_preset import RoundRestriction
+        new_restriction = RoundRestriction(
+            team_name=team_name,
+            player_name=player.name,
+            max_round=max_round,
+            enabled=True
+        )
+        preset.round_restrictions.append(new_restriction)
+        self.preset_manager.save_presets()
+        messagebox.showinfo("Round Restriction Added", 
+                          f"{player.format_name()} cannot be drafted by {team_name} before Round {max_round}")
+    
+    def _has_round_restrictions(self, player):
+        """Check if a player has any round restrictions"""
+        if not hasattr(self, 'preset_manager'):
+            return False
+        
+        preset = self.preset_manager.get_active_preset()
+        if not preset:
+            return False
+        
+        for restriction in preset.round_restrictions:
+            if restriction.player_name.upper() == player.name.upper() and restriction.enabled:
+                return True
+        return False
+    
+    def _remove_round_restrictions(self, player):
+        """Remove all round restrictions for a player"""
+        if not hasattr(self, 'preset_manager'):
+            return
+        
+        preset = self.preset_manager.get_active_preset()
+        if not preset:
+            return
+        
+        # Remove all restrictions for this player
+        preset.round_restrictions = [
+            r for r in preset.round_restrictions 
+            if r.player_name.upper() != player.name.upper()
+        ]
+        self.preset_manager.save_presets()
+        messagebox.showinfo("Restrictions Removed", 
+                          f"All round restrictions removed for {player.format_name()}")
     
     def set_watch_list_ref(self, watch_list):
         """Set reference to watch list widget"""

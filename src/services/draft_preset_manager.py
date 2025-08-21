@@ -1,7 +1,7 @@
 import json
 import os
 from typing import Dict, Optional
-from src.models.draft_preset import DraftPreset, PlayerExclusion, ForcedPick
+from src.models.draft_preset import DraftPreset, PlayerExclusion, ForcedPick, RoundRestriction
 
 
 class DraftPresetManager:
@@ -39,6 +39,15 @@ class DraftPresetManager:
                                 enabled=fp.get('enabled', True)
                             )
                             for fp in preset_data.get('forced_picks', [])
+                        ],
+                        round_restrictions=[
+                            RoundRestriction(
+                                team_name=rr['team_name'],
+                                player_name=rr['player_name'],
+                                max_round=rr['max_round'],
+                                enabled=rr.get('enabled', True)
+                            )
+                            for rr in preset_data.get('round_restrictions', [])
                         ]
                     )
                     self.presets[name] = preset
@@ -77,6 +86,15 @@ class DraftPresetManager:
                         'enabled': fp.enabled
                     }
                     for fp in preset.forced_picks
+                ],
+                'round_restrictions': [
+                    {
+                        'team_name': rr.team_name,
+                        'player_name': rr.player_name,
+                        'max_round': rr.max_round,
+                        'enabled': rr.enabled
+                    }
+                    for rr in preset.round_restrictions
                 ]
             }
         

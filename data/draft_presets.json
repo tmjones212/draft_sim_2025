@@ -40,7 +40,8 @@
           "pick_number": 10,
           "enabled": true
         }
-      ]
+      ],
+      "round_restrictions": []
     }
   }
 }

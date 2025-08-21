@@ -30,6 +30,61 @@ class DraftSimulator {
     this.draftOrder = [];
     this.init();
   }
+  
+  calculateVAR(players) {
+    // Calculate Value Above Replacement for each player
+    // Define replacement level for each position in a 10-team league
+    const replacementLevels = {
+      'QB': 20,    // 2 QBs per team = 20th QB
+      'RB': 22,    // 2.2 RBs per team (with flex) = 22nd RB  
+      'WR': 38,    // 3.8 WRs per team (with flex) = 38th WR
+      'TE': 10,    // 1 TE per team = 10th TE
+      'LB': 30,    // 3 LBs per team = 30th LB
+      'DB': 30,    // 3 DBs per team = 30th DB
+      'K': 10,     // 1 K per team = 10th K
+      'DST': 10    // 1 DST per team = 10th DST
+    };
+    
+    // Group players by position
+    const positionGroups = {};
+    
+    for (const player of players) {
+      const pos = player.position;
+      if (pos) {
+        if (!positionGroups[pos]) {
+          positionGroups[pos] = [];
+        }
+        positionGroups[pos].push(player);
+      }
+    }
+    
+    // Calculate VAR for each position using ADP-based approach
+    for (const [position, group] of Object.entries(positionGroups)) {
+      // Sort by ADP (ascending - lower ADP is better)
+      const sortedPlayers = [...group].sort((a, b) => (a.adp || 999) - (b.adp || 999));
+      
+      // Find replacement level based on position rank
+      const replacementRank = replacementLevels[position] || 10;
+      
+      // Assign VAR based on position rank
+      for (let idx = 0; idx < sortedPlayers.length; idx++) {
+        const player = sortedPlayers[idx];
+        // Calculate VAR as inverse of position rank relative to replacement
+        // Higher ranked players get higher VAR
+        let varValue;
+        if (idx < replacementRank) {
+          // Players above replacement level get positive VAR
+          // Scale from 100 (best) down to 1 at replacement level
+          varValue = Math.round(100 * (replacementRank - idx) / replacementRank * 10) / 10;
+        } else {
+          // Players below replacement get negative or zero VAR
+          varValue = Math.round(-5 * (idx - replacementRank + 1) * 10) / 10;
+        }
+        
+        player.var = varValue;
+      }
+    }
+  }
 
   async init() {
     await this.loadPlayers();
@@ -240,24 +295,28 @@ class DraftSimulator {
     
     // Use appropriate data based on admin mode
     if (this.adminMode && this.customPlayersData) {
-      this.allPlayers = this.customPlayersData.players;
+      this.allPlayers = [...this.customPlayersData.players];
     } else if (this.publicPlayersData) {
-      this.allPlayers = this.publicPlayersData.players;
+      this.allPlayers = [...this.publicPlayersData.players];
     } else if (this.customPlayersData) {
       // Fallback to custom if public failed to load
-      this.allPlayers = this.customPlayersData.players;
+      this.allPlayers = [...this.customPlayersData.players];
     } else {
       // Try to load from localStorage if everything else fails
       const cached = localStorage.getItem('playersData');
       if (cached) {
         const data = JSON.parse(cached);
-        this.allPlayers = data.players;
+        this.allPlayers = [...data.players];
         console.log(`Loaded ${this.allPlayers.length} players from cache`);
       } else {
         this.allPlayers = [];
       }
     }
     
+    // Calculate VAR for all players if not present
+    this.calculateVAR(this.allPlayers);
+    
+    // Create a fresh copy for available players
     this.availablePlayers = [...this.allPlayers];
     console.log(`Using ${this.adminMode ? 'custom' : 'public'} ADP with ${this.allPlayers.length} players`);
   }
@@ -326,12 +385,13 @@ class DraftSimulator {
     
     // Convert to string for comparison since IDs might be mixed types
     const playerIdStr = String(playerId);
-    const player = this.availablePlayers.find(p => String(p.id) === playerIdStr);
-    if (!player) {
+    const playerIndex = this.availablePlayers.findIndex(p => String(p.id) === playerIdStr);
+    if (playerIndex === -1) {
       console.error(`Player not found with ID: ${playerId}`);
       return false;
     }
-
+    
+    const player = this.availablePlayers[playerIndex];
     const teamId = this.getCurrentTeam();
     const team = this.teams[teamId];
     
@@ -339,8 +399,9 @@ class DraftSimulator {
     team.roster.push(player);
     team.positionCounts[player.position] = (team.positionCounts[player.position] || 0) + 1;
     
-    // Remove from available - convert to string for comparison
-    this.availablePlayers = this.availablePlayers.filter(p => String(p.id) !== playerIdStr);
+    // Remove from available - use splice to maintain array integrity
+    this.availablePlayers.splice(playerIndex, 1);
+    
     this.draftedPlayers.push({
       pick: this.currentPick,
       teamId: teamId,
@@ -494,6 +555,7 @@ class DraftSimulator {
   }
   
   restart() {
+    // Make a fresh copy of all players
     this.availablePlayers = [...this.allPlayers];
     this.draftedPlayers = [];
     this.currentPick = 1;
@@ -501,6 +563,20 @@ class DraftSimulator {
     this.draftStarted = false;
     this.manualMode = true; // Reset to manual mode
     this.initializeTeams();
+    
+    // Re-sort based on current sort preference
+    if (this.sortBy === 'adp') {
+      this.availablePlayers.sort((a, b) => (a.adp || 999) - (b.adp || 999));
+    } else if (this.sortBy === 'var') {
+      this.availablePlayers.sort((a, b) => {
+        const varA = parseFloat(a.var) || -999;
+        const varB = parseFloat(b.var) || -999;
+        return varB - varA;
+      });
+    } else if (this.sortBy === 'nfc') {
+      this.availablePlayers.sort((a, b) => (a.nfc_adp || 999) - (b.nfc_adp || 999));
+    }
+    
     localStorage.removeItem('draftState'); // Clear saved state
     this.render();
   }
@@ -526,7 +602,7 @@ class DraftSimulator {
     if (state) {
       const data = JSON.parse(state);
       this.currentPick = data.currentPick;
-      this.draftedPlayers = data.draftedPlayers;
+      this.draftedPlayers = data.draftedPlayers || [];
       this.teams = data.teams;
       this.userTeamId = data.userTeamId;
       this.draftStarted = data.draftStarted;
@@ -535,9 +611,29 @@ class DraftSimulator {
       this.sortBy = data.sortBy || 'adp';
       this.adminMode = data.adminMode || false;
       
-      // Rebuild available players - convert IDs to strings for consistent comparison
+      // Rebuild available players - use name matching as fallback
+      const draftedNames = new Set(this.draftedPlayers.map(d => d.player.name));
       const draftedIds = new Set(this.draftedPlayers.map(d => String(d.player.id)));
-      this.availablePlayers = this.allPlayers.filter(p => !draftedIds.has(String(p.id)));
+      
+      // Filter using both ID and name to be safe
+      this.availablePlayers = this.allPlayers.filter(p => {
+        return !draftedIds.has(String(p.id)) && !draftedNames.has(p.name);
+      });
+      
+      // Re-sort available players based on current sort
+      if (this.sortBy === 'adp') {
+        this.availablePlayers.sort((a, b) => (a.adp || 999) - (b.adp || 999));
+      } else if (this.sortBy === 'var') {
+        this.availablePlayers.sort((a, b) => {
+          const varA = parseFloat(a.var) || -999;
+          const varB = parseFloat(b.var) || -999;
+          return varB - varA;
+        });
+      } else if (this.sortBy === 'nfc') {
+        this.availablePlayers.sort((a, b) => (a.nfc_adp || 999) - (b.nfc_adp || 999));
+      }
+      
+      console.log(`Loaded state: ${this.availablePlayers.length} available, ${this.draftedPlayers.length} drafted`);
       
       // Resume auto-picking if needed (only if in auto mode)
       if (!this.manualMode && this.draftStarted && this.getCurrentTeam() !== this.userTeamId) {
