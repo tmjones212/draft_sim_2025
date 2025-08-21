@@ -546,6 +546,13 @@ class MockDraftApp:
             user_team = self.teams.get(self.user_team_id) if self.user_team_id else None
             self.player_list.set_draft_context(current_pick, user_team)
             
+            # If force refresh, rebuild the drafted players set
+            if force_refresh:
+                self.player_list.drafted_players.clear()
+                for pick in self.draft_engine.draft_results:
+                    if hasattr(pick.player, 'player_id'):
+                        self.player_list.drafted_players.add(pick.player)
+            
             self.player_list.update_players(self.available_players, force_refresh=force_refresh)
             # Update draft button states based on mode
             self.player_list.set_draft_enabled(self.manual_mode or self.user_team_id is not None)
@@ -912,12 +919,11 @@ class MockDraftApp:
         
         # Special logic for Luan in round 3 (pick 21)
         if team.name.upper() == "LUAN" and pick_num == 21:
-            # Priority order: DRAKE LONDON > DERRICK HENRY > CHASE BROWN > TREY MCBRIDE > any QB
+            # Priority order: DRAKE LONDON > DERRICK HENRY > CHASE BROWN > any QB (NOT McBride)
             priority_players = [
                 "DRAKE LONDON",
                 "DERRICK HENRY", 
-                "CHASE BROWN",
-                "TREY MCBRIDE"
+                "CHASE BROWN"
             ]
             
             # Check for priority players first
@@ -1856,6 +1862,13 @@ class MockDraftApp:
             
             if self.player_list.watch_list_ref:
                 self.player_list.watched_player_ids = watch_list.watched_player_ids.copy()
+        
+        # Clear drafted players set and update player list
+        self.player_list.drafted_players.clear()
+        # Add back the players that are still drafted after reversion
+        for pick in self.draft_engine.draft_results:
+            if hasattr(pick.player, 'player_id'):
+                self.player_list.drafted_players.add(pick.player)
         
         # Update player list once
         self.player_list.update_players(self.available_players, force_refresh=True)

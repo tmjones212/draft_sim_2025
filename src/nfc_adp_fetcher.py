@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
@@ -7,7 +8,18 @@ from src.utils.player_extensions import format_name
 
 class NFCADPFetcher:
     def __init__(self):
-        self.data_dir = "data"
+        # Use a persistent location that works both in development and when bundled as exe
+        if getattr(sys, 'frozen', False):
+            # Running as bundled exe - use user's AppData folder
+            if sys.platform == 'win32':
+                app_data = os.environ.get('APPDATA', os.path.expanduser('~'))
+                self.data_dir = os.path.join(app_data, 'MockDraftSim2025')
+            else:
+                self.data_dir = os.path.expanduser('~/.MockDraftSim2025')
+        else:
+            # Running in development
+            self.data_dir = "data"
+        
         self.nfc_adp_file = os.path.join(self.data_dir, "nfc_adp.json")
         
     def fetch_nfc_adp(self):
@@ -114,13 +126,30 @@ class NFCADPFetcher:
     
     def load_nfc_adp(self):
         """Load NFC ADP data from saved file"""
+        # Try primary location first
         if os.path.exists(self.nfc_adp_file):
             try:
                 with open(self.nfc_adp_file, 'r') as f:
                     data = json.load(f)
                     return data.get('adp_data', {})
             except Exception as e:
-                print(f"Error loading NFC ADP data: {e}")
+                print(f"Error loading NFC ADP data from {self.nfc_adp_file}: {e}")
+        
+        # If running as exe and primary doesn't exist, try fallback to data folder
+        if getattr(sys, 'frozen', False) and not os.path.exists(self.nfc_adp_file):
+            fallback_file = os.path.join("data", "nfc_adp.json")
+            if os.path.exists(fallback_file):
+                try:
+                    with open(fallback_file, 'r') as f:
+                        data = json.load(f)
+                        # Copy to AppData for future use
+                        os.makedirs(self.data_dir, exist_ok=True)
+                        with open(self.nfc_adp_file, 'w') as out_f:
+                            json.dump(data, out_f, indent=2)
+                        return data.get('adp_data', {})
+                except Exception as e:
+                    print(f"Error loading NFC ADP fallback data: {e}")
+        
         return {}
     
     def get_player_nfc_adp(self, player_name):

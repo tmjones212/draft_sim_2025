@@ -188,11 +188,331 @@ class PlayerList(StyledFrame):
             btn.pack(side='left', padx=1)
             self.position_buttons[pos] = btn
         
+        # View toggle buttons (Table/Graph)
+        view_toggle_frame = StyledFrame(header_frame, bg_type='secondary')
+        view_toggle_frame.pack(side='left', padx=20)
+        
+        self.show_table_btn = tk.Button(
+            view_toggle_frame,
+            text="Show Table",
+            bg=DARK_THEME['button_active'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 9, 'bold'),
+            bd=0,
+            relief='flat',
+            padx=12,
+            pady=4,
+            command=self.show_table_view,
+            cursor='hand2'
+        )
+        self.show_table_btn.pack(side='left', padx=1)
+        
+        self.show_graph_btn = tk.Button(
+            view_toggle_frame,
+            text="Show Graph",
+            bg=DARK_THEME['button_bg'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 9, 'bold'),
+            bd=0,
+            relief='flat',
+            padx=12,
+            pady=4,
+            command=self.show_graph_view,
+            cursor='hand2'
+        )
+        self.show_graph_btn.pack(side='left', padx=1)
+        
+        # Show all players checkbox (for graph view)
+        self.show_all_players_var = tk.BooleanVar(value=False)
+        self.show_all_players_check = tk.Checkbutton(
+            view_toggle_frame,
+            text="Show All Players",
+            variable=self.show_all_players_var,
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 9),
+            selectcolor=DARK_THEME['bg_tertiary'],
+            activebackground=DARK_THEME['bg_secondary'],
+            command=self.on_show_all_players_toggle
+        )
+        self.show_all_players_check.pack(side='left', padx=(10, 1))
+        self.show_all_players_check.pack_forget()  # Initially hidden
+        
         # Suggested picks section (initially hidden)
         self.create_suggested_picks_section()
         
+        # Create both views
+        self.view_container = StyledFrame(container, bg_type='secondary')
+        self.view_container.pack(fill='both', expand=True, padx=1, pady=1)
+        
         # Table container
-        self.create_table_view(container)
+        self.create_table_view(self.view_container)
+        
+        # Graph container (initially hidden)
+        self.create_graph_view(self.view_container)
+        self.graph_container.pack_forget()
+        
+        # Current view state
+        self.current_view = 'table'
+    
+    def create_graph_view(self, parent):
+        """Create the graph view for visualizing tier breaks"""
+        self.graph_container = StyledFrame(parent, bg_type='secondary')
+        
+        # We'll create the actual graph when switching to this view
+        self.graph_canvas = None
+        
+    def show_table_view(self):
+        """Switch to table view"""
+        if self.current_view == 'table':
+            return
+            
+        self.current_view = 'table'
+        self.show_table_btn.config(bg=DARK_THEME['button_active'])
+        self.show_graph_btn.config(bg=DARK_THEME['button_bg'])
+        
+        # Hide the show all players checkbox
+        self.show_all_players_check.pack_forget()
+        
+        self.graph_container.pack_forget()
+        self.table_container.pack(fill='both', expand=True)
+        
+    def show_graph_view(self):
+        """Switch to graph view and draw the tier break visualization"""
+        if self.current_view == 'graph':
+            return
+            
+        self.current_view = 'graph'
+        self.show_graph_btn.config(bg=DARK_THEME['button_active'])
+        self.show_table_btn.config(bg=DARK_THEME['button_bg'])
+        
+        # Show the show all players checkbox
+        self.show_all_players_check.pack(side='left', padx=(10, 1))
+        
+        self.table_container.pack_forget()
+        self.graph_container.pack(fill='both', expand=True)
+        
+        # Draw the graph
+        self.draw_tier_graph()
+        
+    def on_show_all_players_toggle(self):
+        """Handle toggling of show all players checkbox"""
+        if self.current_view == 'graph':
+            self.draw_tier_graph()
+        
+    def draw_tier_graph(self):
+        """Draw the tier break visualization graph"""
+        # Clear existing graph if any
+        for widget in self.graph_container.winfo_children():
+            widget.destroy()
+        
+        # Import matplotlib
+        try:
+            import matplotlib
+            matplotlib.use('TkAgg')
+            from matplotlib.figure import Figure
+            from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+            import numpy as np
+        except ImportError:
+            # If matplotlib not available, show message
+            label = tk.Label(
+                self.graph_container,
+                text="Matplotlib not installed. Run: pip install matplotlib",
+                bg=DARK_THEME['bg_secondary'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 12)
+            )
+            label.pack(expand=True)
+            return
+        
+        # Get players based on show all checkbox
+        filtered_players = []
+        if self.show_all_players_var.get():
+            # Show all players including drafted ones
+            if hasattr(self, '_position_cache') and self.selected_position in self._position_cache:
+                # Get all players for this position from all_players
+                all_position_players = []
+                for p in self.all_players:
+                    if self.selected_position == 'ALL':
+                        all_position_players.append(p)
+                    elif self.selected_position == 'OFF' and p.position in ['QB', 'RB', 'WR', 'TE']:
+                        all_position_players.append(p)
+                    elif self.selected_position == 'FLEX' and p.position in ['RB', 'WR', 'TE']:
+                        all_position_players.append(p)
+                    elif p.position == self.selected_position:
+                        all_position_players.append(p)
+                
+                # Sort by projected points descending
+                all_position_players.sort(key=lambda p: getattr(p, 'points_2025_proj', 0) or 0, reverse=True)
+                filtered_players = all_position_players[:100]  # Limit to top 100
+            else:
+                filtered_players = self.all_players[:100]
+        else:
+            # Show only available players (default)
+            if hasattr(self, 'players'):
+                filtered_players = self.players[:100]  # Limit to top 100 for performance
+        
+        if not filtered_players:
+            label = tk.Label(
+                self.graph_container,
+                text="No players to display",
+                bg=DARK_THEME['bg_secondary'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 12)
+            )
+            label.pack(expand=True)
+            return
+        
+        # Extract data for graph
+        player_names = []
+        proj_points = []
+        positions = []
+        adps = []
+        is_drafted = []
+        
+        for player in filtered_players:
+            # Get projected points
+            proj_pts = getattr(player, 'points_2025_proj', 0) or 0
+            if proj_pts > 0:  # Only include players with projections
+                player_names.append(player.format_name())
+                proj_points.append(proj_pts)
+                positions.append(player.position)
+                adps.append(player.adp if player.adp else 999)
+                # Check if player is drafted
+                is_drafted.append(player in self.drafted_players)
+        
+        if not proj_points:
+            label = tk.Label(
+                self.graph_container,
+                text="No projection data available",
+                bg=DARK_THEME['bg_secondary'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 12)
+            )
+            label.pack(expand=True)
+            return
+        
+        # Create figure with dark theme
+        fig = Figure(figsize=(12, 8), facecolor=DARK_THEME['bg_secondary'])
+        ax = fig.add_subplot(111, facecolor=DARK_THEME['bg_primary'])
+        
+        # Color map for positions
+        position_colors = {
+            'QB': '#FF6B9D',  # Pink
+            'RB': '#4ECDC4',  # Teal
+            'WR': '#45B7D1',  # Blue
+            'TE': '#FFA500',  # Orange
+            'LB': '#90EE90',  # Light green
+            'DB': '#DDA0DD'   # Plum
+        }
+        
+        # Plot each player as a point
+        x_values = list(range(len(proj_points)))
+        colors = [position_colors.get(pos, '#888888') for pos in positions]
+        
+        # Adjust alpha for drafted players (make them more transparent)
+        alphas = [0.3 if drafted else 0.8 for drafted in is_drafted]
+        
+        # Create scatter plot - plot each point individually to control alpha
+        scatter_points = []
+        for i in range(len(x_values)):
+            scatter = ax.scatter(x_values[i], proj_points[i], c=[colors[i]], 
+                               s=50, alpha=alphas[i], picker=True)
+            scatter_points.append(scatter)
+        
+        # Add hover annotations
+        annot = ax.annotate("", xy=(0,0), xytext=(10,10), textcoords="offset points",
+                            bbox=dict(boxstyle="round", fc=DARK_THEME['bg_tertiary'], alpha=0.9),
+                            arrowprops=dict(arrowstyle="->", color=DARK_THEME['text_secondary']),
+                            color=DARK_THEME['text_primary'], fontsize=9)
+        annot.set_visible(False)
+        
+        def update_annot(idx, x, y):
+            """Update annotation with player info"""
+            annot.xy = (x, y)
+            if idx < len(player_names):
+                player_name = player_names[idx]
+                player_pos = positions[idx]
+                player_pts = proj_points[idx]
+                player_adp = adps[idx]
+                drafted = is_drafted[idx]
+                adp_text = f"ADP: {player_adp:.1f}" if player_adp < 999 else "ADP: N/A"
+                status_text = " (DRAFTED)" if drafted else ""
+                text = f"{player_name}{status_text}\n{player_pos} - {player_pts:.1f} pts\n{adp_text}"
+                annot.set_text(text)
+                annot.get_bbox_patch().set_alpha(0.95)
+        
+        def hover(event):
+            """Handle hover events"""
+            vis = annot.get_visible()
+            if event.inaxes == ax:
+                # Check each scatter point
+                for i, scatter in enumerate(scatter_points):
+                    cont, ind = scatter.contains(event)
+                    if cont:
+                        update_annot(i, x_values[i], proj_points[i])
+                        annot.set_visible(True)
+                        fig.canvas.draw_idle()
+                        return
+                
+                # No point was hovered
+                if vis:
+                    annot.set_visible(False)
+                    fig.canvas.draw_idle()
+        
+        # Connect hover event
+        fig.canvas.mpl_connect("motion_notify_event", hover)
+        
+        # Add tier break lines
+        if len(proj_points) > 1:
+            # Calculate differences between consecutive points
+            diffs = [proj_points[i] - proj_points[i+1] for i in range(len(proj_points)-1)]
+            
+            # Find significant drops (e.g., > 10% of range)
+            points_range = max(proj_points) - min(proj_points)
+            threshold = points_range * 0.05  # 5% of range as threshold
+            
+            tier_breaks = []
+            for i, diff in enumerate(diffs):
+                if diff > threshold:
+                    tier_breaks.append(i + 0.5)
+                    # Draw vertical line at tier break
+                    ax.axvline(x=i + 0.5, color='red', linestyle='--', alpha=0.5, linewidth=1)
+        
+        # Styling
+        ax.set_xlabel('Player Rank', fontsize=10, color=DARK_THEME['text_primary'])
+        ax.set_ylabel('Projected Points (2025)', fontsize=10, color=DARK_THEME['text_primary'])
+        ax.set_title(f'Player Tiers - {self.selected_position}', fontsize=12, color=DARK_THEME['text_primary'])
+        
+        # Set tick colors
+        ax.tick_params(colors=DARK_THEME['text_secondary'], labelsize=8)
+        
+        # Add grid for readability
+        ax.grid(True, alpha=0.2, color=DARK_THEME['text_secondary'])
+        
+        # Create legend for positions
+        legend_elements = []
+        for pos in set(positions):
+            if pos in position_colors:
+                from matplotlib.patches import Patch
+                legend_elements.append(Patch(facecolor=position_colors[pos], label=pos))
+        
+        if legend_elements:
+            ax.legend(handles=legend_elements, loc='upper right', 
+                     facecolor=DARK_THEME['bg_secondary'], 
+                     edgecolor=DARK_THEME['text_secondary'],
+                     labelcolor=DARK_THEME['text_primary'])
+        
+        # Adjust layout
+        fig.tight_layout()
+        
+        # Create canvas and add to container
+        canvas = FigureCanvasTkAgg(fig, master=self.graph_container)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill='both', expand=True)
+        
+        # Store reference
+        self.graph_canvas = canvas
     
     def create_table_view(self, parent):
         """Create the table view for players"""
@@ -320,7 +640,7 @@ class PlayerList(StyledFrame):
         if not hasattr(self, '_position_cache') or self._position_cache.get('players') != id(players):
             self._position_cache = {
                 'players': id(players),
-                'ALL': players[:],  # Copy of all players
+                'ALL': [],  # Will contain only undrafted players
                 'OFF': [],  # Offensive players (QB, RB, WR, TE)
                 'QB': [],
                 'RB': [],
@@ -331,8 +651,14 @@ class PlayerList(StyledFrame):
                 'DB': []
             }
             
-            # Single pass through players to categorize
+            # Single pass through players to categorize (only undrafted)
             for p in players:
+                # Skip drafted players
+                if hasattr(p, 'player_id') and p in self.drafted_players:
+                    continue
+                    
+                self._position_cache['ALL'].append(p)
+                
                 if p.position == 'QB':
                     self._position_cache['QB'].append(p)
                     self._position_cache['OFF'].append(p)
@@ -373,9 +699,10 @@ class PlayerList(StyledFrame):
             if hasattr(player, 'player_id'):
                 self.drafted_players.add(player)
         
-        # Clear position cache since players are being removed
+        # Mark position cache as needing rebuild instead of deleting it
+        # This allows sorting to still work by triggering a rebuild when needed
         if hasattr(self, '_position_cache'):
-            delattr(self, '_position_cache')
+            self._position_cache['needs_rebuild'] = True
         
         # If force_refresh is requested or we have too few displayed rows, do a full refresh
         if force_refresh or len(self.row_frames) < 5:
@@ -465,26 +792,62 @@ class PlayerList(StyledFrame):
             self.table_frame.update_idletasks()
             self.canvas.configure(scrollregion=self.canvas.bbox('all'))
     
+    def _rebuild_position_cache(self):
+        """Rebuild the position cache from current all_players"""
+        self._position_cache = {
+            'players': None,
+            'ALL': [],
+            'OFF': [],
+            'QB': [],
+            'RB': [],
+            'WR': [],
+            'TE': [],
+            'FLEX': [],
+            'LB': [],
+            'DB': []
+        }
+        
+        # Use all_players if available, otherwise use current players list
+        source_players = getattr(self, 'all_players', getattr(self, 'players', []))
+        
+        # Filter out drafted players
+        available_players = []
+        for p in source_players:
+            if hasattr(p, 'player_id') and p not in self.drafted_players:
+                available_players.append(p)
+        
+        self._position_cache['ALL'] = available_players
+        
+        # Single pass through players to categorize
+        for p in available_players:
+            if p.position == 'QB':
+                self._position_cache['QB'].append(p)
+                self._position_cache['OFF'].append(p)
+            elif p.position == 'RB':
+                self._position_cache['RB'].append(p)
+                self._position_cache['FLEX'].append(p)
+                self._position_cache['OFF'].append(p)
+            elif p.position == 'WR':
+                self._position_cache['WR'].append(p)
+                self._position_cache['FLEX'].append(p)
+                self._position_cache['OFF'].append(p)
+            elif p.position == 'TE':
+                self._position_cache['TE'].append(p)
+                self._position_cache['FLEX'].append(p)
+                self._position_cache['OFF'].append(p)
+            elif p.position == 'LB':
+                self._position_cache['LB'].append(p)
+            elif p.position == 'DB':
+                self._position_cache['DB'].append(p)
+    
     def _apply_sort_and_update(self, filtered_players=None):
         """Apply sorting to filtered players and update display"""
         if filtered_players is None:
-            # Initialize position cache if it doesn't exist
-            if not hasattr(self, '_position_cache'):
-                self._position_cache = {
-                    'players': None,
-                    'ALL': [],
-                    'OFF': [],
-                    'QB': [],
-                    'RB': [],
-                    'WR': [],
-                    'TE': [],
-                    'FLEX': [],
-                    'LB': [],
-                    'DB': []
-                }
-                # If we have players, populate the cache
-                if hasattr(self, 'players') and self.players:
-                    self._position_cache['ALL'] = self.players[:]
+            # Rebuild position cache if it doesn't exist, is stale, or needs rebuild
+            if (not hasattr(self, '_position_cache') or 
+                not self._position_cache.get('ALL') or 
+                self._position_cache.get('needs_rebuild')):
+                self._rebuild_position_cache()
             filtered_players = self._position_cache.get(self.selected_position, [])[:]
         
         # Cache sort keys to avoid repeated attribute lookups
@@ -495,7 +858,11 @@ class PlayerList(StyledFrame):
         elif self.sort_by == "adp":
             filtered_players.sort(key=lambda p: p.adp if p.adp else float('inf'), reverse=not self.sort_ascending)
         elif self.sort_by == "nfc_adp":
-            filtered_players.sort(key=lambda p: getattr(p, 'nfc_adp', float('inf')), reverse=not self.sort_ascending)
+            # Need to fetch NFC ADP dynamically since it's not stored on player object
+            def get_nfc_adp_value(player):
+                nfc_adp = self.nfc_adp_fetcher.get_player_nfc_adp(player.name)
+                return float(nfc_adp) if nfc_adp else float('inf')
+            filtered_players.sort(key=get_nfc_adp_value, reverse=not self.sort_ascending)
         elif self.sort_by == "games_2024":
             filtered_players.sort(key=lambda p: getattr(p, 'games_2024', 0) or 0, reverse=not self.sort_ascending)
         elif self.sort_by == "points_2024":
@@ -1394,8 +1761,17 @@ class PlayerList(StyledFrame):
             else:
                 btn.config(bg=DARK_THEME['button_bg'], activebackground=DARK_THEME['button_bg'])
         
-        # Refresh the player list with the filter applied
-        self.update_players(self.all_players)
+        # Just apply the filter and sort without calling update_players
+        # This preserves the current sort settings
+        if not hasattr(self, '_position_cache') or not self._position_cache.get('ALL'):
+            self._rebuild_position_cache()
+        
+        filtered_players = self._position_cache.get(self.selected_position, [])[:]
+        self._apply_sort_and_update(filtered_players)
+        
+        # If graph view is active, redraw it with new filter
+        if self.current_view == 'graph':
+            self.draw_tier_graph()
     
     def sort_players(self, sort_by: str):
         """Sort players by specified criteria"""
@@ -2192,8 +2568,9 @@ class PlayerList(StyledFrame):
         """Fetch and update NFC ADP data"""
         self.nfc_adp_data = self.nfc_adp_fetcher.fetch_nfc_adp()
         if self.nfc_adp_data:
-            # Refresh the display
-            self.update_players(self.all_players, force_refresh=True)
+            # Just update the display without resetting the player list
+            # This preserves the current drafted/available state
+            self._smart_update_table()
             return True
         return False
     
