@@ -5,6 +5,7 @@ from ..models import Team
 from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
 from .watch_list import WatchList
+from .draft_status import DraftStatus
 
 
 class RosterView(StyledFrame):
@@ -12,8 +13,10 @@ class RosterView(StyledFrame):
         super().__init__(parent, bg_type='secondary', **kwargs)
         self.teams = teams
         self.current_team_id = 1  # Start with team 1
-        self.current_tab = 'roster'  # 'roster' or 'watch'
+        self.current_tab = 'roster'  # 'roster', 'watch', or 'status'
         self.watch_list = None
+        self.draft_status = None
+        self.all_players = []  # Will be set by main app
         self.setup_ui()
         
     def setup_ui(self):
@@ -52,6 +55,21 @@ class RosterView(StyledFrame):
         )
         self.watch_tab_btn.pack(side='left')
         
+        self.status_tab_btn = tk.Button(
+            tab_frame,
+            text="DRAFT STATUS",
+            bg=DARK_THEME['button_bg'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 10, 'bold'),
+            bd=0,
+            relief='flat',
+            padx=15,
+            pady=5,
+            command=lambda: self.switch_tab('status'),
+            cursor='hand2'
+        )
+        self.status_tab_btn.pack(side='left')
+        
         # Content container
         self.content_container = StyledFrame(self, bg_type='secondary')
         self.content_container.pack(fill='both', expand=True)
@@ -62,6 +80,9 @@ class RosterView(StyledFrame):
         
         # Create watch list view
         self.watch_list = WatchList(self.content_container)
+        
+        # Create draft status view
+        self.draft_status = DraftStatus(self.content_container, self.teams)
         
         # Show roster by default
         self.switch_tab('roster')
@@ -208,15 +229,33 @@ class RosterView(StyledFrame):
         if tab == 'roster':
             self.roster_tab_btn.config(bg=DARK_THEME['button_active'])
             self.watch_tab_btn.config(bg=DARK_THEME['button_bg'])
-            # Hide watch list, show roster
+            self.status_tab_btn.config(bg=DARK_THEME['button_bg'])
+            # Hide others, show roster
             self.watch_list.pack_forget()
+            self.draft_status.pack_forget()
             self.roster_container.pack(fill='both', expand=True)
-        else:  # watch
+        elif tab == 'watch':
             self.roster_tab_btn.config(bg=DARK_THEME['button_bg'])
             self.watch_tab_btn.config(bg=DARK_THEME['button_active'])
-            # Hide roster, show watch list
+            self.status_tab_btn.config(bg=DARK_THEME['button_bg'])
+            # Hide others, show watch list
             self.roster_container.pack_forget()
+            self.draft_status.pack_forget()
             self.watch_list.pack(fill='both', expand=True)
+        else:  # status
+            self.roster_tab_btn.config(bg=DARK_THEME['button_bg'])
+            self.watch_tab_btn.config(bg=DARK_THEME['button_bg'])
+            self.status_tab_btn.config(bg=DARK_THEME['button_active'])
+            # Hide others, show draft status
+            self.roster_container.pack_forget()
+            self.watch_list.pack_forget()
+            self.draft_status.pack(fill='both', expand=True)
     
     def get_watch_list(self):
         return self.watch_list
+    
+    def update_draft_status(self, all_players):
+        """Update the draft status tab with current player data"""
+        self.all_players = all_players
+        if self.draft_status:
+            self.draft_status.update_status(all_players)

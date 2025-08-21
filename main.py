@@ -776,6 +776,9 @@ class MockDraftApp:
             # Update roster view to show the new pick
             self.roster_view.update_roster_display()
             
+            # Update draft status tab
+            self.roster_view.update_draft_status(self.all_players)
+            
             # Update draft history if it exists
             if self.draft_history:
                 last_pick = self.draft_engine.draft_results[-1]
@@ -1486,6 +1489,9 @@ class MockDraftApp:
         self.roster_view.current_team_id = None
         self.roster_view.update_roster_display()
         
+        # Update draft status tab
+        self.roster_view.update_draft_status(self.all_players)
+        
         # Clear the watch list
         watch_list = self.roster_view.get_watch_list()
         if watch_list:
@@ -1601,6 +1607,9 @@ class MockDraftApp:
         # Force roster view to clear and update
         self.roster_view.current_team_id = None
         self.roster_view.update_roster_display()
+        
+        # Update draft status tab
+        self.roster_view.update_draft_status(self.all_players)
         
         # Clear the watch list
         watch_list = self.roster_view.get_watch_list()
@@ -2016,6 +2025,10 @@ class MockDraftApp:
         if hasattr(self, 'player_list'):
             # Force refresh to ensure custom rankings are displayed
             self.update_display(full_update=True, force_refresh=True)
+        
+        # Initialize draft status tab with player data
+        if hasattr(self, 'roster_view'):
+            self.roster_view.update_draft_status(self.all_players)
         
         # Check if preset should set user team (only if UI is ready)
         if hasattr(self, 'draft_board'):
