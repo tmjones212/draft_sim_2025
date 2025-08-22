@@ -137,8 +137,8 @@ class DraftPresetManager:
     def create_default_preset(self):
         """Create the default preset based on user requirements"""
         draft_order = [
-            "Karwan", "Joey", "Peter", "Eric", "Jerwan", 
-            "Stan", "Pat", "Me", "Johnson", "Luan"
+            "Karwan", "Joey", "Peter", "Johnson", "Jerwan", 
+            "Stan", "Pat", "Me", "Eric", "Luan"
         ]
         
         preset = DraftPreset(

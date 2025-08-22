@@ -18,6 +18,7 @@ class DraftTemplate:
         self.user_settings = {}
         self.notes = ""
         self.trades = []  # Store trade configurations
+        self.grade = None  # Grade from 1-100
         
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -29,7 +30,8 @@ class DraftTemplate:
             "player_pool": self.player_pool,
             "user_settings": self.user_settings,
             "notes": self.notes,
-            "trades": self.trades
+            "trades": self.trades,
+            "grade": self.grade
         }
     
     @classmethod
@@ -43,6 +45,7 @@ class DraftTemplate:
         template.user_settings = data.get("user_settings", {})
         template.notes = data.get("notes", "")
         template.trades = data.get("trades", [])
+        template.grade = data.get("grade", None)
         return template
 
 
@@ -208,4 +211,27 @@ class TemplateManager:
             return True
         except Exception as e:
             print(f"Error updating template notes: {e}")
+            return False
+    
+    def update_template_grade(self, filename: str, grade: Optional[int]) -> bool:
+        """Update the grade for a template (1-100 or None)"""
+        try:
+            template = self.load_template(filename)
+            if not template:
+                return False
+            
+            if grade is not None:
+                # Validate grade is between 1 and 100
+                grade = max(1, min(100, grade))
+            
+            template.grade = grade
+            
+            # Write back to file
+            filepath = os.path.join(self.templates_dir, filename)
+            with open(filepath, 'w') as f:
+                json.dump(template.to_dict(), f, indent=2)
+            
+            return True
+        except Exception as e:
+            print(f"Error updating template grade: {e}")
             return False

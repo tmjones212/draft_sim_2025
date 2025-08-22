@@ -50,6 +50,12 @@ class MockDraftApp:
         # Initialize draft trade service
         self.trade_service = DraftTradeService()
         
+        # Add default trade between Eric and Johnson
+        # Johnson (now slot 4, was slot 9) swaps 6th and 8th round picks with Eric (now slot 9, was slot 4)
+        # Johnson gets Eric's 6th and 8th round picks
+        # Eric gets Johnson's 6th and 8th round picks
+        self.trade_service.add_trade(4, [6, 8], 9, [6, 8])  # Team IDs: Johnson is team 4, Eric is team 9
+        
         # Initialize draft components
         self.teams = self._create_teams()
         self.draft_engine = DraftEngine(
@@ -564,6 +570,9 @@ class MockDraftApp:
             pick_num
         )
         
+        # Update position counts display
+        self.roster_view.update_position_counts(self.draft_engine.get_draft_results())
+        
         # Only update the current team's roster
         if team_on_clock > 0 and team_on_clock != getattr(self, '_last_roster_team', None):
             self.roster_view.current_team_id = team_on_clock
@@ -776,6 +785,9 @@ class MockDraftApp:
             # Update roster view to show the new pick
             self.roster_view.update_roster_display()
             
+            # Update position counts
+            self.roster_view.update_position_counts(self.draft_engine.get_draft_results())
+            
             # Update draft history if it exists
             if self.draft_history:
                 last_pick = self.draft_engine.draft_results[-1]
@@ -903,6 +915,9 @@ class MockDraftApp:
             
             # Update roster view once
             self.roster_view.update_roster_display()
+            
+            # Update position counts
+            self.roster_view.update_position_counts(self.draft_engine.get_draft_results())
     
     def _select_computer_pick(self, team, pick_num):
         """Select a player for computer team based on smart drafting logic"""
@@ -2756,9 +2771,15 @@ class MockDraftApp:
             else:
                 template_order = temp_list[:]
             
-            # Populate listbox
+            # Populate listbox with grade info
             for name in temp_list:
-                template_listbox.insert('end', name)
+                template = template_data.get(name)
+                if template and template.grade:
+                    # Add grade to display
+                    display_name = f"{name} [Grade: {template.grade}]"
+                else:
+                    display_name = name
+                template_listbox.insert('end', display_name)
             
             return templates_found
         
@@ -2787,7 +2808,12 @@ class MockDraftApp:
             if not selection:
                 return
             
-            template_name = template_listbox.get(selection[0])
+            display_name = template_listbox.get(selection[0])
+            # Extract template name (remove grade suffix if present)
+            if ' [Grade:' in display_name:
+                template_name = display_name.split(' [Grade:')[0]
+            else:
+                template_name = display_name
             template = template_data.get(template_name)
             
             # Get the filename for this template
@@ -2874,7 +2900,12 @@ class MockDraftApp:
                     # Update the template data in memory
                     selection = template_listbox.curselection()
                     if selection:
-                        template_name = template_listbox.get(selection[0])
+                        display_name = template_listbox.get(selection[0])
+                        # Extract template name (remove grade suffix if present)
+                        if ' [Grade:' in display_name:
+                            template_name = display_name.split(' [Grade:')[0]
+                        else:
+                            template_name = display_name
                         if template_name in template_data:
                             template_data[template_name].notes = notes_content
                     messagebox.showinfo("Success", "Notes saved successfully")
@@ -2992,7 +3023,12 @@ class MockDraftApp:
             """Load template on double-click"""
             selection = template_listbox.curselection()
             if selection:
-                template_name = template_listbox.get(selection[0])
+                display_name = template_listbox.get(selection[0])
+                # Extract template name (remove grade suffix if present)
+                if ' [Grade:' in display_name:
+                    template_name = display_name.split(' [Grade:')[0]
+                else:
+                    template_name = display_name
                 template = template_data.get(template_name)
                 if template:
                     dialog.destroy()  # Close dialog first
@@ -3012,7 +3048,12 @@ class MockDraftApp:
                 messagebox.showwarning("No Selection", "Please select a template to load")
                 return
             
-            template_name = template_listbox.get(selection[0])
+            display_name = template_listbox.get(selection[0])
+            # Extract template name (remove grade suffix if present)
+            if ' [Grade:' in display_name:
+                template_name = display_name.split(' [Grade:')[0]
+            else:
+                template_name = display_name
             template = template_data.get(template_name)
             
             if template:
@@ -3040,7 +3081,12 @@ class MockDraftApp:
                 messagebox.showwarning("No Selection", "Please select a template to delete")
                 return
             
-            template_name = template_listbox.get(selection[0])
+            display_name = template_listbox.get(selection[0])
+            # Extract template name (remove grade suffix if present)
+            if ' [Grade:' in display_name:
+                template_name = display_name.split(' [Grade:')[0]
+            else:
+                template_name = display_name
             
             # Confirm deletion
             result = messagebox.askyesno(
@@ -3120,6 +3166,37 @@ class MockDraftApp:
         )
         instructions.pack(pady=(0, 10))
         
+        # Filter frame
+        filter_frame = tk.Frame(parent_frame, bg=DARK_THEME['bg_primary'])
+        filter_frame.pack(fill='x', padx=20, pady=(0, 5))
+        
+        # Early picks filter
+        tk.Label(
+            filter_frame,
+            text="Filter by early picks:",
+            bg=DARK_THEME['bg_primary'],
+            fg=DARK_THEME['text_secondary'],
+            font=(DARK_THEME['font_family'], 10)
+        ).pack(side='left', padx=(0, 10))
+        
+        filter_var = tk.StringVar(value="All")
+        filter_options = [
+            "All",
+            "R1 RB", "R1 WR", "R1 TE", "R1 QB",
+            "RB-RB (R1-2)", "WR-WR (R1-2)", "RB-WR (R1-2)", "WR-RB (R1-2)",
+            "RB (R1-3)", "WR (R1-3)", "TE (R1-3)", "QB (R1-3)"
+        ]
+        
+        filter_dropdown = ttk.Combobox(
+            filter_frame,
+            textvariable=filter_var,
+            values=filter_options,
+            state='readonly',
+            width=20
+        )
+        filter_dropdown.set('All')
+        filter_dropdown.pack(side='left')
+        
         # Template selection frame
         selection_frame = tk.Frame(parent_frame, bg=DARK_THEME['bg_primary'])
         selection_frame.pack(fill='x', padx=20, pady=10)
@@ -3129,15 +3206,22 @@ class MockDraftApp:
         template_names = []
         all_template_data = {}
         
-        # Load all template data
+        # Load all template data - only include templates with at least 4 user picks
         for t in all_templates:
             template = self.template_manager.load_template(t['filename'])
             if template:
-                template_names.append(t['name'])
-                all_template_data[t['name']] = template
+                # Check if user has at least 4 picks
+                user_team_id = template.user_settings.get('user_team_id', 0)
+                user_picks = [pick for pick in template.draft_results if pick['team_id'] == user_team_id]
+                
+                # Only include templates where user has made at least 4 picks
+                if len(user_picks) >= 4:
+                    template_names.append(t['name'])
+                    all_template_data[t['name']] = template
         
         # Template dropdowns
         selected_templates = []
+        template_dropdowns = []  # Store dropdown widgets for updating
         
         for i in range(4):
             col_frame = tk.Frame(selection_frame, bg=DARK_THEME['bg_primary'])
@@ -3161,7 +3245,86 @@ class MockDraftApp:
             )
             template_dropdown.set('None')
             template_dropdown.pack()
+            # Auto-update comparison when template is selected
+            template_dropdown.bind('<<ComboboxSelected>>', lambda e: update_comparison())
             selected_templates.append(template_var)
+            template_dropdowns.append(template_dropdown)
+        
+        def update_template_filter():
+            """Update template dropdowns based on early picks filter"""
+            filter_value = filter_var.get()
+            filtered_names = []
+            
+            for name, template in all_template_data.items():
+                if filter_value == "All":
+                    filtered_names.append(name)
+                else:
+                    # Check early picks for this template
+                    user_team_id = template.user_settings.get('user_team_id', 0)
+                    players = {p['player_id']: p for p in template.player_pool['all_players']}
+                    
+                    # Get first 3 rounds of picks for user
+                    early_picks = []
+                    for pick in template.draft_results:
+                        if pick['team_id'] == user_team_id and pick['round'] <= 3:
+                            if pick['player_id'] in players:
+                                p = players[pick['player_id']]
+                                early_picks.append((pick['round'], p['position']))
+                    
+                    # Check if matches filter
+                    if filter_value == "R1 RB" and len(early_picks) > 0 and early_picks[0][1] == 'RB':
+                        filtered_names.append(name)
+                    elif filter_value == "R1 WR" and len(early_picks) > 0 and early_picks[0][1] == 'WR':
+                        filtered_names.append(name)
+                    elif filter_value == "R1 TE" and len(early_picks) > 0 and early_picks[0][1] == 'TE':
+                        filtered_names.append(name)
+                    elif filter_value == "R1 QB" and len(early_picks) > 0 and early_picks[0][1] == 'QB':
+                        filtered_names.append(name)
+                    elif filter_value == "RB-RB (R1-2)" and len(early_picks) >= 2 and early_picks[0][1] == 'RB' and early_picks[1][1] == 'RB':
+                        filtered_names.append(name)
+                    elif filter_value == "WR-WR (R1-2)" and len(early_picks) >= 2 and early_picks[0][1] == 'WR' and early_picks[1][1] == 'WR':
+                        filtered_names.append(name)
+                    elif filter_value == "RB-WR (R1-2)" and len(early_picks) >= 2 and early_picks[0][1] == 'RB' and early_picks[1][1] == 'WR':
+                        filtered_names.append(name)
+                    elif filter_value == "WR-RB (R1-2)" and len(early_picks) >= 2 and early_picks[0][1] == 'WR' and early_picks[1][1] == 'RB':
+                        filtered_names.append(name)
+                    elif filter_value == "RB (R1-3)" and len(early_picks) >= 3:
+                        rb_count = sum(1 for _, pos in early_picks[:3] if pos == 'RB')
+                        if rb_count >= 2:
+                            filtered_names.append(name)
+                    elif filter_value == "WR (R1-3)" and len(early_picks) >= 3:
+                        wr_count = sum(1 for _, pos in early_picks[:3] if pos == 'WR')
+                        if wr_count >= 2:
+                            filtered_names.append(name)
+                    elif filter_value == "TE (R1-3)" and len(early_picks) >= 3:
+                        te_count = sum(1 for _, pos in early_picks[:3] if pos == 'TE')
+                        if te_count >= 1:
+                            filtered_names.append(name)
+                    elif filter_value == "QB (R1-3)" and len(early_picks) >= 3:
+                        qb_count = sum(1 for _, pos in early_picks[:3] if pos == 'QB')
+                        if qb_count >= 1:
+                            filtered_names.append(name)
+            
+            # Update all dropdowns with filtered values
+            for dropdown in template_dropdowns:
+                current_val = dropdown.get()
+                # Always keep current selection if it's not 'None'
+                # The filter only affects what new selections are available
+                if current_val and current_val != 'None':
+                    # Keep the current selection and add it to the dropdown if needed
+                    if current_val in filtered_names:
+                        dropdown['values'] = ['None'] + sorted(filtered_names)
+                    else:
+                        # Add current selection to the list even if it doesn't match filter
+                        dropdown['values'] = ['None', current_val] + sorted(filtered_names)
+                    dropdown.set(current_val)
+                else:
+                    # Only update if nothing selected
+                    dropdown['values'] = ['None'] + sorted(filtered_names)
+                    dropdown.set('None')
+        
+        # Bind filter change to update function
+        filter_dropdown.bind('<<ComboboxSelected>>', lambda e: update_template_filter())
         
         # Comparison display area
         display_frame = tk.Frame(parent_frame, bg=DARK_THEME['bg_secondary'])
@@ -3177,6 +3340,118 @@ class MockDraftApp:
         
         canvas.pack(side='left', fill='both', expand=True)
         scrollbar.pack(side='right', fill='y')
+        
+        def edit_template_grade(template_name):
+            """Open dialog to edit template grade"""
+            # Find the template filename
+            template_filename = None
+            for t in all_templates:
+                if t['name'] == template_name:
+                    template_filename = t['filename']
+                    break
+            
+            if not template_filename:
+                return
+            
+            # Get current grade
+            current_grade = all_template_data[template_name].grade
+            
+            # Create dialog
+            dialog = tk.Toplevel(self.root)
+            dialog.title(f"Edit Grade - {template_name}")
+            dialog.configure(bg=DARK_THEME['bg_primary'])
+            
+            # Set size and center the dialog
+            dialog_width = 300
+            dialog_height = 150
+            
+            # Get screen dimensions
+            screen_width = dialog.winfo_screenwidth()
+            screen_height = dialog.winfo_screenheight()
+            
+            # Calculate center position
+            x = (screen_width // 2) - (dialog_width // 2)
+            y = (screen_height // 2) - (dialog_height // 2)
+            
+            dialog.geometry(f"{dialog_width}x{dialog_height}+{x}+{y}")
+            
+            # Make dialog modal
+            dialog.transient(self.root)
+            dialog.grab_set()
+            
+            # Grade input
+            tk.Label(
+                dialog,
+                text="Enter grade (1-100) or leave empty to clear:",
+                bg=DARK_THEME['bg_primary'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 10)
+            ).pack(pady=10)
+            
+            grade_var = tk.StringVar(value=str(current_grade) if current_grade else "")
+            grade_entry = tk.Entry(
+                dialog,
+                textvariable=grade_var,
+                bg=DARK_THEME['bg_secondary'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 11),
+                width=10
+            )
+            grade_entry.pack(pady=5)
+            grade_entry.focus()
+            
+            def save_grade():
+                grade_text = grade_var.get().strip()
+                if grade_text:
+                    try:
+                        grade = int(grade_text)
+                        if 1 <= grade <= 100:
+                            if self.template_manager.update_template_grade(template_filename, grade):
+                                # Update local data
+                                all_template_data[template_name].grade = grade
+                                update_comparison()
+                                dialog.destroy()
+                        else:
+                            messagebox.showwarning("Invalid Grade", "Grade must be between 1 and 100")
+                    except ValueError:
+                        messagebox.showwarning("Invalid Grade", "Please enter a valid number")
+                else:
+                    # Clear grade
+                    if self.template_manager.update_template_grade(template_filename, None):
+                        all_template_data[template_name].grade = None
+                        update_comparison()
+                        dialog.destroy()
+            
+            # Buttons
+            button_frame = tk.Frame(dialog, bg=DARK_THEME['bg_primary'])
+            button_frame.pack(pady=15)
+            
+            tk.Button(
+                button_frame,
+                text="Save",
+                bg=DARK_THEME['button_active'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 10),
+                command=save_grade,
+                borderwidth=0,
+                padx=20,
+                pady=5
+            ).pack(side='left', padx=5)
+            
+            tk.Button(
+                button_frame,
+                text="Cancel",
+                bg=DARK_THEME['button_bg'],
+                fg=DARK_THEME['text_primary'],
+                font=(DARK_THEME['font_family'], 10),
+                command=dialog.destroy,
+                borderwidth=0,
+                padx=20,
+                pady=5
+            ).pack(side='left', padx=5)
+            
+            # Bind Enter key to save
+            grade_entry.bind('<Return>', lambda e: save_grade())
         
         def update_comparison():
             """Simple table display"""
@@ -3204,6 +3479,57 @@ class MockDraftApp:
             # SIMPLE TABLE
             main_frame = tk.Frame(scrollable_frame, bg=DARK_THEME['bg_secondary'])
             main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+            
+            # Display grades and notes for selected templates
+            info_frame = tk.Frame(main_frame, bg=DARK_THEME['bg_secondary'])
+            info_frame.pack(fill='x', pady=(0, 15))
+            
+            for idx, (name, template) in enumerate(active_templates):
+                col_frame = tk.Frame(info_frame, bg=DARK_THEME['bg_secondary'])
+                col_frame.pack(side='left', padx=20)
+                
+                # Template name with grade
+                grade_text = f" (Grade: {template.grade})" if template.grade else ""
+                name_label = tk.Label(
+                    col_frame,
+                    text=f"{name}{grade_text}",
+                    bg=DARK_THEME['bg_secondary'],
+                    fg=DARK_THEME['text_primary'] if not template.grade else (
+                        '#4CAF50' if template.grade >= 80 else
+                        '#FFC107' if template.grade >= 60 else
+                        '#F44336'
+                    ),
+                    font=(DARK_THEME['font_family'], 11, 'bold')
+                )
+                name_label.pack()
+                
+                # Notes preview (first 100 chars)
+                if template.notes:
+                    notes_preview = template.notes[:100] + "..." if len(template.notes) > 100 else template.notes
+                    notes_label = tk.Label(
+                        col_frame,
+                        text=f"Notes: {notes_preview}",
+                        bg=DARK_THEME['bg_secondary'],
+                        fg=DARK_THEME['text_secondary'],
+                        font=(DARK_THEME['font_family'], 9),
+                        wraplength=300,
+                        justify='left'
+                    )
+                    notes_label.pack()
+                
+                # Edit grade button
+                edit_grade_btn = tk.Button(
+                    col_frame,
+                    text="Edit Grade",
+                    bg=DARK_THEME['button_bg'],
+                    fg=DARK_THEME['text_primary'],
+                    font=(DARK_THEME['font_family'], 9),
+                    command=lambda n=name: edit_template_grade(n),
+                    borderwidth=0,
+                    padx=10,
+                    pady=2
+                )
+                edit_grade_btn.pack(pady=2)
             
             # Define consistent column widths
             pick_col_width = 10

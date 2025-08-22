@@ -42,6 +42,7 @@ class GameHistory(StyledFrame):
         self.show_vegas_yards_var = tk.BooleanVar(value=False)  # Smart yards (position-specific)
         self.show_vegas_pass_var = tk.BooleanVar(value=False)
         self.show_vegas_rush_var = tk.BooleanVar(value=False)
+        self.show_vegas_rec_yds_var = tk.BooleanVar(value=False)
         self.show_vegas_rec_var = tk.BooleanVar(value=False)
         self.vegas_props_service = VegasPropsService()
         
@@ -140,13 +141,27 @@ class GameHistory(StyledFrame):
         )
         self.vegas_rush_check.pack(side='left', padx=5)
         
+        self.vegas_rec_yds_check = tk.Checkbutton(
+            self.vegas_frame,
+            text="Rec Yds",
+            variable=self.show_vegas_rec_yds_var,
+            bg=DARK_THEME['bg_secondary'],
+            fg=DARK_THEME['text_primary'],
+            selectcolor=DARK_THEME['bg_tertiary'],
+            activebackground=DARK_THEME['bg_secondary'],
+            activeforeground=DARK_THEME['text_primary'],
+            font=(DARK_THEME['font_family'], 10),
+            command=self.update_vegas_columns
+        )
+        self.vegas_rec_yds_check.pack(side='left', padx=5)
+        
         self.vegas_rec_check = tk.Checkbutton(
             self.vegas_frame,
             text="Rec",
             variable=self.show_vegas_rec_var,
             bg=DARK_THEME['bg_secondary'],
             fg=DARK_THEME['text_primary'],
-            selectcolor=DARK_THEME['bg_tertiary'],
+            selectcolor=DARK_THEME['bg_secondary'],
             activebackground=DARK_THEME['bg_secondary'],
             activeforeground=DARK_THEME['text_primary'],
             font=(DARK_THEME['font_family'], 10),
@@ -433,7 +448,7 @@ class GameHistory(StyledFrame):
         
         # Create treeview for table
         columns = ('player', 'pos', 'rank', 'team', 'week', 'opp', 'pts', 'median', 'avg', 'snaps', 'pts_per_snap', 'comp', 'pass_yd', 'pass_td', 
-                  'rush_yd', 'rush_td', 'tgt', 'rec', 'rec_yd', 'rec_td', 'vegas_yards', 'vegas_pass', 'vegas_rush', 'vegas_rec')
+                  'rush_yd', 'rush_td', 'tgt', 'rec', 'rec_yd', 'rec_td', 'vegas_yards', 'vegas_pass', 'vegas_rush', 'vegas_rec_yds', 'vegas_rec')
         
         self.tree = ttk.Treeview(
             table_container,
@@ -467,6 +482,7 @@ class GameHistory(StyledFrame):
         self.tree.column('vegas_yards', width=80, anchor='center', stretch=False)
         self.tree.column('vegas_pass', width=80, anchor='center', stretch=False)
         self.tree.column('vegas_rush', width=80, anchor='center', stretch=False)
+        self.tree.column('vegas_rec_yds', width=80, anchor='center', stretch=False)
         self.tree.column('vegas_rec', width=80, anchor='center', stretch=False)
         
         # Configure headings
@@ -493,6 +509,7 @@ class GameHistory(StyledFrame):
         self.tree.heading('vegas_yards', text='Vegas Yds', command=lambda: self.sort_by('vegas_yards'))
         self.tree.heading('vegas_pass', text='Vegas Pass', command=lambda: self.sort_by('vegas_pass'))
         self.tree.heading('vegas_rush', text='Vegas Rush', command=lambda: self.sort_by('vegas_rush'))
+        self.tree.heading('vegas_rec_yds', text='Vegas Rec Yds', command=lambda: self.sort_by('vegas_rec_yds'))
         self.tree.heading('vegas_rec', text='Vegas Rec', command=lambda: self.sort_by('vegas_rec'))
         
         # Style configuration
@@ -696,6 +713,7 @@ class GameHistory(StyledFrame):
             vegas_yards = '-'
             vegas_pass = '-'
             vegas_rush = '-'
+            vegas_rec_yds = '-'
             vegas_rec = '-'
             
             if self.view_mode == "summarized":
@@ -717,11 +735,13 @@ class GameHistory(StyledFrame):
                 if 'rushing_yards' in props:
                     vegas_rush = f"{props['rushing_yards'].prop_value:.0f}"
                 if 'receiving_yards' in props:
-                    vegas_rec = f"{props['receiving_yards'].prop_value:.0f}"
+                    vegas_rec_yds = f"{props['receiving_yards'].prop_value:.0f}"
+                if 'receptions' in props:
+                    vegas_rec = f"{props['receptions'].prop_value:.0f}"
             
             values = (row['player'], row['pos'], row.get('rank', '-'), row['team'], row['week'], row['opp'],
                      row['pts'], row.get('median', '-'), row.get('avg', '-'), row['snaps'], row.get('pts_per_snap', '-'), row['comp'], row['pass_yd'], row['pass_td'], row['rush_yd'], 
-                     row['rush_td'], row.get('tgt', '-'), row['rec'], row['rec_yd'], row['rec_td'], vegas_yards, vegas_pass, vegas_rush, vegas_rec)
+                     row['rush_td'], row.get('tgt', '-'), row['rec'], row['rec_yd'], row['rec_td'], vegas_yards, vegas_pass, vegas_rush, vegas_rec_yds, vegas_rec)
             
             # Add row with position-based colors
             position = row['pos']
@@ -1258,11 +1278,37 @@ class GameHistory(StyledFrame):
                 pos = ''.join(c for c in rank if c.isalpha())
                 num = ''.join(c for c in rank if c.isdigit())
                 return (int(num) if num else 999, pos)
+            elif self.sort_column in ['vegas_yards', 'vegas_pass', 'vegas_rush', 'vegas_rec_yds', 'vegas_rec']:
+                # Vegas columns need special handling - fetch from props service
+                if self.view_mode != "summarized":
+                    return 0  # Vegas data only available in summarized mode
+                
+                player_name = row['player']
+                props = self.vegas_props_service.get_player_props(player_name)
+                
+                if self.sort_column == 'vegas_yards':
+                    position = row['pos']
+                    if position == 'QB' and 'passing_yards' in props:
+                        return props['passing_yards'].prop_value
+                    elif position == 'RB' and 'rushing_yards' in props:
+                        return props['rushing_yards'].prop_value
+                    elif position in ['WR', 'TE'] and 'receiving_yards' in props:
+                        return props['receiving_yards'].prop_value
+                    return 0
+                elif self.sort_column == 'vegas_pass' and 'passing_yards' in props:
+                    return props['passing_yards'].prop_value
+                elif self.sort_column == 'vegas_rush' and 'rushing_yards' in props:
+                    return props['rushing_yards'].prop_value
+                elif self.sort_column == 'vegas_rec_yds' and 'receiving_yards' in props:
+                    return props['receiving_yards'].prop_value
+                elif self.sort_column == 'vegas_rec' and 'receptions' in props:
+                    return props['receptions'].prop_value
+                return 0
             elif self.sort_column in ['snaps', 'comp', 'pass_yd', 'pass_td', 'rush_yd', 'rush_td', 'tgt', 'rec', 'rec_yd', 'rec_td']:
                 val = row[self.sort_column]
                 return 0 if val == '-' else int(val)
             else:
-                return row[self.sort_column]
+                return row.get(self.sort_column, '')
         
         rows.sort(key=get_sort_key, reverse=not self.sort_ascending)
         
@@ -1305,7 +1351,12 @@ class GameHistory(StyledFrame):
             'tgt': 'Tgt',
             'rec': 'Rec',
             'rec_yd': 'Rec Yds',
-            'rec_td': 'Rec TD'
+            'rec_td': 'Rec TD',
+            'vegas_yards': 'Vegas Yards',
+            'vegas_pass': 'Vegas Pass',
+            'vegas_rush': 'Vegas Rush',
+            'vegas_rec_yds': 'Vegas Rec Yds',
+            'vegas_rec': 'Vegas Rec'
         }
         
         # Update each column header
@@ -1368,6 +1419,8 @@ class GameHistory(StyledFrame):
                 vegas_columns_count += 1
             if self.show_vegas_rush_var.get():
                 vegas_columns_count += 1
+            if self.show_vegas_rec_yds_var.get():
+                vegas_columns_count += 1
             if self.show_vegas_rec_var.get():
                 vegas_columns_count += 1
         
@@ -1426,6 +1479,7 @@ class GameHistory(StyledFrame):
         if mode == "summarized" and any([self.show_vegas_yards_var.get(), 
                                          self.show_vegas_pass_var.get(),
                                          self.show_vegas_rush_var.get(),
+                                         self.show_vegas_rec_yds_var.get(),
                                          self.show_vegas_rec_var.get()]):
             self.adjust_table_width()
         self.apply_filters()
@@ -1451,6 +1505,7 @@ class GameHistory(StyledFrame):
             self.tree.column('vegas_yards', width=80 if self.show_vegas_yards_var.get() else 0, stretch=False)
             self.tree.column('vegas_pass', width=80 if self.show_vegas_pass_var.get() else 0, stretch=False)
             self.tree.column('vegas_rush', width=80 if self.show_vegas_rush_var.get() else 0, stretch=False)
+            self.tree.column('vegas_rec_yds', width=80 if self.show_vegas_rec_yds_var.get() else 0, stretch=False)
             self.tree.column('vegas_rec', width=80 if self.show_vegas_rec_var.get() else 0, stretch=False)
         else:
             self.tree.column('median', width=0, stretch=False)
@@ -1459,6 +1514,7 @@ class GameHistory(StyledFrame):
             self.tree.column('vegas_yards', width=0, stretch=False)
             self.tree.column('vegas_pass', width=0, stretch=False)
             self.tree.column('vegas_rush', width=0, stretch=False)
+            self.tree.column('vegas_rec_yds', width=0, stretch=False)
             self.tree.column('vegas_rec', width=0, stretch=False)
         
         # Define which columns are relevant for each position
@@ -1757,6 +1813,7 @@ class GameHistory(StyledFrame):
             '-',  # Vegas Yards
             '-',  # Vegas Pass
             '-',  # Vegas Rush
+            '-',  # Vegas Rec Yds
             '-'   # Vegas Rec
         )
         

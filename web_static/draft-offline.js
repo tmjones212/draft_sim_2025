@@ -208,6 +208,11 @@ class DraftSimulator {
     try {
       const response = await fetch('web_static/players_data.json');
       const data = await response.json();
+      // Add id field to each player if it doesn't exist (use player_id or index)
+      data.players = data.players.map((p, index) => ({
+        ...p,
+        id: p.id || p.player_id || `custom-${index}`
+      }));
       this.customPlayersData = data;
       console.log(`Loaded ${data.players.length} custom players with all positions`);
     } catch (error) {
@@ -224,7 +229,11 @@ class DraftSimulator {
       if (this.customPlayersData) {
         for (const player of this.customPlayersData.players) {
           if (missingPositions.includes(player.position)) {
-            publicData.players.push(player);
+            // Make sure the added player has an id field
+            publicData.players.push({
+              ...player,
+              id: player.id || player.player_id || `custom-${player.name}`
+            });
           }
         }
       }

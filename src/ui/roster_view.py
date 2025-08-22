@@ -5,6 +5,7 @@ from ..models import Team
 from .theme import DARK_THEME, get_position_color
 from .styled_widgets import StyledFrame
 from .watch_list import WatchList
+from .position_counts import PositionCounts
 
 
 class RosterView(StyledFrame):
@@ -12,8 +13,9 @@ class RosterView(StyledFrame):
         super().__init__(parent, bg_type='secondary', **kwargs)
         self.teams = teams
         self.current_team_id = 1  # Start with team 1
-        self.current_tab = 'roster'  # 'roster' or 'watch'
+        self.current_tab = 'roster'  # 'roster', 'watch', or 'pos_counts'
         self.watch_list = None
+        self.position_counts = None
         self.setup_ui()
         
     def setup_ui(self):
@@ -52,6 +54,21 @@ class RosterView(StyledFrame):
         )
         self.watch_tab_btn.pack(side='left')
         
+        self.pos_counts_tab_btn = tk.Button(
+            tab_frame,
+            text="POS COUNTS",
+            bg=DARK_THEME['button_bg'],
+            fg='white',
+            font=(DARK_THEME['font_family'], 10, 'bold'),
+            bd=0,
+            relief='flat',
+            padx=15,
+            pady=5,
+            command=lambda: self.switch_tab('pos_counts'),
+            cursor='hand2'
+        )
+        self.pos_counts_tab_btn.pack(side='left', padx=(5, 0))
+        
         # Content container
         self.content_container = StyledFrame(self, bg_type='secondary')
         self.content_container.pack(fill='both', expand=True)
@@ -62,6 +79,9 @@ class RosterView(StyledFrame):
         
         # Create watch list view
         self.watch_list = WatchList(self.content_container)
+        
+        # Create position counts view
+        self.position_counts = PositionCounts(self.content_container, self.teams)
         
         # Show roster by default
         self.switch_tab('roster')
@@ -204,19 +224,32 @@ class RosterView(StyledFrame):
     def switch_tab(self, tab):
         self.current_tab = tab
         
-        # Update button styles
+        # Hide all tabs first
+        self.roster_container.pack_forget()
+        self.watch_list.pack_forget()
+        self.position_counts.pack_forget()
+        
+        # Update button styles and show selected tab
         if tab == 'roster':
             self.roster_tab_btn.config(bg=DARK_THEME['button_active'])
             self.watch_tab_btn.config(bg=DARK_THEME['button_bg'])
-            # Hide watch list, show roster
-            self.watch_list.pack_forget()
+            self.pos_counts_tab_btn.config(bg=DARK_THEME['button_bg'])
             self.roster_container.pack(fill='both', expand=True)
-        else:  # watch
+        elif tab == 'watch':
             self.roster_tab_btn.config(bg=DARK_THEME['button_bg'])
             self.watch_tab_btn.config(bg=DARK_THEME['button_active'])
-            # Hide roster, show watch list
-            self.roster_container.pack_forget()
+            self.pos_counts_tab_btn.config(bg=DARK_THEME['button_bg'])
             self.watch_list.pack(fill='both', expand=True)
+        else:  # pos_counts
+            self.roster_tab_btn.config(bg=DARK_THEME['button_bg'])
+            self.watch_tab_btn.config(bg=DARK_THEME['button_bg'])
+            self.pos_counts_tab_btn.config(bg=DARK_THEME['button_active'])
+            self.position_counts.pack(fill='both', expand=True)
     
     def get_watch_list(self):
         return self.watch_list
+    
+    def update_position_counts(self, draft_results):
+        """Update the position counts display with current draft results"""
+        if self.position_counts:
+            self.position_counts.update_draft_results(draft_results)
