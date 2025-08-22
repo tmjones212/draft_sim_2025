@@ -122,28 +122,6 @@
       "var": 115.1
     },
     {
-      "position": "RB",
-      "team": "SF",
-      "rank": 13,
-      "name": "Christian McCaffrey",
-      "adp": 12.0,
-      "player_id": "4034",
-      "nfc_adp": 8.27,
-      "points_2025_proj": 483.96,
-      "var": 155.9
-    },
-    {
-      "position": "RB",
-      "team": "KC",
-      "rank": 210,
-      "name": "Samaje Perine",
-      "adp": 12.0,
-      "player_id": "4034",
-      "nfc_adp": 284.61,
-      "points_2025_proj": 88.06,
-      "var": -240.0
-    },
-    {
       "position": "QB",
       "team": "BUF",
       "rank": 18,
@@ -177,28 +155,6 @@
       "var": 148.5
     },
     {
-      "position": "QB",
-      "team": "BAL",
-      "rank": 21,
-      "name": "Lamar Jackson",
-      "adp": 15.0,
-      "player_id": "4881",
-      "nfc_adp": 25.89,
-      "points_2025_proj": 687.56,
-      "var": 121.4
-    },
-    {
-      "position": "QB",
-      "team": "MIN",
-      "rank": 157,
-      "name": "Sam Darnold",
-      "adp": 15.0,
-      "player_id": "4881",
-      "nfc_adp": 217.27,
-      "points_2025_proj": 538.82,
-      "var": -27.3
-    },
-    {
       "position": "TE",
       "team": "LV",
       "rank": 17,
@@ -219,28 +175,6 @@
       "nfc_adp": 39.25,
       "points_2025_proj": 700.21,
       "var": 134.0
-    },
-    {
-      "position": "WR",
-      "team": "ATL",
-      "rank": 16,
-      "name": "Drake London",
-      "adp": 19.25,
-      "player_id": "8112",
-      "nfc_adp": 14.48,
-      "points_2025_proj": 452.05,
-      "var": 111.8
-    },
-    {
-      "position": "WR",
-      "team": "PHI",
-      "rank": 192,
-      "name": "Jahan Dotson",
-      "adp": 19.25,
-      "player_id": "8112",
-      "nfc_adp": 286.11,
-      "points_2025_proj": 72.87,
-      "var": -267.4
     },
     {
       "position": "WR",
@@ -332,50 +266,6 @@
     },
     {
       "position": "RB",
-      "team": "LA",
-      "rank": 28,
-      "name": "Kyren Williams",
-      "adp": 28,
-      "player_id": "8150",
-      "nfc_adp": 28.11,
-      "points_2025_proj": 390.34,
-      "var": 62.2
-    },
-    {
-      "position": "WR",
-      "team": "GB",
-      "rank": 191,
-      "name": "Christian Watson",
-      "adp": 28,
-      "player_id": "8150",
-      "nfc_adp": 285.89,
-      "points_2025_proj": 85.56,
-      "var": -254.7
-    },
-    {
-      "position": "WR",
-      "team": "SEA",
-      "rank": 31,
-      "name": "Jaxon Smith-Njigba",
-      "adp": 28.5,
-      "player_id": "9488",
-      "nfc_adp": 27.91,
-      "points_2025_proj": 408.73,
-      "var": 68.4
-    },
-    {
-      "position": "WR",
-      "team": "ARI",
-      "rank": 202,
-      "name": "Michael Wilson",
-      "adp": 28.5,
-      "player_id": "9488",
-      "nfc_adp": 233.48,
-      "points_2025_proj": 206.96,
-      "var": -133.3
-    },
-    {
-      "position": "RB",
       "team": "GB",
       "rank": 24,
       "name": "Josh Jacobs",
@@ -408,27 +298,6 @@
       "var": 57.9
     },
     {
-      "position": "QB",
-      "team": "KC",
-      "rank": 48,
-      "name": "Patrick Mahomes",
-      "adp": 33,
-      "player_id": "4046",
-      "nfc_adp": 69.64,
-      "points_2025_proj": 663.83,
-      "var": 97.7
-    },
-    {
-      "position": "WR",
-      "team": "NO",
-      "rank": 188,
-      "name": "Michael Thomas",
-      "adp": 33,
-      "player_id": "4046",
-      "points_2025_proj": 0.0,
-      "var": -340.3
-    },
-    {
       "position": "WR",
       "team": "ARZ",
       "rank": 36,
@@ -449,28 +318,6 @@
       "nfc_adp": 78.14,
       "points_2025_proj": 636.77,
       "var": 70.6
-    },
-    {
-      "position": "WR",
-      "team": "MIA",
-      "rank": 37,
-      "name": "Tyreek Hill",
-      "adp": 37,
-      "player_id": "3321",
-      "nfc_adp": 34.48,
-      "points_2025_proj": 434.07,
-      "var": 93.8
-    },
-    {
-      "position": "RB",
-      "team": "MIA",
-      "rank": 167,
-      "name": "Raheem Mostert",
-      "adp": 37,
-      "player_id": "3321",
-      "nfc_adp": 257.5,
-      "points_2025_proj": 125.89,
-      "var": -202.2
     },
     {
       "position": "WR",
@@ -495,50 +342,6 @@
       "var": 57.8
     },
     {
-      "position": "WR",
-      "team": "NYJ",
-      "rank": 29,
-      "name": "Garrett Wilson",
-      "adp": 40,
-      "player_id": "8146",
-      "nfc_adp": 30.45,
-      "points_2025_proj": 408.62,
-      "var": 68.3
-    },
-    {
-      "position": "RB",
-      "team": "ATL",
-      "rank": 171,
-      "name": "Tyler Allgeier",
-      "adp": 40,
-      "player_id": "8146",
-      "nfc_adp": 164.36,
-      "points_2025_proj": 173.65,
-      "var": -154.5
-    },
-    {
-      "position": "RB",
-      "team": "BUF",
-      "rank": 41,
-      "name": "James Cook",
-      "adp": 42,
-      "player_id": "8138",
-      "nfc_adp": 35.39,
-      "points_2025_proj": 392.31,
-      "var": 64.2
-    },
-    {
-      "position": "WR",
-      "team": "HOU",
-      "rank": 201,
-      "name": "John Metchie",
-      "adp": 42,
-      "player_id": "8138",
-      "nfc_adp": 282.57,
-      "points_2025_proj": 47.89,
-      "var": -292.4
-    },
-    {
       "position": "TE",
       "team": "SF",
       "rank": 42,
@@ -548,17 +351,6 @@
       "nfc_adp": 41.48,
       "points_2025_proj": 378.07,
       "var": 101.6
-    },
-    {
-      "position": "WR",
-      "team": "KC",
-      "rank": 44,
-      "name": "Xavier Worthy",
-      "adp": 45,
-      "player_id": "11624",
-      "nfc_adp": 42.66,
-      "points_2025_proj": 373.12,
-      "var": 32.8
     },
     {
       "position": "RB",
@@ -572,17 +364,6 @@
       "var": -2.8
     },
     {
-      "position": "TE",
-      "team": "CAR",
-      "rank": 238,
-      "name": "Ja'Tavion Sanders",
-      "adp": 45,
-      "player_id": "11624",
-      "nfc_adp": 257.86,
-      "points_2025_proj": 193.57,
-      "var": -82.9
-    },
-    {
       "position": "QB",
       "team": "DEN",
       "rank": 61,
@@ -592,39 +373,6 @@
       "nfc_adp": 86.48,
       "points_2025_proj": 633.06,
       "var": 66.9
-    },
-    {
-      "position": "WR",
-      "team": "DEN",
-      "rank": 46,
-      "name": "Courtland Sutton",
-      "adp": 47,
-      "player_id": "5045",
-      "nfc_adp": 47.39,
-      "points_2025_proj": 373.28,
-      "var": 33.0
-    },
-    {
-      "position": "TE",
-      "team": "CIN",
-      "rank": 235,
-      "name": "Mike Gesicki",
-      "adp": 47,
-      "player_id": "5045",
-      "nfc_adp": 238.93,
-      "points_2025_proj": 242.24,
-      "var": -34.2
-    },
-    {
-      "position": "RB",
-      "team": "NYJ",
-      "rank": 35,
-      "name": "Breece Hall",
-      "adp": 48.0,
-      "player_id": "8155",
-      "nfc_adp": 41.57,
-      "points_2025_proj": 395.78,
-      "var": 67.7
     },
     {
       "position": "WR",
@@ -647,39 +395,6 @@
       "nfc_adp": 49.64,
       "points_2025_proj": 376.81,
       "var": 36.5
-    },
-    {
-      "position": "RB",
-      "team": "CLE",
-      "rank": 164,
-      "name": "Jerome Ford",
-      "adp": 48.0,
-      "player_id": "8155",
-      "nfc_adp": 168.23,
-      "points_2025_proj": 164.51,
-      "var": -163.6
-    },
-    {
-      "position": "RB",
-      "team": "NO",
-      "rank": 49,
-      "name": "Alvin Kamara",
-      "adp": 49,
-      "player_id": "4035",
-      "nfc_adp": 49.82,
-      "points_2025_proj": 393.51,
-      "var": 65.4
-    },
-    {
-      "position": "RB",
-      "team": "KC",
-      "rank": 174,
-      "name": "Kareem Hunt",
-      "adp": 49,
-      "player_id": "4035",
-      "nfc_adp": 217.73,
-      "points_2025_proj": 86.12,
-      "var": -242.0
     },
     {
       "position": "WR",
@@ -705,27 +420,6 @@
     },
     {
       "position": "WR",
-      "team": "DET",
-      "rank": 52,
-      "name": "Jameson Williams",
-      "adp": 52.0,
-      "player_id": "8148",
-      "nfc_adp": 51.82,
-      "points_2025_proj": 363.84,
-      "var": 23.5
-    },
-    {
-      "position": "RB",
-      "team": "CLE",
-      "rank": 212,
-      "name": "Pierre Strong",
-      "adp": 52.0,
-      "player_id": "8148",
-      "points_2025_proj": 15.93,
-      "var": -312.2
-    },
-    {
-      "position": "WR",
       "team": "CHI",
       "rank": 43,
       "name": "DJ Moore",
@@ -734,28 +428,6 @@
       "nfc_adp": 46.18,
       "points_2025_proj": 410.55,
       "var": 70.3
-    },
-    {
-      "position": "WR",
-      "team": "PHI",
-      "rank": 53,
-      "name": "DeVonta Smith",
-      "adp": 54,
-      "player_id": "7525",
-      "nfc_adp": 57.07,
-      "points_2025_proj": 379.51,
-      "var": 39.2
-    },
-    {
-      "position": "WR",
-      "team": "LAC",
-      "rank": 187,
-      "name": "Joshua Palmer",
-      "adp": 54,
-      "player_id": "7525",
-      "nfc_adp": 164.95,
-      "points_2025_proj": 239.35,
-      "var": -100.9
     },
     {
       "position": "WR",
@@ -769,39 +441,6 @@
       "var": 36.9
     },
     {
-      "position": "WR",
-      "team": "KC",
-      "rank": 34,
-      "name": "Rashee Rice",
-      "adp": 56.0,
-      "player_id": "10229",
-      "nfc_adp": 62.39,
-      "points_2025_proj": 393.85,
-      "var": 53.6
-    },
-    {
-      "position": "WR",
-      "team": "NE",
-      "rank": 186,
-      "name": "DeMario Douglas",
-      "adp": 56.0,
-      "player_id": "10229",
-      "nfc_adp": 150.8,
-      "points_2025_proj": 233.0,
-      "var": -107.3
-    },
-    {
-      "position": "WR",
-      "team": "DAL",
-      "rank": 67,
-      "name": "George Pickens",
-      "adp": 58.0,
-      "player_id": "8137",
-      "nfc_adp": 50.55,
-      "points_2025_proj": 367.43,
-      "var": 27.1
-    },
-    {
       "position": "QB",
       "team": "ARZ",
       "rank": 80,
@@ -811,17 +450,6 @@
       "nfc_adp": 107.0,
       "points_2025_proj": 610.32,
       "var": 44.2
-    },
-    {
-      "position": "RB",
-      "team": "HOU",
-      "rank": 169,
-      "name": "Dameon Pierce",
-      "adp": 58.0,
-      "player_id": "8137",
-      "nfc_adp": 272.25,
-      "points_2025_proj": 116.16,
-      "var": -211.9
     },
     {
       "position": "WR",
@@ -880,25 +508,14 @@
     },
     {
       "position": "WR",
-      "team": "MIA",
-      "rank": 64,
-      "name": "Jaylen Waddle",
-      "adp": 64,
-      "player_id": "7526",
-      "nfc_adp": 60.27,
-      "points_2025_proj": 340.29,
-      "var": 0.0
-    },
-    {
-      "position": "WR",
-      "team": "CLE",
-      "rank": 193,
-      "name": "Elijah Moore",
-      "adp": 64,
-      "player_id": "7526",
-      "nfc_adp": 289.45,
-      "points_2025_proj": 86.01,
-      "var": -254.3
+      "team": "TB",
+      "rank": 105,
+      "name": "Emeka Egbuka",
+      "adp": 65,
+      "player_id": "12514",
+      "nfc_adp": 66.39,
+      "points_2025_proj": 245.75,
+      "var": -94.5
     },
     {
       "position": "QB",
@@ -1011,38 +628,6 @@
       "var": 42.0
     },
     {
-      "position": "TE",
-      "team": "DET",
-      "rank": 65,
-      "name": "Sam LaPorta",
-      "adp": 75.0,
-      "player_id": "10859",
-      "nfc_adp": 72.23,
-      "points_2025_proj": 332.05,
-      "var": 55.6
-    },
-    {
-      "position": "WR",
-      "team": "BUF",
-      "rank": 182,
-      "name": "Amari Cooper",
-      "adp": 75,
-      "player_id": "2976",
-      "nfc_adp": 268.66,
-      "points_2025_proj": 0.0,
-      "var": -340.3
-    },
-    {
-      "position": "WR",
-      "team": "CAR",
-      "rank": 204,
-      "name": "Jonathan Mingo",
-      "adp": 75.0,
-      "player_id": "10859",
-      "points_2025_proj": 18.8,
-      "var": -321.5
-    },
-    {
       "position": "RB",
       "team": "PIT",
       "rank": 72,
@@ -1153,17 +738,6 @@
       "var": -2.3
     },
     {
-      "position": "WR",
-      "team": "HOU",
-      "rank": 203,
-      "name": "Tank Dell",
-      "adp": 85,
-      "player_id": "9502",
-      "nfc_adp": 282.93,
-      "points_2025_proj": 55.52,
-      "var": -284.8
-    },
-    {
       "position": "TE",
       "team": "MIN",
       "rank": 81,
@@ -1253,17 +827,6 @@
     },
     {
       "position": "RB",
-      "team": "WAS",
-      "rank": 87,
-      "name": "Brian Robinson",
-      "adp": 92,
-      "player_id": "8154",
-      "nfc_adp": 105.2,
-      "points_2025_proj": 259.59,
-      "var": -68.5
-    },
-    {
-      "position": "RB",
       "team": "CLE",
       "rank": 165,
       "name": "Nick Chubb",
@@ -1294,17 +857,6 @@
       "nfc_adp": 95.77,
       "points_2025_proj": 291.29,
       "var": 14.8
-    },
-    {
-      "position": "RB",
-      "team": "DAL",
-      "rank": 172,
-      "name": "Rico Dowdle",
-      "adp": 95,
-      "player_id": "6219",
-      "nfc_adp": 175.32,
-      "points_2025_proj": 163.39,
-      "var": -164.7
     },
     {
       "position": "TE",
@@ -1352,28 +904,6 @@
     },
     {
       "position": "WR",
-      "team": "GB",
-      "rank": 95,
-      "name": "Jayden Reed",
-      "adp": 98,
-      "player_id": "10222",
-      "nfc_adp": 100.8,
-      "points_2025_proj": 318.04,
-      "var": -22.2
-    },
-    {
-      "position": "RB",
-      "team": "GB",
-      "rank": 176,
-      "name": "Emanuel Wilson",
-      "adp": 98,
-      "player_id": "10222",
-      "nfc_adp": 260.16,
-      "points_2025_proj": 91.36,
-      "var": -236.7
-    },
-    {
-      "position": "WR",
       "team": "IND",
       "rank": 96,
       "name": "Josh Downs",
@@ -1393,17 +923,6 @@
       "nfc_adp": 86.64,
       "points_2025_proj": 328.1,
       "var": 0.0
-    },
-    {
-      "position": "WR",
-      "team": "KC",
-      "rank": 184,
-      "name": "Hollywood Brown",
-      "adp": 100,
-      "player_id": "6083",
-      "nfc_adp": 153.27,
-      "points_2025_proj": 240.49,
-      "var": -99.8
     },
     {
       "position": "RB",
@@ -1448,17 +967,6 @@
       "nfc_adp": 94.89,
       "points_2025_proj": 273.52,
       "var": -3.0
-    },
-    {
-      "position": "WR",
-      "team": "TB",
-      "rank": 105,
-      "name": "Emeka Egbuka",
-      "adp": 105,
-      "player_id": "12514",
-      "nfc_adp": 66.39,
-      "points_2025_proj": 245.75,
-      "var": -94.5
     },
     {
       "position": "QB",
@@ -1539,6 +1047,17 @@
     },
     {
       "position": "WR",
+      "team": "KC",
+      "rank": 34,
+      "name": "Rashee Rice",
+      "adp": 110,
+      "player_id": "10229",
+      "nfc_adp": 62.39,
+      "points_2025_proj": 393.85,
+      "var": 53.6
+    },
+    {
+      "position": "WR",
       "team": "SF",
       "rank": 73,
       "name": "Jauan Jennings",
@@ -1558,6 +1077,17 @@
       "nfc_adp": 289.73,
       "points_2025_proj": 98.3,
       "var": -229.8
+    },
+    {
+      "position": "WR",
+      "team": "NE",
+      "rank": 186,
+      "name": "DeMario Douglas",
+      "adp": 110,
+      "player_id": "10229",
+      "nfc_adp": 150.8,
+      "points_2025_proj": 233.0,
+      "var": -107.3
     },
     {
       "position": "TE",
@@ -1681,6 +1211,28 @@
       "var": -79.8
     },
     {
+      "position": "QB",
+      "team": "BAL",
+      "rank": 21,
+      "name": "Lamar Jackson",
+      "adp": 120,
+      "player_id": "4881",
+      "nfc_adp": 25.89,
+      "points_2025_proj": 687.56,
+      "var": 121.4
+    },
+    {
+      "position": "RB",
+      "team": "NYJ",
+      "rank": 35,
+      "name": "Breece Hall",
+      "adp": 120,
+      "player_id": "8155",
+      "nfc_adp": 41.57,
+      "points_2025_proj": 395.78,
+      "var": 67.7
+    },
+    {
       "position": "RB",
       "team": "NE",
       "rank": 120,
@@ -1693,6 +1245,17 @@
     },
     {
       "position": "QB",
+      "team": "MIN",
+      "rank": 157,
+      "name": "Sam Darnold",
+      "adp": 120,
+      "player_id": "4881",
+      "nfc_adp": 217.27,
+      "points_2025_proj": 538.82,
+      "var": -27.3
+    },
+    {
+      "position": "QB",
       "team": "ATL",
       "rank": 159,
       "name": "Kirk Cousins",
@@ -1701,6 +1264,17 @@
       "nfc_adp": 290.43,
       "points_2025_proj": 89.12,
       "var": -477.0
+    },
+    {
+      "position": "RB",
+      "team": "CLE",
+      "rank": 164,
+      "name": "Jerome Ford",
+      "adp": 120,
+      "player_id": "8155",
+      "nfc_adp": 168.23,
+      "points_2025_proj": 164.51,
+      "var": -163.6
     },
     {
       "position": "TE",
@@ -2565,6 +2139,432 @@
       "player_id": "10234",
       "points_2025_proj": 0.0,
       "var": -328.1
+    },
+    {
+      "position": "RB",
+      "team": "SF",
+      "rank": 13,
+      "name": "Christian McCaffrey",
+      "adp": 2000,
+      "player_id": "4034",
+      "nfc_adp": 8.27,
+      "points_2025_proj": 483.96,
+      "var": 155.9
+    },
+    {
+      "position": "WR",
+      "team": "ATL",
+      "rank": 16,
+      "name": "Drake London",
+      "adp": 2000,
+      "player_id": "8112",
+      "nfc_adp": 14.48,
+      "points_2025_proj": 452.05,
+      "var": 111.8
+    },
+    {
+      "position": "RB",
+      "team": "LA",
+      "rank": 28,
+      "name": "Kyren Williams",
+      "adp": 2000,
+      "player_id": "8150",
+      "nfc_adp": 28.11,
+      "points_2025_proj": 390.34,
+      "var": 62.2
+    },
+    {
+      "position": "WR",
+      "team": "NYJ",
+      "rank": 29,
+      "name": "Garrett Wilson",
+      "adp": 2000,
+      "player_id": "8146",
+      "nfc_adp": 30.45,
+      "points_2025_proj": 408.62,
+      "var": 68.3
+    },
+    {
+      "position": "WR",
+      "team": "SEA",
+      "rank": 31,
+      "name": "Jaxon Smith-Njigba",
+      "adp": 2000,
+      "player_id": "9488",
+      "nfc_adp": 27.91,
+      "points_2025_proj": 408.73,
+      "var": 68.4
+    },
+    {
+      "position": "WR",
+      "team": "MIA",
+      "rank": 37,
+      "name": "Tyreek Hill",
+      "adp": 2000,
+      "player_id": "3321",
+      "nfc_adp": 34.48,
+      "points_2025_proj": 434.07,
+      "var": 93.8
+    },
+    {
+      "position": "RB",
+      "team": "BUF",
+      "rank": 41,
+      "name": "James Cook",
+      "adp": 2000,
+      "player_id": "8138",
+      "nfc_adp": 35.39,
+      "points_2025_proj": 392.31,
+      "var": 64.2
+    },
+    {
+      "position": "WR",
+      "team": "KC",
+      "rank": 44,
+      "name": "Xavier Worthy",
+      "adp": 2000,
+      "player_id": "11624",
+      "nfc_adp": 42.66,
+      "points_2025_proj": 373.12,
+      "var": 32.8
+    },
+    {
+      "position": "WR",
+      "team": "DEN",
+      "rank": 46,
+      "name": "Courtland Sutton",
+      "adp": 2000,
+      "player_id": "5045",
+      "nfc_adp": 47.39,
+      "points_2025_proj": 373.28,
+      "var": 33.0
+    },
+    {
+      "position": "QB",
+      "team": "KC",
+      "rank": 48,
+      "name": "Patrick Mahomes",
+      "adp": 2000,
+      "player_id": "4046",
+      "nfc_adp": 69.64,
+      "points_2025_proj": 663.83,
+      "var": 97.7
+    },
+    {
+      "position": "RB",
+      "team": "NO",
+      "rank": 49,
+      "name": "Alvin Kamara",
+      "adp": 2000,
+      "player_id": "4035",
+      "nfc_adp": 49.82,
+      "points_2025_proj": 393.51,
+      "var": 65.4
+    },
+    {
+      "position": "WR",
+      "team": "DET",
+      "rank": 52,
+      "name": "Jameson Williams",
+      "adp": 2000,
+      "player_id": "8148",
+      "nfc_adp": 51.82,
+      "points_2025_proj": 363.84,
+      "var": 23.5
+    },
+    {
+      "position": "WR",
+      "team": "PHI",
+      "rank": 53,
+      "name": "DeVonta Smith",
+      "adp": 2000,
+      "player_id": "7525",
+      "nfc_adp": 57.07,
+      "points_2025_proj": 379.51,
+      "var": 39.2
+    },
+    {
+      "position": "WR",
+      "team": "MIA",
+      "rank": 64,
+      "name": "Jaylen Waddle",
+      "adp": 2000,
+      "player_id": "7526",
+      "nfc_adp": 60.27,
+      "points_2025_proj": 340.29,
+      "var": 0.0
+    },
+    {
+      "position": "TE",
+      "team": "DET",
+      "rank": 65,
+      "name": "Sam LaPorta",
+      "adp": 2000,
+      "player_id": "10859",
+      "nfc_adp": 72.23,
+      "points_2025_proj": 332.05,
+      "var": 55.6
+    },
+    {
+      "position": "WR",
+      "team": "DAL",
+      "rank": 67,
+      "name": "George Pickens",
+      "adp": 2000,
+      "player_id": "8137",
+      "nfc_adp": 50.55,
+      "points_2025_proj": 367.43,
+      "var": 27.1
+    },
+    {
+      "position": "RB",
+      "team": "WAS",
+      "rank": 87,
+      "name": "Brian Robinson",
+      "adp": 2000,
+      "player_id": "8154",
+      "nfc_adp": 105.2,
+      "points_2025_proj": 259.59,
+      "var": -68.5
+    },
+    {
+      "position": "WR",
+      "team": "GB",
+      "rank": 95,
+      "name": "Jayden Reed",
+      "adp": 2000,
+      "player_id": "10222",
+      "nfc_adp": 100.8,
+      "points_2025_proj": 318.04,
+      "var": -22.2
+    },
+    {
+      "position": "RB",
+      "team": "MIA",
+      "rank": 167,
+      "name": "Raheem Mostert",
+      "adp": 2000,
+      "player_id": "3321",
+      "nfc_adp": 257.5,
+      "points_2025_proj": 125.89,
+      "var": -202.2
+    },
+    {
+      "position": "RB",
+      "team": "HOU",
+      "rank": 169,
+      "name": "Dameon Pierce",
+      "adp": 2000,
+      "player_id": "8137",
+      "nfc_adp": 272.25,
+      "points_2025_proj": 116.16,
+      "var": -211.9
+    },
+    {
+      "position": "RB",
+      "team": "ATL",
+      "rank": 171,
+      "name": "Tyler Allgeier",
+      "adp": 2000,
+      "player_id": "8146",
+      "nfc_adp": 164.36,
+      "points_2025_proj": 173.65,
+      "var": -154.5
+    },
+    {
+      "position": "RB",
+      "team": "DAL",
+      "rank": 172,
+      "name": "Rico Dowdle",
+      "adp": 2000,
+      "player_id": "6219",
+      "nfc_adp": 175.32,
+      "points_2025_proj": 163.39,
+      "var": -164.7
+    },
+    {
+      "position": "RB",
+      "team": "KC",
+      "rank": 174,
+      "name": "Kareem Hunt",
+      "adp": 2000,
+      "player_id": "4035",
+      "nfc_adp": 217.73,
+      "points_2025_proj": 86.12,
+      "var": -242.0
+    },
+    {
+      "position": "RB",
+      "team": "GB",
+      "rank": 176,
+      "name": "Emanuel Wilson",
+      "adp": 2000,
+      "player_id": "10222",
+      "nfc_adp": 260.16,
+      "points_2025_proj": 91.36,
+      "var": -236.7
+    },
+    {
+      "position": "WR",
+      "team": "BUF",
+      "rank": 182,
+      "name": "Amari Cooper",
+      "adp": 2000,
+      "player_id": "2976",
+      "nfc_adp": 268.66,
+      "points_2025_proj": 0.0,
+      "var": -340.3
+    },
+    {
+      "position": "WR",
+      "team": "KC",
+      "rank": 184,
+      "name": "Hollywood Brown",
+      "adp": 2000,
+      "player_id": "6083",
+      "nfc_adp": 153.27,
+      "points_2025_proj": 240.49,
+      "var": -99.8
+    },
+    {
+      "position": "WR",
+      "team": "LAC",
+      "rank": 187,
+      "name": "Joshua Palmer",
+      "adp": 2000,
+      "player_id": "7525",
+      "nfc_adp": 164.95,
+      "points_2025_proj": 239.35,
+      "var": -100.9
+    },
+    {
+      "position": "WR",
+      "team": "NO",
+      "rank": 188,
+      "name": "Michael Thomas",
+      "adp": 2000,
+      "player_id": "4046",
+      "points_2025_proj": 0.0,
+      "var": -340.3
+    },
+    {
+      "position": "WR",
+      "team": "GB",
+      "rank": 191,
+      "name": "Christian Watson",
+      "adp": 2000,
+      "player_id": "8150",
+      "nfc_adp": 285.89,
+      "points_2025_proj": 85.56,
+      "var": -254.7
+    },
+    {
+      "position": "WR",
+      "team": "PHI",
+      "rank": 192,
+      "name": "Jahan Dotson",
+      "adp": 2000,
+      "player_id": "8112",
+      "nfc_adp": 286.11,
+      "points_2025_proj": 72.87,
+      "var": -267.4
+    },
+    {
+      "position": "WR",
+      "team": "CLE",
+      "rank": 193,
+      "name": "Elijah Moore",
+      "adp": 2000,
+      "player_id": "7526",
+      "nfc_adp": 289.45,
+      "points_2025_proj": 86.01,
+      "var": -254.3
+    },
+    {
+      "position": "WR",
+      "team": "HOU",
+      "rank": 201,
+      "name": "John Metchie",
+      "adp": 2000,
+      "player_id": "8138",
+      "nfc_adp": 282.57,
+      "points_2025_proj": 47.89,
+      "var": -292.4
+    },
+    {
+      "position": "WR",
+      "team": "ARI",
+      "rank": 202,
+      "name": "Michael Wilson",
+      "adp": 2000,
+      "player_id": "9488",
+      "nfc_adp": 233.48,
+      "points_2025_proj": 206.96,
+      "var": -133.3
+    },
+    {
+      "position": "WR",
+      "team": "HOU",
+      "rank": 203,
+      "name": "Tank Dell",
+      "adp": 2000,
+      "player_id": "9502",
+      "nfc_adp": 282.93,
+      "points_2025_proj": 55.52,
+      "var": -284.8
+    },
+    {
+      "position": "WR",
+      "team": "CAR",
+      "rank": 204,
+      "name": "Jonathan Mingo",
+      "adp": 2000,
+      "player_id": "10859",
+      "points_2025_proj": 18.8,
+      "var": -321.5
+    },
+    {
+      "position": "RB",
+      "team": "KC",
+      "rank": 210,
+      "name": "Samaje Perine",
+      "adp": 2000,
+      "player_id": "4034",
+      "nfc_adp": 284.61,
+      "points_2025_proj": 88.06,
+      "var": -240.0
+    },
+    {
+      "position": "RB",
+      "team": "CLE",
+      "rank": 212,
+      "name": "Pierre Strong",
+      "adp": 2000,
+      "player_id": "8148",
+      "points_2025_proj": 15.93,
+      "var": -312.2
+    },
+    {
+      "position": "TE",
+      "team": "CIN",
+      "rank": 235,
+      "name": "Mike Gesicki",
+      "adp": 2000,
+      "player_id": "5045",
+      "nfc_adp": 238.93,
+      "points_2025_proj": 242.24,
+      "var": -34.2
+    },
+    {
+      "position": "TE",
+      "team": "CAR",
+      "rank": 238,
+      "name": "Ja'Tavion Sanders",
+      "adp": 2000,
+      "player_id": "11624",
+      "nfc_adp": 257.86,
+      "points_2025_proj": 193.57,
+      "var": -82.9
     }
   ]
 }
