@@ -181,6 +181,18 @@
       "var": 148.5
     },
     {
+      "position": "WR",
+      "team": "ATL",
+      "rank": 16,
+      "name": "Drake London",
+      "adp": 16,
+      "player_id": "8112",
+      "unique_id": "Drake London-WR-15",
+      "nfc_adp": 14.48,
+      "points_2025_proj": 452.05,
+      "var": 111.8
+    },
+    {
       "position": "TE",
       "team": "LV",
       "rank": 17,
@@ -239,6 +251,18 @@
       "nfc_adp": 12.86,
       "points_2025_proj": 452.65,
       "var": 124.5
+    },
+    {
+      "position": "QB",
+      "team": "BAL",
+      "rank": 21,
+      "name": "Lamar Jackson",
+      "adp": 21,
+      "player_id": "4881",
+      "unique_id": "Lamar Jackson-QB-20",
+      "nfc_adp": 25.89,
+      "points_2025_proj": 687.56,
+      "var": 121.4
     },
     {
       "position": "QB",
@@ -302,6 +326,18 @@
     },
     {
       "position": "RB",
+      "team": "LA",
+      "rank": 28,
+      "name": "Kyren Williams",
+      "adp": 28,
+      "player_id": "8150",
+      "unique_id": "Kyren Williams-RB-27",
+      "nfc_adp": 28.11,
+      "points_2025_proj": 390.34,
+      "var": 62.2
+    },
+    {
+      "position": "RB",
       "team": "GB",
       "rank": 24,
       "name": "Josh Jacobs",
@@ -311,6 +347,18 @@
       "nfc_adp": 22.07,
       "points_2025_proj": 440.43,
       "var": 112.3
+    },
+    {
+      "position": "WR",
+      "team": "NYJ",
+      "rank": 29,
+      "name": "Garrett Wilson",
+      "adp": 29,
+      "player_id": "8146",
+      "unique_id": "Garrett Wilson-WR-28",
+      "nfc_adp": 30.45,
+      "points_2025_proj": 408.62,
+      "var": 68.3
     },
     {
       "position": "RB",
@@ -323,6 +371,18 @@
       "nfc_adp": 17.89,
       "points_2025_proj": 393.11,
       "var": 65.0
+    },
+    {
+      "position": "WR",
+      "team": "SEA",
+      "rank": 31,
+      "name": "Jaxon Smith-Njigba",
+      "adp": 31,
+      "player_id": "9488",
+      "unique_id": "Jaxon Smith-Njigba-WR-30",
+      "nfc_adp": 27.91,
+      "points_2025_proj": 408.73,
+      "var": 68.4
     },
     {
       "position": "WR",
@@ -362,6 +422,18 @@
     },
     {
       "position": "WR",
+      "team": "MIA",
+      "rank": 37,
+      "name": "Tyreek Hill",
+      "adp": 37,
+      "player_id": "3321",
+      "unique_id": "Tyreek Hill-WR-36",
+      "nfc_adp": 34.48,
+      "points_2025_proj": 434.07,
+      "var": 93.8
+    },
+    {
+      "position": "WR",
       "team": "LA",
       "rank": 38,
       "name": "Davante Adams",
@@ -385,6 +457,18 @@
       "var": 57.8
     },
     {
+      "position": "RB",
+      "team": "BUF",
+      "rank": 41,
+      "name": "James Cook",
+      "adp": 41,
+      "player_id": "8138",
+      "unique_id": "James Cook-RB-40",
+      "nfc_adp": 35.39,
+      "points_2025_proj": 392.31,
+      "var": 64.2
+    },
+    {
       "position": "TE",
       "team": "SF",
       "rank": 42,
@@ -397,6 +481,18 @@
       "var": 101.6
     },
     {
+      "position": "WR",
+      "team": "KC",
+      "rank": 44,
+      "name": "Xavier Worthy",
+      "adp": 44,
+      "player_id": "11624",
+      "unique_id": "Xavier Worthy-WR-43",
+      "nfc_adp": 42.66,
+      "points_2025_proj": 373.12,
+      "var": 32.8
+    },
+    {
       "position": "RB",
       "team": "NE",
       "rank": 60,
@@ -407,6 +503,18 @@
       "nfc_adp": 37.68,
       "points_2025_proj": 325.31,
       "var": -2.8
+    },
+    {
+      "position": "WR",
+      "team": "DEN",
+      "rank": 46,
+      "name": "Courtland Sutton",
+      "adp": 46,
+      "player_id": "5045",
+      "unique_id": "Courtland Sutton-WR-45",
+      "nfc_adp": 47.39,
+      "points_2025_proj": 373.28,
+      "var": 33.0
     },
     {
       "position": "QB",
@@ -445,6 +553,30 @@
       "var": 36.5
     },
     {
+      "position": "QB",
+      "team": "KC",
+      "rank": 48,
+      "name": "Patrick Mahomes",
+      "adp": 48,
+      "player_id": "4046",
+      "unique_id": "Patrick Mahomes-QB-47",
+      "nfc_adp": 69.64,
+      "points_2025_proj": 663.83,
+      "var": 97.7
+    },
+    {
+      "position": "RB",
+      "team": "NO",
+      "rank": 49,
+      "name": "Alvin Kamara",
+      "adp": 49,
+      "player_id": "4035",
+      "unique_id": "Alvin Kamara-RB-48",
+      "nfc_adp": 49.82,
+      "points_2025_proj": 393.51,
+      "var": 65.4
+    },
+    {
       "position": "WR",
       "team": "TB",
       "rank": 40,
@@ -467,6 +599,30 @@
       "nfc_adp": 39.7,
       "points_2025_proj": 367.12,
       "var": 39.0
+    },
+    {
+      "position": "WR",
+      "team": "DET",
+      "rank": 52,
+      "name": "Jameson Williams",
+      "adp": 52,
+      "player_id": "8148",
+      "unique_id": "Jameson Williams-WR-51",
+      "nfc_adp": 51.82,
+      "points_2025_proj": 363.84,
+      "var": 23.5
+    },
+    {
+      "position": "WR",
+      "team": "PHI",
+      "rank": 53,
+      "name": "DeVonta Smith",
+      "adp": 53,
+      "player_id": "7525",
+      "unique_id": "DeVonta Smith-WR-52",
+      "nfc_adp": 57.07,
+      "points_2025_proj": 379.51,
+      "var": 39.2
     },
     {
       "position": "WR",
@@ -566,6 +722,30 @@
     },
     {
       "position": "WR",
+      "team": "MIA",
+      "rank": 64,
+      "name": "Jaylen Waddle",
+      "adp": 64,
+      "player_id": "7526",
+      "unique_id": "Jaylen Waddle-WR-63",
+      "nfc_adp": 60.27,
+      "points_2025_proj": 340.29,
+      "var": 0.0
+    },
+    {
+      "position": "TE",
+      "team": "DET",
+      "rank": 65,
+      "name": "Sam LaPorta",
+      "adp": 65,
+      "player_id": "10859",
+      "unique_id": "Sam LaPorta-TE-64",
+      "nfc_adp": 72.23,
+      "points_2025_proj": 332.05,
+      "var": 55.6
+    },
+    {
+      "position": "WR",
       "team": "TB",
       "rank": 105,
       "name": "Emeka Egbuka",
@@ -611,6 +791,18 @@
       "nfc_adp": 68.41,
       "points_2025_proj": 355.3,
       "var": 15.0
+    },
+    {
+      "position": "WR",
+      "team": "DAL",
+      "rank": 67,
+      "name": "George Pickens",
+      "adp": 67,
+      "player_id": "8137",
+      "unique_id": "George Pickens-WR-66",
+      "nfc_adp": 50.55,
+      "points_2025_proj": 367.43,
+      "var": 27.1
     },
     {
       "position": "WR",
@@ -818,6 +1010,18 @@
     },
     {
       "position": "RB",
+      "team": "WAS",
+      "rank": 87,
+      "name": "Brian Robinson",
+      "adp": 87,
+      "player_id": "8154",
+      "unique_id": "Brian Robinson-RB-86",
+      "nfc_adp": 105.2,
+      "points_2025_proj": 259.59,
+      "var": -68.5
+    },
+    {
+      "position": "RB",
       "team": "KC",
       "rank": 83,
       "name": "Isiah Pacheco",
@@ -923,6 +1127,18 @@
       "nfc_adp": 95.77,
       "points_2025_proj": 291.29,
       "var": 14.8
+    },
+    {
+      "position": "WR",
+      "team": "GB",
+      "rank": 95,
+      "name": "Jayden Reed",
+      "adp": 95,
+      "player_id": "10222",
+      "unique_id": "Jayden Reed-WR-94",
+      "nfc_adp": 100.8,
+      "points_2025_proj": 318.04,
+      "var": -22.2
     },
     {
       "position": "RB",
@@ -1331,18 +1547,6 @@
       "nfc_adp": 103.86,
       "points_2025_proj": 260.47,
       "var": -79.8
-    },
-    {
-      "position": "QB",
-      "team": "BAL",
-      "rank": 21,
-      "name": "Lamar Jackson",
-      "adp": 120,
-      "player_id": "4881",
-      "unique_id": "Lamar Jackson-QB-20",
-      "nfc_adp": 25.89,
-      "points_2025_proj": 687.56,
-      "var": 121.4
     },
     {
       "position": "RB",
@@ -1833,18 +2037,6 @@
       "nfc_adp": 205.95,
       "points_2025_proj": 169.59,
       "var": -158.5
-    },
-    {
-      "position": "WR",
-      "team": "PHI",
-      "rank": 192,
-      "name": "Jahan Dotson",
-      "adp": 140,
-      "player_id": "8119",
-      "unique_id": "Jahan Dotson-WR-186",
-      "nfc_adp": 286.11,
-      "points_2025_proj": 72.87,
-      "var": -267.4
     },
     {
       "position": "TE",
@@ -2587,207 +2779,15 @@
     },
     {
       "position": "WR",
-      "team": "ATL",
-      "rank": 16,
-      "name": "Drake London",
-      "adp": 2000,
-      "player_id": "8112",
-      "unique_id": "Drake London-WR-15",
-      "nfc_adp": 14.48,
-      "points_2025_proj": 452.05,
-      "var": 111.8
-    },
-    {
-      "position": "RB",
-      "team": "LA",
-      "rank": 28,
-      "name": "Kyren Williams",
-      "adp": 2000,
-      "player_id": "8150",
-      "unique_id": "Kyren Williams-RB-27",
-      "nfc_adp": 28.11,
-      "points_2025_proj": 390.34,
-      "var": 62.2
-    },
-    {
-      "position": "WR",
-      "team": "NYJ",
-      "rank": 29,
-      "name": "Garrett Wilson",
-      "adp": 2000,
-      "player_id": "8146",
-      "unique_id": "Garrett Wilson-WR-28",
-      "nfc_adp": 30.45,
-      "points_2025_proj": 408.62,
-      "var": 68.3
-    },
-    {
-      "position": "WR",
-      "team": "SEA",
-      "rank": 31,
-      "name": "Jaxon Smith-Njigba",
-      "adp": 2000,
-      "player_id": "9488",
-      "unique_id": "Jaxon Smith-Njigba-WR-30",
-      "nfc_adp": 27.91,
-      "points_2025_proj": 408.73,
-      "var": 68.4
-    },
-    {
-      "position": "WR",
-      "team": "MIA",
-      "rank": 37,
-      "name": "Tyreek Hill",
-      "adp": 2000,
-      "player_id": "3321",
-      "unique_id": "Tyreek Hill-WR-36",
-      "nfc_adp": 34.48,
-      "points_2025_proj": 434.07,
-      "var": 93.8
-    },
-    {
-      "position": "RB",
-      "team": "BUF",
-      "rank": 41,
-      "name": "James Cook",
-      "adp": 2000,
-      "player_id": "8138",
-      "unique_id": "James Cook-RB-40",
-      "nfc_adp": 35.39,
-      "points_2025_proj": 392.31,
-      "var": 64.2
-    },
-    {
-      "position": "WR",
-      "team": "KC",
-      "rank": 44,
-      "name": "Xavier Worthy",
-      "adp": 2000,
-      "player_id": "11624",
-      "unique_id": "Xavier Worthy-WR-43",
-      "nfc_adp": 42.66,
-      "points_2025_proj": 373.12,
-      "var": 32.8
-    },
-    {
-      "position": "WR",
-      "team": "DEN",
-      "rank": 46,
-      "name": "Courtland Sutton",
-      "adp": 2000,
-      "player_id": "5045",
-      "unique_id": "Courtland Sutton-WR-45",
-      "nfc_adp": 47.39,
-      "points_2025_proj": 373.28,
-      "var": 33.0
-    },
-    {
-      "position": "QB",
-      "team": "KC",
-      "rank": 48,
-      "name": "Patrick Mahomes",
-      "adp": 2000,
-      "player_id": "4046",
-      "unique_id": "Patrick Mahomes-QB-47",
-      "nfc_adp": 69.64,
-      "points_2025_proj": 663.83,
-      "var": 97.7
-    },
-    {
-      "position": "RB",
-      "team": "NO",
-      "rank": 49,
-      "name": "Alvin Kamara",
-      "adp": 2000,
-      "player_id": "4035",
-      "unique_id": "Alvin Kamara-RB-48",
-      "nfc_adp": 49.82,
-      "points_2025_proj": 393.51,
-      "var": 65.4
-    },
-    {
-      "position": "WR",
-      "team": "DET",
-      "rank": 52,
-      "name": "Jameson Williams",
-      "adp": 2000,
-      "player_id": "8148",
-      "unique_id": "Jameson Williams-WR-51",
-      "nfc_adp": 51.82,
-      "points_2025_proj": 363.84,
-      "var": 23.5
-    },
-    {
-      "position": "WR",
       "team": "PHI",
-      "rank": 53,
-      "name": "DeVonta Smith",
+      "rank": 192,
+      "name": "Jahan Dotson",
       "adp": 2000,
-      "player_id": "7525",
-      "unique_id": "DeVonta Smith-WR-52",
-      "nfc_adp": 57.07,
-      "points_2025_proj": 379.51,
-      "var": 39.2
-    },
-    {
-      "position": "WR",
-      "team": "MIA",
-      "rank": 64,
-      "name": "Jaylen Waddle",
-      "adp": 2000,
-      "player_id": "7526",
-      "unique_id": "Jaylen Waddle-WR-63",
-      "nfc_adp": 60.27,
-      "points_2025_proj": 340.29,
-      "var": 0.0
-    },
-    {
-      "position": "TE",
-      "team": "DET",
-      "rank": 65,
-      "name": "Sam LaPorta",
-      "adp": 2000,
-      "player_id": "10859",
-      "unique_id": "Sam LaPorta-TE-64",
-      "nfc_adp": 72.23,
-      "points_2025_proj": 332.05,
-      "var": 55.6
-    },
-    {
-      "position": "WR",
-      "team": "DAL",
-      "rank": 67,
-      "name": "George Pickens",
-      "adp": 2000,
-      "player_id": "8137",
-      "unique_id": "George Pickens-WR-66",
-      "nfc_adp": 50.55,
-      "points_2025_proj": 367.43,
-      "var": 27.1
-    },
-    {
-      "position": "RB",
-      "team": "WAS",
-      "rank": 87,
-      "name": "Brian Robinson",
-      "adp": 2000,
-      "player_id": "8154",
-      "unique_id": "Brian Robinson-RB-86",
-      "nfc_adp": 105.2,
-      "points_2025_proj": 259.59,
-      "var": -68.5
-    },
-    {
-      "position": "WR",
-      "team": "GB",
-      "rank": 95,
-      "name": "Jayden Reed",
-      "adp": 2000,
-      "player_id": "10222",
-      "unique_id": "Jayden Reed-WR-94",
-      "nfc_adp": 100.8,
-      "points_2025_proj": 318.04,
-      "var": -22.2
+      "player_id": "8119",
+      "unique_id": "Jahan Dotson-WR-186",
+      "nfc_adp": 286.11,
+      "points_2025_proj": 72.87,
+      "var": -267.4
     },
     {
       "position": "WR",
