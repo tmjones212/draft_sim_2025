@@ -7,6 +7,7 @@
       "name": "Ja'Marr Chase",
       "adp": 1,
       "player_id": "7564",
+      "unique_id": "Ja'Marr Chase-WR-0",
       "nfc_adp": 1.05,
       "points_2025_proj": 568.47,
       "var": 228.2
@@ -18,6 +19,7 @@
       "name": "Bijan Robinson",
       "adp": 2,
       "player_id": "9509",
+      "unique_id": "Bijan Robinson-RB-1",
       "nfc_adp": 2.34,
       "points_2025_proj": 520.43,
       "var": 192.3
@@ -29,6 +31,7 @@
       "name": "Justin Jefferson",
       "adp": 3,
       "player_id": "6794",
+      "unique_id": "Justin Jefferson-WR-2",
       "nfc_adp": 5.32,
       "points_2025_proj": 543.94,
       "var": 203.7
@@ -40,6 +43,7 @@
       "name": "CeeDee Lamb",
       "adp": 4.0,
       "player_id": "6786",
+      "unique_id": "CeeDee Lamb-WR-5",
       "nfc_adp": 4.93,
       "points_2025_proj": 522.54,
       "var": 182.2
@@ -51,6 +55,7 @@
       "name": "Saquon Barkley",
       "adp": 5.0,
       "player_id": "4866",
+      "unique_id": "Saquon Barkley-RB-3",
       "nfc_adp": 5.59,
       "points_2025_proj": 527.55,
       "var": 199.4
@@ -62,6 +67,7 @@
       "name": "Jahmyr Gibbs",
       "adp": 6.0,
       "player_id": "9221",
+      "unique_id": "Jahmyr Gibbs-RB-4",
       "nfc_adp": 3.95,
       "points_2025_proj": 509.88,
       "var": 181.8
@@ -73,6 +79,7 @@
       "name": "Amon-Ra St. Brown",
       "adp": 7.0,
       "player_id": "7547",
+      "unique_id": "Amon-Ra St. Brown-WR-7",
       "nfc_adp": 10.55,
       "points_2025_proj": 501.87,
       "var": 161.6
@@ -84,6 +91,7 @@
       "name": "Malik Nabers",
       "adp": 8.0,
       "player_id": "11632",
+      "unique_id": "Malik Nabers-WR-6",
       "nfc_adp": 10.43,
       "points_2025_proj": 486.44,
       "var": 146.1
@@ -95,6 +103,7 @@
       "name": "Puka Nacua",
       "adp": 8.0,
       "player_id": "9493",
+      "unique_id": "Puka Nacua-WR-9",
       "nfc_adp": 15.77,
       "points_2025_proj": 505.62,
       "var": 165.3
@@ -106,6 +115,7 @@
       "name": "Nico Collins",
       "adp": 10.0,
       "player_id": "7569",
+      "unique_id": "Nico Collins-WR-13",
       "nfc_adp": 12.93,
       "points_2025_proj": 480.07,
       "var": 139.8
@@ -117,6 +127,7 @@
       "name": "Ashton Jeanty",
       "adp": 11.5,
       "player_id": "12527",
+      "unique_id": "Ashton Jeanty-RB-8",
       "nfc_adp": 9.8,
       "points_2025_proj": 443.24,
       "var": 115.1
@@ -128,6 +139,7 @@
       "name": "Josh Allen",
       "adp": 13.0,
       "player_id": "4984",
+      "unique_id": "Josh Allen-QB-17",
       "nfc_adp": 28.64,
       "points_2025_proj": 678.01,
       "var": 111.8
@@ -139,6 +151,7 @@
       "name": "De'Von Achane",
       "adp": 14.0,
       "player_id": "9226",
+      "unique_id": "De'Von Achane-RB-14",
       "nfc_adp": 15.91,
       "points_2025_proj": 458.12,
       "var": 130.0
@@ -150,6 +163,7 @@
       "name": "Brian Thomas",
       "adp": 14.5,
       "player_id": "11631",
+      "unique_id": "Brian Thomas-WR-10",
       "nfc_adp": 11.89,
       "points_2025_proj": 488.76,
       "var": 148.5
@@ -161,6 +175,7 @@
       "name": "Brock Bowers",
       "adp": 16.0,
       "player_id": "11604",
+      "unique_id": "Brock Bowers-TE-16",
       "nfc_adp": 18.68,
       "points_2025_proj": 425.28,
       "var": 148.8
@@ -172,6 +187,7 @@
       "name": "Jayden Daniels",
       "adp": 18.0,
       "player_id": "11566",
+      "unique_id": "Jayden Daniels-QB-26",
       "nfc_adp": 39.25,
       "points_2025_proj": 700.21,
       "var": 134.0
@@ -183,6 +199,7 @@
       "name": "A.J. Brown",
       "adp": 19.375,
       "player_id": "5859",
+      "unique_id": "A.J. Brown-WR-21",
       "nfc_adp": 21.39,
       "points_2025_proj": 449.31,
       "var": 109.0
@@ -194,6 +211,7 @@
       "name": "Trey McBride",
       "adp": 19.4375,
       "player_id": "8130",
+      "unique_id": "Trey McBride-TE-25",
       "nfc_adp": 26.2,
       "points_2025_proj": 422.85,
       "var": 146.4
@@ -205,6 +223,7 @@
       "name": "Derrick Henry",
       "adp": 21,
       "player_id": "3198",
+      "unique_id": "Derrick Henry-RB-11",
       "nfc_adp": 12.86,
       "points_2025_proj": 452.65,
       "var": 124.5
@@ -216,6 +235,7 @@
       "name": "Joe Burrow",
       "adp": 23.0,
       "player_id": "6770",
+      "unique_id": "Joe Burrow-QB-24",
       "nfc_adp": 37.86,
       "points_2025_proj": 673.9,
       "var": 107.7
@@ -227,6 +247,7 @@
       "name": "Bucky Irving",
       "adp": 25,
       "player_id": "11584",
+      "unique_id": "Bucky Irving-RB-18",
       "nfc_adp": 20.82,
       "points_2025_proj": 471.98,
       "var": 143.9
@@ -238,6 +259,7 @@
       "name": "Ladd McConkey",
       "adp": 26.0,
       "player_id": "11635",
+      "unique_id": "Ladd McConkey-WR-19",
       "nfc_adp": 21.59,
       "points_2025_proj": 456.87,
       "var": 116.6
@@ -249,6 +271,7 @@
       "name": "Jalen Hurts",
       "adp": 26,
       "player_id": "6904",
+      "unique_id": "Jalen Hurts-QB-32",
       "nfc_adp": 44.18,
       "points_2025_proj": 628.4,
       "var": 62.2
@@ -260,6 +283,7 @@
       "name": "Jonathan Taylor",
       "adp": 27,
       "player_id": "6813",
+      "unique_id": "Jonathan Taylor-RB-22",
       "nfc_adp": 22.27,
       "points_2025_proj": 422.18,
       "var": 94.1
@@ -271,6 +295,7 @@
       "name": "Josh Jacobs",
       "adp": 29,
       "player_id": "5850",
+      "unique_id": "Josh Jacobs-RB-23",
       "nfc_adp": 22.07,
       "points_2025_proj": 440.43,
       "var": 112.3
@@ -282,6 +307,7 @@
       "name": "Chase Brown",
       "adp": 30,
       "player_id": "9224",
+      "unique_id": "Chase Brown-RB-29",
       "nfc_adp": 17.89,
       "points_2025_proj": 393.11,
       "var": 65.0
@@ -293,6 +319,7 @@
       "name": "Tee Higgins",
       "adp": 32,
       "player_id": "6801",
+      "unique_id": "Tee Higgins-WR-31",
       "nfc_adp": 30.27,
       "points_2025_proj": 398.24,
       "var": 57.9
@@ -304,6 +331,7 @@
       "name": "Marvin Harrison",
       "adp": 35,
       "player_id": "11628",
+      "unique_id": "Marvin Harrison-WR-35",
       "nfc_adp": 35.8,
       "points_2025_proj": 391.0,
       "var": 50.7
@@ -315,6 +343,7 @@
       "name": "Baker Mayfield",
       "adp": 36,
       "player_id": "4892",
+      "unique_id": "Baker Mayfield-QB-57",
       "nfc_adp": 78.14,
       "points_2025_proj": 636.77,
       "var": 70.6
@@ -326,6 +355,7 @@
       "name": "Davante Adams",
       "adp": 38,
       "player_id": "2133",
+      "unique_id": "Davante Adams-WR-37",
       "nfc_adp": 41.2,
       "points_2025_proj": 373.12,
       "var": 32.8
@@ -337,6 +367,7 @@
       "name": "Omarion Hampton",
       "adp": 39.0,
       "player_id": "12507",
+      "unique_id": "Omarion Hampton-RB-44",
       "nfc_adp": 32.73,
       "points_2025_proj": 385.91,
       "var": 57.8
@@ -348,6 +379,7 @@
       "name": "George Kittle",
       "adp": 43,
       "player_id": "4217",
+      "unique_id": "George Kittle-TE-41",
       "nfc_adp": 41.48,
       "points_2025_proj": 378.07,
       "var": 101.6
@@ -359,6 +391,7 @@
       "name": "TreVeyon Henderson",
       "adp": 45.0,
       "player_id": "12529",
+      "unique_id": "TreVeyon Henderson-RB-59",
       "nfc_adp": 37.68,
       "points_2025_proj": 325.31,
       "var": -2.8
@@ -370,6 +403,7 @@
       "name": "Bo Nix",
       "adp": 46.0,
       "player_id": "11563",
+      "unique_id": "Bo Nix-QB-60",
       "nfc_adp": 86.48,
       "points_2025_proj": 633.06,
       "var": 66.9
@@ -381,6 +415,7 @@
       "name": "Terry McLaurin",
       "adp": 48.0,
       "player_id": "5927",
+      "unique_id": "Terry McLaurin-WR-38",
       "nfc_adp": 45.86,
       "points_2025_proj": 432.74,
       "var": 92.4
@@ -392,6 +427,7 @@
       "name": "DK Metcalf",
       "adp": 48,
       "player_id": "5846",
+      "unique_id": "DK Metcalf-WR-46",
       "nfc_adp": 49.64,
       "points_2025_proj": 376.81,
       "var": 36.5
@@ -403,6 +439,7 @@
       "name": "Mike Evans",
       "adp": 50.0,
       "player_id": "2216",
+      "unique_id": "Mike Evans-WR-39",
       "nfc_adp": 40.89,
       "points_2025_proj": 408.77,
       "var": 68.5
@@ -414,6 +451,7 @@
       "name": "Kenneth Walker",
       "adp": 51,
       "player_id": "8151",
+      "unique_id": "Kenneth Walker-RB-50",
       "nfc_adp": 39.7,
       "points_2025_proj": 367.12,
       "var": 39.0
@@ -425,6 +463,7 @@
       "name": "DJ Moore",
       "adp": 53.5,
       "player_id": "4983",
+      "unique_id": "DJ Moore-WR-42",
       "nfc_adp": 46.18,
       "points_2025_proj": 410.55,
       "var": 70.3
@@ -436,6 +475,7 @@
       "name": "Tetairoa McMillan",
       "adp": 55,
       "player_id": "12526",
+      "unique_id": "Tetairoa McMillan-WR-53",
       "nfc_adp": 44.32,
       "points_2025_proj": 377.15,
       "var": 36.9
@@ -447,6 +487,7 @@
       "name": "Kyler Murray",
       "adp": 58.0,
       "player_id": "5849",
+      "unique_id": "Kyler Murray-QB-79",
       "nfc_adp": 107.0,
       "points_2025_proj": 610.32,
       "var": 44.2
@@ -458,6 +499,7 @@
       "name": "Calvin Ridley",
       "adp": 59.0,
       "player_id": "4981",
+      "unique_id": "Calvin Ridley-WR-67",
       "nfc_adp": 52.05,
       "points_2025_proj": 366.06,
       "var": 25.8
@@ -469,6 +511,7 @@
       "name": "Dak Prescott",
       "adp": 59.0,
       "player_id": "3294",
+      "unique_id": "Dak Prescott-QB-98",
       "nfc_adp": 91.55,
       "points_2025_proj": 599.21,
       "var": 33.0
@@ -480,6 +523,7 @@
       "name": "Chuba Hubbard",
       "adp": 61,
       "player_id": "7594",
+      "unique_id": "Chuba Hubbard-RB-49",
       "nfc_adp": 52.73,
       "points_2025_proj": 383.79,
       "var": 55.7
@@ -491,6 +535,7 @@
       "name": "James Conner",
       "adp": 62.0,
       "player_id": "4137",
+      "unique_id": "James Conner-RB-56",
       "nfc_adp": 56.39,
       "points_2025_proj": 371.08,
       "var": 43.0
@@ -502,6 +547,7 @@
       "name": "Jerry Jeudy",
       "adp": 63.0,
       "player_id": "6783",
+      "unique_id": "Jerry Jeudy-WR-58",
       "nfc_adp": 65.77,
       "points_2025_proj": 359.39,
       "var": 19.1
@@ -513,6 +559,7 @@
       "name": "Emeka Egbuka",
       "adp": 65,
       "player_id": "12514",
+      "unique_id": "Emeka Egbuka-WR-104",
       "nfc_adp": 66.39,
       "points_2025_proj": 245.75,
       "var": -94.5
@@ -524,6 +571,7 @@
       "name": "Jared Goff",
       "adp": 66,
       "player_id": "3163",
+      "unique_id": "Jared Goff-QB-83",
       "nfc_adp": 105.95,
       "points_2025_proj": 601.72,
       "var": 35.6
@@ -535,6 +583,7 @@
       "name": "Zay Flowers",
       "adp": 66.5,
       "player_id": "9997",
+      "unique_id": "Zay Flowers-WR-54",
       "nfc_adp": 59.25,
       "points_2025_proj": 360.87,
       "var": 20.6
@@ -546,6 +595,7 @@
       "name": "Rome Odunze",
       "adp": 67,
       "player_id": "11620",
+      "unique_id": "Rome Odunze-WR-65",
       "nfc_adp": 68.41,
       "points_2025_proj": 355.3,
       "var": 15.0
@@ -557,6 +607,7 @@
       "name": "Travis Hunter",
       "adp": 69.0,
       "player_id": "12530",
+      "unique_id": "Travis Hunter-WR-76",
       "nfc_adp": 68.2,
       "points_2025_proj": 384.01,
       "var": 43.7
@@ -568,6 +619,7 @@
       "name": "Justin Herbert",
       "adp": 70.0,
       "player_id": "6797",
+      "unique_id": "Justin Herbert-QB-96",
       "nfc_adp": 128.73,
       "points_2025_proj": 572.65,
       "var": 6.5
@@ -579,6 +631,7 @@
       "name": "Anthony Richardson",
       "adp": 70,
       "player_id": "9768",
+      "unique_id": "Anthony Richardson-QB-150",
       "nfc_adp": 235.32,
       "points_2025_proj": 527.08,
       "var": -39.1
@@ -590,6 +643,7 @@
       "name": "Caleb Williams",
       "adp": 71,
       "player_id": "11560",
+      "unique_id": "Caleb Williams-QB-92",
       "nfc_adp": 116.59,
       "points_2025_proj": 584.29,
       "var": 18.1
@@ -601,6 +655,7 @@
       "name": "Jordan Addison",
       "adp": 72,
       "player_id": "9756",
+      "unique_id": "Jordan Addison-WR-68",
       "nfc_adp": 82.32,
       "points_2025_proj": 368.22,
       "var": 27.9
@@ -612,6 +667,7 @@
       "name": "RJ Harvey",
       "adp": 73,
       "player_id": "12489",
+      "unique_id": "RJ Harvey-RB-69",
       "nfc_adp": 59.8,
       "points_2025_proj": 339.62,
       "var": 11.5
@@ -623,6 +679,7 @@
       "name": "Brock Purdy",
       "adp": 74,
       "player_id": "8183",
+      "unique_id": "Brock Purdy-QB-93",
       "nfc_adp": 112.66,
       "points_2025_proj": 608.2,
       "var": 42.0
@@ -634,6 +691,7 @@
       "name": "Kaleb Johnson",
       "adp": 76,
       "player_id": "12504",
+      "unique_id": "Kaleb Johnson-RB-71",
       "nfc_adp": 74.91,
       "points_2025_proj": 283.48,
       "var": -44.6
@@ -645,6 +703,7 @@
       "name": "D'Andre Swift",
       "adp": 80,
       "player_id": "6790",
+      "unique_id": "D'Andre Swift-RB-73",
       "nfc_adp": 60.55,
       "points_2025_proj": 320.62,
       "var": -7.5
@@ -656,6 +715,7 @@
       "name": "Justin Fields",
       "adp": 80.0,
       "player_id": "7591",
+      "unique_id": "Justin Fields-QB-99",
       "nfc_adp": 124.02,
       "points_2025_proj": 577.21,
       "var": 11.0
@@ -667,6 +727,7 @@
       "name": "Drake Maye",
       "adp": 80.0,
       "player_id": "11564",
+      "unique_id": "Drake Maye-QB-109",
       "nfc_adp": 123.48,
       "points_2025_proj": 591.15,
       "var": 25.0
@@ -678,6 +739,7 @@
       "name": "Diontae Johnson",
       "adp": 80,
       "player_id": "6126",
+      "unique_id": "Diontae Johnson-WR-177",
       "nfc_adp": 286.86,
       "points_2025_proj": 158.42,
       "var": -181.9
@@ -689,6 +751,7 @@
       "name": "Aaron Jones",
       "adp": 82,
       "player_id": "4199",
+      "unique_id": "Aaron Jones-RB-75",
       "nfc_adp": 77.52,
       "points_2025_proj": 327.63,
       "var": -0.5
@@ -700,6 +763,7 @@
       "name": "Travis Kelce",
       "adp": 82.0,
       "player_id": "1466",
+      "unique_id": "Travis Kelce-TE-87",
       "nfc_adp": 82.64,
       "points_2025_proj": 312.2,
       "var": 35.7
@@ -711,6 +775,7 @@
       "name": "Chris Olave",
       "adp": 84,
       "player_id": "8144",
+      "unique_id": "Chris Olave-WR-77",
       "nfc_adp": 75.16,
       "points_2025_proj": 336.44,
       "var": -3.9
@@ -722,6 +787,7 @@
       "name": "David Montgomery",
       "adp": 85.0,
       "player_id": "5892",
+      "unique_id": "David Montgomery-RB-62",
       "nfc_adp": 70.55,
       "points_2025_proj": 298.33,
       "var": -29.8
@@ -733,6 +799,7 @@
       "name": "Tony Pollard",
       "adp": 85,
       "player_id": "5967",
+      "unique_id": "Tony Pollard-RB-78",
       "nfc_adp": 70.7,
       "points_2025_proj": 325.78,
       "var": -2.3
@@ -744,6 +811,7 @@
       "name": "T.J. Hockenson",
       "adp": 86,
       "player_id": "5844",
+      "unique_id": "T.J. Hockenson-TE-80",
       "nfc_adp": 82.61,
       "points_2025_proj": 320.77,
       "var": 44.3
@@ -755,6 +823,7 @@
       "name": "Khalil Shakir",
       "adp": 87,
       "player_id": "8134",
+      "unique_id": "Khalil Shakir-WR-81",
       "nfc_adp": 91.36,
       "points_2025_proj": 327.54,
       "var": -12.8
@@ -766,6 +835,7 @@
       "name": "Isiah Pacheco",
       "adp": 89,
       "player_id": "8205",
+      "unique_id": "Isiah Pacheco-RB-82",
       "nfc_adp": 68.93,
       "points_2025_proj": 316.95,
       "var": -11.2
@@ -777,6 +847,7 @@
       "name": "Joe Mixon",
       "adp": 90.0,
       "player_id": "4018",
+      "unique_id": "Joe Mixon-RB-55",
       "nfc_adp": 100.43,
       "points_2025_proj": 383.22,
       "var": 55.1
@@ -788,6 +859,7 @@
       "name": "Chris Godwin",
       "adp": 90.0,
       "player_id": "4037",
+      "unique_id": "Chris Godwin-WR-61",
       "nfc_adp": 103.45,
       "points_2025_proj": 357.59,
       "var": 17.3
@@ -799,6 +871,7 @@
       "name": "Jakobi Meyers",
       "adp": 90.0,
       "player_id": "5947",
+      "unique_id": "Jakobi Meyers-WR-74",
       "nfc_adp": 72.07,
       "points_2025_proj": 351.11,
       "var": 10.8
@@ -810,6 +883,7 @@
       "name": "Deebo Samuel",
       "adp": 90,
       "player_id": "5872",
+      "unique_id": "Deebo Samuel-WR-84",
       "nfc_adp": 76.43,
       "points_2025_proj": 321.19,
       "var": -19.1
@@ -821,6 +895,7 @@
       "name": "Cooper Kupp",
       "adp": 91,
       "player_id": "4039",
+      "unique_id": "Cooper Kupp-WR-85",
       "nfc_adp": 91.64,
       "points_2025_proj": 311.89,
       "var": -28.4
@@ -832,6 +907,7 @@
       "name": "Nick Chubb",
       "adp": 92.5,
       "player_id": "4988",
+      "unique_id": "Nick Chubb-RB-159",
       "nfc_adp": 155.66,
       "points_2025_proj": 0.0,
       "var": -328.1
@@ -843,6 +919,7 @@
       "name": "Ricky Pearsall",
       "adp": 94,
       "player_id": "11638",
+      "unique_id": "Ricky Pearsall-WR-88",
       "nfc_adp": 63.48,
       "points_2025_proj": 325.27,
       "var": -15.0
@@ -854,6 +931,7 @@
       "name": "Mark Andrews",
       "adp": 95,
       "player_id": "5012",
+      "unique_id": "Mark Andrews-TE-89",
       "nfc_adp": 95.77,
       "points_2025_proj": 291.29,
       "var": 14.8
@@ -865,6 +943,7 @@
       "name": "Dallas Goedert",
       "adp": 95,
       "player_id": "5012",
+      "unique_id": "Dallas Goedert-TE-216",
       "nfc_adp": 157.8,
       "points_2025_proj": 277.35,
       "var": 0.9
@@ -876,6 +955,7 @@
       "name": "Cole Kmet",
       "adp": 95,
       "player_id": "6659",
+      "unique_id": "Cole Kmet-TE-217",
       "nfc_adp": 273.93,
       "points_2025_proj": 157.42,
       "var": -119.1
@@ -887,6 +967,7 @@
       "name": "Stefon Diggs",
       "adp": 96,
       "player_id": "2449",
+      "unique_id": "Stefon Diggs-WR-90",
       "nfc_adp": 76.07,
       "points_2025_proj": 286.4,
       "var": -53.9
@@ -898,6 +979,7 @@
       "name": "Tyrone Tracy",
       "adp": 97,
       "player_id": "11655",
+      "unique_id": "Tyrone Tracy-RB-91",
       "nfc_adp": 83.3,
       "points_2025_proj": 305.41,
       "var": -22.7
@@ -909,6 +991,7 @@
       "name": "Josh Downs",
       "adp": 99,
       "player_id": "9500",
+      "unique_id": "Josh Downs-WR-95",
       "nfc_adp": 101.61,
       "points_2025_proj": 293.53,
       "var": -46.8
@@ -920,6 +1003,7 @@
       "name": "Jaylen Warren",
       "adp": 100,
       "player_id": "8228",
+      "unique_id": "Jaylen Warren-RB-97",
       "nfc_adp": 86.64,
       "points_2025_proj": 328.1,
       "var": 0.0
@@ -931,6 +1015,7 @@
       "name": "Travis Etienne",
       "adp": 101,
       "player_id": "7543",
+      "unique_id": "Travis Etienne-RB-100",
       "nfc_adp": 91.27,
       "points_2025_proj": 302.61,
       "var": -25.5
@@ -942,6 +1027,7 @@
       "name": "Najee Harris",
       "adp": 102,
       "player_id": "7528",
+      "unique_id": "Najee Harris-RB-101",
       "nfc_adp": 142.32,
       "points_2025_proj": 260.33,
       "var": -67.8
@@ -953,6 +1039,7 @@
       "name": "Jonnu Smith",
       "adp": 103,
       "player_id": "4144",
+      "unique_id": "Jonnu Smith-TE-102",
       "nfc_adp": 170.23,
       "points_2025_proj": 276.47,
       "var": 0.0
@@ -964,6 +1051,7 @@
       "name": "Evan Engram",
       "adp": 104,
       "player_id": "4066",
+      "unique_id": "Evan Engram-TE-103",
       "nfc_adp": 94.89,
       "points_2025_proj": 273.52,
       "var": -3.0
@@ -975,6 +1063,7 @@
       "name": "Geno Smith",
       "adp": 105,
       "player_id": "1339",
+      "unique_id": "Geno Smith-QB-152",
       "nfc_adp": 218.43,
       "points_2025_proj": 540.82,
       "var": -25.3
@@ -986,6 +1075,7 @@
       "name": "Tyler Lockett",
       "adp": 105,
       "player_id": "3202",
+      "unique_id": "Tyler Lockett-WR-179",
       "nfc_adp": 239.77,
       "points_2025_proj": 178.78,
       "var": -161.5
@@ -997,6 +1087,7 @@
       "name": "Hunter Henry",
       "adp": 105,
       "player_id": "3976",
+      "unique_id": "Hunter Henry-TE-218",
       "nfc_adp": 185.66,
       "points_2025_proj": 252.4,
       "var": -24.1
@@ -1008,6 +1099,7 @@
       "name": "Darnell Mooney",
       "adp": 106,
       "player_id": "7090",
+      "unique_id": "Darnell Mooney-WR-105",
       "nfc_adp": 130.25,
       "points_2025_proj": 308.76,
       "var": -31.5
@@ -1019,6 +1111,7 @@
       "name": "Michael Pittman",
       "adp": 107,
       "player_id": "6819",
+      "unique_id": "Michael Pittman-WR-106",
       "nfc_adp": 100.7,
       "points_2025_proj": 291.13,
       "var": -49.2
@@ -1030,6 +1123,7 @@
       "name": "Cam Skattebo",
       "adp": 108,
       "player_id": "12481",
+      "unique_id": "Cam Skattebo-RB-107",
       "nfc_adp": 128.23,
       "points_2025_proj": 201.31,
       "var": -126.8
@@ -1041,6 +1135,7 @@
       "name": "Javonte Williams",
       "adp": 109,
       "player_id": "7588",
+      "unique_id": "Javonte Williams-RB-108",
       "nfc_adp": 111.27,
       "points_2025_proj": 237.9,
       "var": -90.2
@@ -1052,6 +1147,7 @@
       "name": "Rashee Rice",
       "adp": 110,
       "player_id": "10229",
+      "unique_id": "Rashee Rice-WR-33",
       "nfc_adp": 62.39,
       "points_2025_proj": 393.85,
       "var": 53.6
@@ -1063,6 +1159,7 @@
       "name": "Jauan Jennings",
       "adp": 110.0,
       "player_id": "7049",
+      "unique_id": "Jauan Jennings-WR-72",
       "nfc_adp": 88.25,
       "points_2025_proj": 348.06,
       "var": 7.8
@@ -1074,6 +1171,7 @@
       "name": "Devin Singletary",
       "adp": 110,
       "player_id": "6130",
+      "unique_id": "Devin Singletary-RB-160",
       "nfc_adp": 289.73,
       "points_2025_proj": 98.3,
       "var": -229.8
@@ -1085,6 +1183,7 @@
       "name": "DeMario Douglas",
       "adp": 110,
       "player_id": "10229",
+      "unique_id": "DeMario Douglas-WR-180",
       "nfc_adp": 150.8,
       "points_2025_proj": 233.0,
       "var": -107.3
@@ -1096,6 +1195,7 @@
       "name": "Cade Otton",
       "adp": 110,
       "player_id": "8124",
+      "unique_id": "Cade Otton-TE-219",
       "nfc_adp": 230.57,
       "points_2025_proj": 200.54,
       "var": -75.9
@@ -1107,6 +1207,7 @@
       "name": "Jordan Love",
       "adp": 111,
       "player_id": "6804",
+      "unique_id": "Jordan Love-QB-110",
       "nfc_adp": 143.0,
       "points_2025_proj": 566.17,
       "var": 0.0
@@ -1118,6 +1219,7 @@
       "name": "David Njoku",
       "adp": 112,
       "player_id": "4033",
+      "unique_id": "David Njoku-TE-111",
       "nfc_adp": 104.98,
       "points_2025_proj": 284.1,
       "var": 7.6
@@ -1129,6 +1231,7 @@
       "name": "J.K. Dobbins",
       "adp": 113,
       "player_id": "6806",
+      "unique_id": "J.K. Dobbins-RB-112",
       "nfc_adp": 101.23,
       "points_2025_proj": 313.05,
       "var": -15.1
@@ -1140,6 +1243,7 @@
       "name": "Matthew Golden",
       "adp": 114,
       "player_id": "12501",
+      "unique_id": "Matthew Golden-WR-113",
       "nfc_adp": 79.89,
       "points_2025_proj": 302.7,
       "var": -37.6
@@ -1151,6 +1255,7 @@
       "name": "Zach Charbonnet",
       "adp": 115,
       "player_id": "9753",
+      "unique_id": "Zach Charbonnet-RB-114",
       "nfc_adp": 97.45,
       "points_2025_proj": 241.0,
       "var": -87.1
@@ -1162,6 +1267,7 @@
       "name": "Taysom Hill",
       "adp": 115,
       "player_id": "4381",
+      "unique_id": "Taysom Hill-TE-220",
       "nfc_adp": 287.57,
       "points_2025_proj": 54.87,
       "var": -221.6
@@ -1173,6 +1279,7 @@
       "name": "J.J. McCarthy",
       "adp": 116,
       "player_id": "11565",
+      "unique_id": "J.J. McCarthy-QB-115",
       "nfc_adp": 142.45,
       "points_2025_proj": 595.74,
       "var": 29.6
@@ -1184,6 +1291,7 @@
       "name": "C.J. Stroud",
       "adp": 117,
       "player_id": "9758",
+      "unique_id": "C.J. Stroud-QB-116",
       "nfc_adp": 138.27,
       "points_2025_proj": 580.8,
       "var": 14.6
@@ -1195,6 +1303,7 @@
       "name": "Tyler Warren",
       "adp": 118,
       "player_id": "12518",
+      "unique_id": "Tyler Warren-TE-117",
       "nfc_adp": 96.55,
       "points_2025_proj": 273.4,
       "var": -3.1
@@ -1206,6 +1315,7 @@
       "name": "Keon Coleman",
       "adp": 119,
       "player_id": "11637",
+      "unique_id": "Keon Coleman-WR-118",
       "nfc_adp": 103.86,
       "points_2025_proj": 260.47,
       "var": -79.8
@@ -1217,6 +1327,7 @@
       "name": "Lamar Jackson",
       "adp": 120,
       "player_id": "4881",
+      "unique_id": "Lamar Jackson-QB-20",
       "nfc_adp": 25.89,
       "points_2025_proj": 687.56,
       "var": 121.4
@@ -1228,6 +1339,7 @@
       "name": "Breece Hall",
       "adp": 120,
       "player_id": "8155",
+      "unique_id": "Breece Hall-RB-34",
       "nfc_adp": 41.57,
       "points_2025_proj": 395.78,
       "var": 67.7
@@ -1239,6 +1351,7 @@
       "name": "Rhamondre Stevenson",
       "adp": 120,
       "player_id": "7611",
+      "unique_id": "Rhamondre Stevenson-RB-119",
       "nfc_adp": 127.91,
       "points_2025_proj": 238.28,
       "var": -89.8
@@ -1250,6 +1363,7 @@
       "name": "Sam Darnold",
       "adp": 120,
       "player_id": "4881",
+      "unique_id": "Sam Darnold-QB-151",
       "nfc_adp": 217.27,
       "points_2025_proj": 538.82,
       "var": -27.3
@@ -1261,6 +1375,7 @@
       "name": "Kirk Cousins",
       "adp": 120,
       "player_id": "1166",
+      "unique_id": "Kirk Cousins-QB-153",
       "nfc_adp": 290.43,
       "points_2025_proj": 89.12,
       "var": -477.0
@@ -1272,6 +1387,7 @@
       "name": "Jerome Ford",
       "adp": 120,
       "player_id": "8155",
+      "unique_id": "Jerome Ford-RB-158",
       "nfc_adp": 168.23,
       "points_2025_proj": 164.51,
       "var": -163.6
@@ -1283,6 +1399,7 @@
       "name": "Isaiah Likely",
       "adp": 120,
       "player_id": "8119",
+      "unique_id": "Isaiah Likely-TE-221",
       "nfc_adp": 195.66,
       "points_2025_proj": 200.59,
       "var": -75.9
@@ -1294,6 +1411,7 @@
       "name": "Tucker Kraft",
       "adp": 121,
       "player_id": "9484",
+      "unique_id": "Tucker Kraft-TE-120",
       "nfc_adp": 117.82,
       "points_2025_proj": 246.58,
       "var": -29.9
@@ -1305,6 +1423,7 @@
       "name": "Trevor Lawrence",
       "adp": 122,
       "player_id": "7523",
+      "unique_id": "Trevor Lawrence-QB-121",
       "nfc_adp": 150.32,
       "points_2025_proj": 596.69,
       "var": 30.5
@@ -1316,6 +1435,7 @@
       "name": "Jordan Mason",
       "adp": 123,
       "player_id": "8408",
+      "unique_id": "Jordan Mason-RB-122",
       "nfc_adp": 90.43,
       "points_2025_proj": 232.13,
       "var": -96.0
@@ -1327,6 +1447,7 @@
       "name": "Christian Kirk",
       "adp": 124,
       "player_id": "4950",
+      "unique_id": "Christian Kirk-WR-123",
       "nfc_adp": 113.18,
       "points_2025_proj": 280.0,
       "var": -60.3
@@ -1338,6 +1459,7 @@
       "name": "Marvin Mims",
       "adp": 125,
       "player_id": "9494",
+      "unique_id": "Marvin Mims-WR-124",
       "nfc_adp": 120.23,
       "points_2025_proj": 295.14,
       "var": -45.2
@@ -1349,6 +1471,7 @@
       "name": "Aaron Rodgers",
       "adp": 125,
       "player_id": "421",
+      "unique_id": "Aaron Rodgers-QB-154",
       "nfc_adp": 243.68,
       "points_2025_proj": 522.71,
       "var": -43.5
@@ -1360,6 +1483,7 @@
       "name": "Alexander Mattison",
       "adp": 125,
       "player_id": "6136",
+      "unique_id": "Alexander Mattison-RB-164",
       "nfc_adp": 282.57,
       "points_2025_proj": 60.06,
       "var": -268.0
@@ -1371,6 +1495,7 @@
       "name": "Gabe Davis",
       "adp": 125,
       "player_id": "6644",
+      "unique_id": "Gabe Davis-WR-183",
       "nfc_adp": 282.59,
       "points_2025_proj": 0.0,
       "var": -340.3
@@ -1382,6 +1507,7 @@
       "name": "Noah Fant",
       "adp": 125,
       "player_id": "6039",
+      "unique_id": "Noah Fant-TE-223",
       "nfc_adp": 290.2,
       "points_2025_proj": 156.46,
       "var": -120.0
@@ -1393,6 +1519,7 @@
       "name": "Dalton Kincaid",
       "adp": 126,
       "player_id": "10236",
+      "unique_id": "Dalton Kincaid-TE-125",
       "nfc_adp": 139.57,
       "points_2025_proj": 252.97,
       "var": -23.5
@@ -1404,6 +1531,7 @@
       "name": "Matthew Stafford",
       "adp": 127,
       "player_id": "421",
+      "unique_id": "Matthew Stafford-QB-126",
       "nfc_adp": 229.41,
       "points_2025_proj": 528.84,
       "var": -37.3
@@ -1415,6 +1543,7 @@
       "name": "Brandon Aiyuk",
       "adp": 128,
       "player_id": "6803",
+      "unique_id": "Brandon Aiyuk-WR-127",
       "nfc_adp": 146.23,
       "points_2025_proj": 312.01,
       "var": -28.3
@@ -1426,6 +1555,7 @@
       "name": "Michael Penix",
       "adp": 129,
       "player_id": "11559",
+      "unique_id": "Michael Penix-QB-128",
       "nfc_adp": 171.61,
       "points_2025_proj": 531.4,
       "var": -34.8
@@ -1437,6 +1567,7 @@
       "name": "Quinshon Judkins",
       "adp": 130.0,
       "player_id": "12512",
+      "unique_id": "Quinshon Judkins-RB-70",
       "nfc_adp": 113.91,
       "points_2025_proj": 323.13,
       "var": -5.0
@@ -1448,6 +1579,7 @@
       "name": "Rashid Shaheed",
       "adp": 130,
       "player_id": "8676",
+      "unique_id": "Rashid Shaheed-WR-129",
       "nfc_adp": 122.73,
       "points_2025_proj": 305.68,
       "var": -34.6
@@ -1459,6 +1591,7 @@
       "name": "Derek Carr",
       "adp": 130,
       "player_id": "2306",
+      "unique_id": "Derek Carr-QB-155",
       "points_2025_proj": 0.0,
       "var": -566.2
     },
@@ -1469,6 +1602,7 @@
       "name": "Romeo Doubs",
       "adp": 130,
       "player_id": "8121",
+      "unique_id": "Romeo Doubs-WR-184",
       "nfc_adp": 175.59,
       "points_2025_proj": 199.39,
       "var": -140.9
@@ -1480,6 +1614,7 @@
       "name": "Juwan Johnson",
       "adp": 130,
       "player_id": "6385",
+      "unique_id": "Juwan Johnson-TE-224",
       "nfc_adp": 268.39,
       "points_2025_proj": 161.24,
       "var": -115.2
@@ -1491,6 +1626,7 @@
       "name": "Luther Burden",
       "adp": 131,
       "player_id": "12519",
+      "unique_id": "Luther Burden-WR-130",
       "nfc_adp": 133.73,
       "points_2025_proj": 266.05,
       "var": -74.2
@@ -1502,6 +1638,7 @@
       "name": "Pat Freiermuth",
       "adp": 132,
       "player_id": "7600",
+      "unique_id": "Pat Freiermuth-TE-131",
       "nfc_adp": 245.57,
       "points_2025_proj": 259.17,
       "var": -17.3
@@ -1513,6 +1650,7 @@
       "name": "Jayden Higgins",
       "adp": 133,
       "player_id": "12484",
+      "unique_id": "Jayden Higgins-WR-132",
       "nfc_adp": 119.66,
       "points_2025_proj": 273.21,
       "var": -67.1
@@ -1524,6 +1662,7 @@
       "name": "Tyjae Spears",
       "adp": 134,
       "player_id": "9508",
+      "unique_id": "Tyjae Spears-RB-133",
       "nfc_adp": 148.36,
       "points_2025_proj": 224.55,
       "var": -103.6
@@ -1535,6 +1674,7 @@
       "name": "Rashod Bateman",
       "adp": 135,
       "player_id": "7571",
+      "unique_id": "Rashod Bateman-WR-134",
       "nfc_adp": 138.68,
       "points_2025_proj": 256.17,
       "var": -84.1
@@ -1546,6 +1686,7 @@
       "name": "Zach Ertz",
       "adp": 135,
       "player_id": "1837",
+      "unique_id": "Zach Ertz-TE-225",
       "nfc_adp": 182.93,
       "points_2025_proj": 245.78,
       "var": -30.7
@@ -1557,6 +1698,7 @@
       "name": "Wan'Dale Robinson",
       "adp": 136,
       "player_id": "8126",
+      "unique_id": "Wan'Dale Robinson-WR-135",
       "nfc_adp": 154.32,
       "points_2025_proj": 249.24,
       "var": -91.1
@@ -1568,6 +1710,7 @@
       "name": "Rachaad White",
       "adp": 137,
       "player_id": "8136",
+      "unique_id": "Rachaad White-RB-136",
       "nfc_adp": 162.07,
       "points_2025_proj": 178.55,
       "var": -149.6
@@ -1579,6 +1722,7 @@
       "name": "Skyy Moore",
       "adp": 137,
       "player_id": "8136",
+      "unique_id": "Skyy Moore-WR-188",
       "points_2025_proj": 0.0,
       "var": -340.3
     },
@@ -1589,6 +1733,7 @@
       "name": "Tre Harris",
       "adp": 138,
       "player_id": "12509",
+      "unique_id": "Tre Harris-WR-137",
       "nfc_adp": 152.86,
       "points_2025_proj": 257.75,
       "var": -82.5
@@ -1600,6 +1745,7 @@
       "name": "Jake Ferguson",
       "adp": 139,
       "player_id": "8110",
+      "unique_id": "Jake Ferguson-TE-138",
       "nfc_adp": 135.5,
       "points_2025_proj": 267.1,
       "var": -9.4
@@ -1611,6 +1757,7 @@
       "name": "Adam Thielen",
       "adp": 140,
       "player_id": "1689",
+      "unique_id": "Adam Thielen-WR-139",
       "nfc_adp": 168.68,
       "points_2025_proj": 262.85,
       "var": -77.4
@@ -1622,6 +1769,7 @@
       "name": "Russell Wilson",
       "adp": 140,
       "player_id": "1426",
+      "unique_id": "Russell Wilson-QB-156",
       "nfc_adp": 256.02,
       "points_2025_proj": 361.72,
       "var": -204.4
@@ -1633,6 +1781,7 @@
       "name": "Justice Hill",
       "adp": 140,
       "player_id": "6151",
+      "unique_id": "Justice Hill-RB-167",
       "nfc_adp": 205.95,
       "points_2025_proj": 169.59,
       "var": -158.5
@@ -1644,6 +1793,7 @@
       "name": "Will Dissly",
       "adp": 140,
       "player_id": "5121",
+      "unique_id": "Will Dissly-TE-226",
       "nfc_adp": 284.91,
       "points_2025_proj": 137.71,
       "var": -138.8
@@ -1655,6 +1805,7 @@
       "name": "Tua Tagovailoa",
       "adp": 141,
       "player_id": "6768",
+      "unique_id": "Tua Tagovailoa-QB-140",
       "nfc_adp": 199.75,
       "points_2025_proj": 542.81,
       "var": -23.4
@@ -1666,6 +1817,7 @@
       "name": "Tank Bigsby",
       "adp": 142,
       "player_id": "9225",
+      "unique_id": "Tank Bigsby-RB-141",
       "nfc_adp": 126.86,
       "points_2025_proj": 132.67,
       "var": -195.4
@@ -1677,6 +1829,7 @@
       "name": "Roschon Johnson",
       "adp": 142,
       "player_id": "9225",
+      "unique_id": "Roschon Johnson-RB-169",
       "nfc_adp": 201.64,
       "points_2025_proj": 145.52,
       "var": -182.6
@@ -1688,6 +1841,7 @@
       "name": "Isaac Guerendo",
       "adp": 143,
       "player_id": "11651",
+      "unique_id": "Isaac Guerendo-RB-142",
       "nfc_adp": 150.32,
       "points_2025_proj": 164.16,
       "var": -163.9
@@ -1699,6 +1853,7 @@
       "name": "Bhayshul Tuten",
       "adp": 144,
       "player_id": "12490",
+      "unique_id": "Bhayshul Tuten-RB-143",
       "nfc_adp": 143.23,
       "points_2025_proj": 184.26,
       "var": -143.8
@@ -1710,6 +1865,7 @@
       "name": "Quentin Johnston",
       "adp": 145,
       "player_id": "9754",
+      "unique_id": "Quentin Johnston-WR-144",
       "nfc_adp": 201.68,
       "points_2025_proj": 225.77,
       "var": -114.5
@@ -1721,6 +1877,7 @@
       "name": "Will Levis",
       "adp": 145,
       "player_id": "9786",
+      "unique_id": "Will Levis-QB-157",
       "points_2025_proj": 52.8,
       "var": -513.4
     },
@@ -1731,6 +1888,7 @@
       "name": "Dawson Knox",
       "adp": 145,
       "player_id": "6130",
+      "unique_id": "Dawson Knox-TE-227",
       "nfc_adp": 289.52,
       "points_2025_proj": 102.89,
       "var": -173.6
@@ -1742,6 +1900,7 @@
       "name": "Trey Benson",
       "adp": 146,
       "player_id": "11589",
+      "unique_id": "Trey Benson-RB-145",
       "nfc_adp": 127.84,
       "points_2025_proj": 173.44,
       "var": -154.7
@@ -1753,6 +1912,7 @@
       "name": "Jaydon Blue",
       "adp": 147,
       "player_id": "12457",
+      "unique_id": "Jaydon Blue-RB-146",
       "nfc_adp": 138.59,
       "points_2025_proj": 197.45,
       "var": -130.7
@@ -1764,6 +1924,7 @@
       "name": "Kyle Pitts",
       "adp": 148,
       "player_id": "7553",
+      "unique_id": "Kyle Pitts-TE-147",
       "nfc_adp": 138.75,
       "points_2025_proj": 225.35,
       "var": -51.1
@@ -1775,6 +1936,7 @@
       "name": "Jalen McMillan",
       "adp": 149,
       "player_id": "11618",
+      "unique_id": "Jalen McMillan-WR-148",
       "nfc_adp": 196.25,
       "points_2025_proj": 234.67,
       "var": -105.6
@@ -1786,6 +1948,7 @@
       "name": "Ray Davis",
       "adp": 150,
       "player_id": "11575",
+      "unique_id": "Ray Davis-RB-149",
       "nfc_adp": 147.32,
       "points_2025_proj": 192.84,
       "var": -135.3
@@ -1797,6 +1960,7 @@
       "name": "Trey Sermon",
       "adp": 150,
       "player_id": "7596",
+      "unique_id": "Trey Sermon-RB-162",
       "points_2025_proj": 48.72,
       "var": -279.4
     },
@@ -1807,6 +1971,7 @@
       "name": "Noah Gray",
       "adp": 150,
       "player_id": "7612",
+      "unique_id": "Noah Gray-TE-228",
       "nfc_adp": 269.18,
       "points_2025_proj": 157.95,
       "var": -118.5
@@ -1818,6 +1983,7 @@
       "name": "Tyler Boyd",
       "adp": 155,
       "player_id": "4055",
+      "unique_id": "Tyler Boyd-WR-189",
       "points_2025_proj": 0.0,
       "var": -340.3
     },
@@ -1828,6 +1994,7 @@
       "name": "Jacory Croskey-Merritt",
       "adp": 155,
       "player_id": "11645",
+      "unique_id": "Jacory Croskey-Merritt-RB-200",
       "nfc_adp": 127.45,
       "points_2025_proj": 0.0,
       "var": -328.1
@@ -1839,6 +2006,7 @@
       "name": "Blake Corum",
       "adp": 160,
       "player_id": "10842",
+      "unique_id": "Blake Corum-RB-171",
       "nfc_adp": 184.68,
       "points_2025_proj": 136.71,
       "var": -191.4
@@ -1850,6 +2018,7 @@
       "name": "Allen Lazard",
       "adp": 160,
       "player_id": "4454",
+      "unique_id": "Allen Lazard-WR-190",
       "nfc_adp": 287.16,
       "points_2025_proj": 160.93,
       "var": -179.4
@@ -1861,6 +2030,7 @@
       "name": "Dylan Sampson",
       "adp": 160,
       "player_id": "11646",
+      "unique_id": "Dylan Sampson-RB-201",
       "nfc_adp": 145.23,
       "points_2025_proj": 138.44,
       "var": -189.7
@@ -1872,6 +2042,7 @@
       "name": "MarShawn Lloyd",
       "adp": 165,
       "player_id": "11621",
+      "unique_id": "MarShawn Lloyd-RB-172",
       "nfc_adp": 245.18,
       "points_2025_proj": 55.24,
       "var": -272.9
@@ -1883,6 +2054,7 @@
       "name": "DeMarcus Robinson",
       "adp": 165,
       "player_id": "4131",
+      "unique_id": "DeMarcus Robinson-WR-191",
       "nfc_adp": 284.82,
       "points_2025_proj": 131.51,
       "var": -208.8
@@ -1894,6 +2066,7 @@
       "name": "Keaton Mitchell",
       "adp": 165,
       "player_id": "10230",
+      "unique_id": "Keaton Mitchell-RB-202",
       "nfc_adp": 200.7,
       "points_2025_proj": 52.71,
       "var": -275.4
@@ -1905,6 +2078,7 @@
       "name": "Audric Estime",
       "adp": 170,
       "player_id": "11636",
+      "unique_id": "Audric Estime-RB-173",
       "nfc_adp": 290.5,
       "points_2025_proj": 104.94,
       "var": -223.2
@@ -1916,6 +2090,7 @@
       "name": "Tutu Atwell",
       "adp": 170,
       "player_id": "7543",
+      "unique_id": "Tutu Atwell-WR-192",
       "nfc_adp": 289.52,
       "points_2025_proj": 174.02,
       "var": -166.3
@@ -1927,6 +2102,7 @@
       "name": "Jordan Whittington",
       "adp": 170,
       "player_id": "11647",
+      "unique_id": "Jordan Whittington-RB-203",
       "nfc_adp": 285.66,
       "points_2025_proj": 198.9,
       "var": -129.2
@@ -1938,6 +2114,7 @@
       "name": "Dylan Laube",
       "adp": 175,
       "player_id": "11688",
+      "unique_id": "Dylan Laube-RB-174",
       "points_2025_proj": 14.4,
       "var": -313.7
     },
@@ -1948,6 +2125,7 @@
       "name": "Kadarius Toney",
       "adp": 175,
       "player_id": "7523",
+      "unique_id": "Kadarius Toney-WR-193",
       "points_2025_proj": 0.0,
       "var": -340.3
     },
@@ -1958,6 +2136,7 @@
       "name": "Braelon Allen",
       "adp": 180,
       "player_id": "11573",
+      "unique_id": "Braelon Allen-RB-175",
       "nfc_adp": 140.41,
       "points_2025_proj": 111.8,
       "var": -216.3
@@ -1969,6 +2148,7 @@
       "name": "Alec Pierce",
       "adp": 180,
       "player_id": "8111",
+      "unique_id": "Alec Pierce-WR-194",
       "nfc_adp": 240.41,
       "points_2025_proj": 218.23,
       "var": -122.1
@@ -1980,6 +2160,7 @@
       "name": "Jaleel McLaughlin",
       "adp": 180,
       "player_id": "10231",
+      "unique_id": "Jaleel McLaughlin-RB-205",
       "nfc_adp": 283.25,
       "points_2025_proj": 161.15,
       "var": -167.0
@@ -1991,6 +2172,7 @@
       "name": "Brock Wright",
       "adp": 180,
       "player_id": "7720",
+      "unique_id": "Brock Wright-TE-222",
       "nfc_adp": 281.86,
       "points_2025_proj": 52.58,
       "var": -223.9
@@ -2002,6 +2184,7 @@
       "name": "Theo Johnson",
       "adp": 185,
       "player_id": "11622",
+      "unique_id": "Theo Johnson-TE-230",
       "nfc_adp": 259.48,
       "points_2025_proj": 173.98,
       "var": -102.5
@@ -2013,6 +2196,7 @@
       "name": "Chris Rodriguez",
       "adp": 190,
       "player_id": "10232",
+      "unique_id": "Chris Rodriguez-RB-207",
       "nfc_adp": 251.0,
       "points_2025_proj": 84.73,
       "var": -243.4
@@ -2024,6 +2208,7 @@
       "name": "Ben Sinnott",
       "adp": 190,
       "player_id": "11623",
+      "unique_id": "Ben Sinnott-TE-231",
       "nfc_adp": 285.0,
       "points_2025_proj": 103.48,
       "var": -173.0
@@ -2035,6 +2220,7 @@
       "name": "Kendre Miller",
       "adp": 195,
       "player_id": "9774",
+      "unique_id": "Kendre Miller-RB-208",
       "nfc_adp": 231.66,
       "points_2025_proj": 93.07,
       "var": -235.0
@@ -2046,6 +2232,7 @@
       "name": "Parker Washington",
       "adp": 200,
       "player_id": "10228",
+      "unique_id": "Parker Washington-WR-199",
       "nfc_adp": 287.43,
       "points_2025_proj": 56.39,
       "var": -283.9
@@ -2057,6 +2244,7 @@
       "name": "Ezekiel Elliott",
       "adp": 200,
       "player_id": "3164",
+      "unique_id": "Ezekiel Elliott-RB-209",
       "points_2025_proj": 0.0,
       "var": -328.1
     },
@@ -2067,6 +2255,7 @@
       "name": "Erick All",
       "adp": 200,
       "player_id": "11625",
+      "unique_id": "Erick All-TE-233",
       "points_2025_proj": 0.0,
       "var": -276.5
     },
@@ -2077,6 +2266,7 @@
       "name": "Latavius Murray",
       "adp": 205,
       "player_id": "1479",
+      "unique_id": "Latavius Murray-RB-210",
       "points_2025_proj": 0.0,
       "var": -328.1
     },
@@ -2087,6 +2277,7 @@
       "name": "Brenden Bates",
       "adp": 205,
       "player_id": "10235",
+      "unique_id": "Brenden Bates-TE-234",
       "points_2025_proj": 0.0,
       "var": -276.5
     },
@@ -2097,6 +2288,7 @@
       "name": "Clyde Edwards-Helaire",
       "adp": 210,
       "player_id": "6886",
+      "unique_id": "Clyde Edwards-Helaire-RB-211",
       "points_2025_proj": 17.1,
       "var": -311.0
     },
@@ -2107,6 +2299,7 @@
       "name": "Michael Carter",
       "adp": 215,
       "player_id": "7610",
+      "unique_id": "Michael Carter-RB-212",
       "points_2025_proj": 53.76,
       "var": -274.3
     },
@@ -2117,6 +2310,7 @@
       "name": "Hassan Haskins",
       "adp": 220,
       "player_id": "8163",
+      "unique_id": "Hassan Haskins-RB-213",
       "points_2025_proj": 12.74,
       "var": -315.4
     },
@@ -2127,6 +2321,7 @@
       "name": "Kenny McIntosh",
       "adp": 225,
       "player_id": "10233",
+      "unique_id": "Kenny McIntosh-RB-214",
       "points_2025_proj": 53.84,
       "var": -274.3
     },
@@ -2137,6 +2332,7 @@
       "name": "Israel Abanikanda",
       "adp": 230,
       "player_id": "10234",
+      "unique_id": "Israel Abanikanda-RB-215",
       "points_2025_proj": 0.0,
       "var": -328.1
     },
@@ -2147,6 +2343,7 @@
       "name": "Christian McCaffrey",
       "adp": 2000,
       "player_id": "4034",
+      "unique_id": "Christian McCaffrey-RB-12",
       "nfc_adp": 8.27,
       "points_2025_proj": 483.96,
       "var": 155.9
@@ -2158,6 +2355,7 @@
       "name": "Drake London",
       "adp": 2000,
       "player_id": "8112",
+      "unique_id": "Drake London-WR-15",
       "nfc_adp": 14.48,
       "points_2025_proj": 452.05,
       "var": 111.8
@@ -2169,6 +2367,7 @@
       "name": "Kyren Williams",
       "adp": 2000,
       "player_id": "8150",
+      "unique_id": "Kyren Williams-RB-27",
       "nfc_adp": 28.11,
       "points_2025_proj": 390.34,
       "var": 62.2
@@ -2180,6 +2379,7 @@
       "name": "Garrett Wilson",
       "adp": 2000,
       "player_id": "8146",
+      "unique_id": "Garrett Wilson-WR-28",
       "nfc_adp": 30.45,
       "points_2025_proj": 408.62,
       "var": 68.3
@@ -2191,6 +2391,7 @@
       "name": "Jaxon Smith-Njigba",
       "adp": 2000,
       "player_id": "9488",
+      "unique_id": "Jaxon Smith-Njigba-WR-30",
       "nfc_adp": 27.91,
       "points_2025_proj": 408.73,
       "var": 68.4
@@ -2202,6 +2403,7 @@
       "name": "Tyreek Hill",
       "adp": 2000,
       "player_id": "3321",
+      "unique_id": "Tyreek Hill-WR-36",
       "nfc_adp": 34.48,
       "points_2025_proj": 434.07,
       "var": 93.8
@@ -2213,6 +2415,7 @@
       "name": "James Cook",
       "adp": 2000,
       "player_id": "8138",
+      "unique_id": "James Cook-RB-40",
       "nfc_adp": 35.39,
       "points_2025_proj": 392.31,
       "var": 64.2
@@ -2224,6 +2427,7 @@
       "name": "Xavier Worthy",
       "adp": 2000,
       "player_id": "11624",
+      "unique_id": "Xavier Worthy-WR-43",
       "nfc_adp": 42.66,
       "points_2025_proj": 373.12,
       "var": 32.8
@@ -2235,6 +2439,7 @@
       "name": "Courtland Sutton",
       "adp": 2000,
       "player_id": "5045",
+      "unique_id": "Courtland Sutton-WR-45",
       "nfc_adp": 47.39,
       "points_2025_proj": 373.28,
       "var": 33.0
@@ -2246,6 +2451,7 @@
       "name": "Patrick Mahomes",
       "adp": 2000,
       "player_id": "4046",
+      "unique_id": "Patrick Mahomes-QB-47",
       "nfc_adp": 69.64,
       "points_2025_proj": 663.83,
       "var": 97.7
@@ -2257,6 +2463,7 @@
       "name": "Alvin Kamara",
       "adp": 2000,
       "player_id": "4035",
+      "unique_id": "Alvin Kamara-RB-48",
       "nfc_adp": 49.82,
       "points_2025_proj": 393.51,
       "var": 65.4
@@ -2268,6 +2475,7 @@
       "name": "Jameson Williams",
       "adp": 2000,
       "player_id": "8148",
+      "unique_id": "Jameson Williams-WR-51",
       "nfc_adp": 51.82,
       "points_2025_proj": 363.84,
       "var": 23.5
@@ -2279,6 +2487,7 @@
       "name": "DeVonta Smith",
       "adp": 2000,
       "player_id": "7525",
+      "unique_id": "DeVonta Smith-WR-52",
       "nfc_adp": 57.07,
       "points_2025_proj": 379.51,
       "var": 39.2
@@ -2290,6 +2499,7 @@
       "name": "Jaylen Waddle",
       "adp": 2000,
       "player_id": "7526",
+      "unique_id": "Jaylen Waddle-WR-63",
       "nfc_adp": 60.27,
       "points_2025_proj": 340.29,
       "var": 0.0
@@ -2301,6 +2511,7 @@
       "name": "Sam LaPorta",
       "adp": 2000,
       "player_id": "10859",
+      "unique_id": "Sam LaPorta-TE-64",
       "nfc_adp": 72.23,
       "points_2025_proj": 332.05,
       "var": 55.6
@@ -2312,6 +2523,7 @@
       "name": "George Pickens",
       "adp": 2000,
       "player_id": "8137",
+      "unique_id": "George Pickens-WR-66",
       "nfc_adp": 50.55,
       "points_2025_proj": 367.43,
       "var": 27.1
@@ -2323,6 +2535,7 @@
       "name": "Brian Robinson",
       "adp": 2000,
       "player_id": "8154",
+      "unique_id": "Brian Robinson-RB-86",
       "nfc_adp": 105.2,
       "points_2025_proj": 259.59,
       "var": -68.5
@@ -2334,6 +2547,7 @@
       "name": "Jayden Reed",
       "adp": 2000,
       "player_id": "10222",
+      "unique_id": "Jayden Reed-WR-94",
       "nfc_adp": 100.8,
       "points_2025_proj": 318.04,
       "var": -22.2
@@ -2345,6 +2559,7 @@
       "name": "Raheem Mostert",
       "adp": 2000,
       "player_id": "3321",
+      "unique_id": "Raheem Mostert-RB-161",
       "nfc_adp": 257.5,
       "points_2025_proj": 125.89,
       "var": -202.2
@@ -2356,6 +2571,7 @@
       "name": "Dameon Pierce",
       "adp": 2000,
       "player_id": "8137",
+      "unique_id": "Dameon Pierce-RB-163",
       "nfc_adp": 272.25,
       "points_2025_proj": 116.16,
       "var": -211.9
@@ -2367,6 +2583,7 @@
       "name": "Tyler Allgeier",
       "adp": 2000,
       "player_id": "8146",
+      "unique_id": "Tyler Allgeier-RB-165",
       "nfc_adp": 164.36,
       "points_2025_proj": 173.65,
       "var": -154.5
@@ -2378,6 +2595,7 @@
       "name": "Rico Dowdle",
       "adp": 2000,
       "player_id": "6219",
+      "unique_id": "Rico Dowdle-RB-166",
       "nfc_adp": 175.32,
       "points_2025_proj": 163.39,
       "var": -164.7
@@ -2389,6 +2607,7 @@
       "name": "Kareem Hunt",
       "adp": 2000,
       "player_id": "4035",
+      "unique_id": "Kareem Hunt-RB-168",
       "nfc_adp": 217.73,
       "points_2025_proj": 86.12,
       "var": -242.0
@@ -2400,6 +2619,7 @@
       "name": "Emanuel Wilson",
       "adp": 2000,
       "player_id": "10222",
+      "unique_id": "Emanuel Wilson-RB-170",
       "nfc_adp": 260.16,
       "points_2025_proj": 91.36,
       "var": -236.7
@@ -2411,6 +2631,7 @@
       "name": "Amari Cooper",
       "adp": 2000,
       "player_id": "2976",
+      "unique_id": "Amari Cooper-WR-176",
       "nfc_adp": 268.66,
       "points_2025_proj": 0.0,
       "var": -340.3
@@ -2422,6 +2643,7 @@
       "name": "Hollywood Brown",
       "adp": 2000,
       "player_id": "6083",
+      "unique_id": "Hollywood Brown-WR-178",
       "nfc_adp": 153.27,
       "points_2025_proj": 240.49,
       "var": -99.8
@@ -2433,6 +2655,7 @@
       "name": "Joshua Palmer",
       "adp": 2000,
       "player_id": "7525",
+      "unique_id": "Joshua Palmer-WR-181",
       "nfc_adp": 164.95,
       "points_2025_proj": 239.35,
       "var": -100.9
@@ -2444,6 +2667,7 @@
       "name": "Michael Thomas",
       "adp": 2000,
       "player_id": "4046",
+      "unique_id": "Michael Thomas-WR-182",
       "points_2025_proj": 0.0,
       "var": -340.3
     },
@@ -2454,6 +2678,7 @@
       "name": "Christian Watson",
       "adp": 2000,
       "player_id": "8150",
+      "unique_id": "Christian Watson-WR-185",
       "nfc_adp": 285.89,
       "points_2025_proj": 85.56,
       "var": -254.7
@@ -2465,6 +2690,7 @@
       "name": "Jahan Dotson",
       "adp": 2000,
       "player_id": "8112",
+      "unique_id": "Jahan Dotson-WR-186",
       "nfc_adp": 286.11,
       "points_2025_proj": 72.87,
       "var": -267.4
@@ -2476,6 +2702,7 @@
       "name": "Elijah Moore",
       "adp": 2000,
       "player_id": "7526",
+      "unique_id": "Elijah Moore-WR-187",
       "nfc_adp": 289.45,
       "points_2025_proj": 86.01,
       "var": -254.3
@@ -2487,6 +2714,7 @@
       "name": "John Metchie",
       "adp": 2000,
       "player_id": "8138",
+      "unique_id": "John Metchie-WR-195",
       "nfc_adp": 282.57,
       "points_2025_proj": 47.89,
       "var": -292.4
@@ -2498,6 +2726,7 @@
       "name": "Michael Wilson",
       "adp": 2000,
       "player_id": "9488",
+      "unique_id": "Michael Wilson-WR-196",
       "nfc_adp": 233.48,
       "points_2025_proj": 206.96,
       "var": -133.3
@@ -2509,6 +2738,7 @@
       "name": "Tank Dell",
       "adp": 2000,
       "player_id": "9502",
+      "unique_id": "Tank Dell-WR-197",
       "nfc_adp": 282.93,
       "points_2025_proj": 55.52,
       "var": -284.8
@@ -2520,6 +2750,7 @@
       "name": "Jonathan Mingo",
       "adp": 2000,
       "player_id": "10859",
+      "unique_id": "Jonathan Mingo-WR-198",
       "points_2025_proj": 18.8,
       "var": -321.5
     },
@@ -2530,6 +2761,7 @@
       "name": "Samaje Perine",
       "adp": 2000,
       "player_id": "4034",
+      "unique_id": "Samaje Perine-RB-204",
       "nfc_adp": 284.61,
       "points_2025_proj": 88.06,
       "var": -240.0
@@ -2541,6 +2773,7 @@
       "name": "Pierre Strong",
       "adp": 2000,
       "player_id": "8148",
+      "unique_id": "Pierre Strong-RB-206",
       "points_2025_proj": 15.93,
       "var": -312.2
     },
@@ -2551,6 +2784,7 @@
       "name": "Mike Gesicki",
       "adp": 2000,
       "player_id": "5045",
+      "unique_id": "Mike Gesicki-TE-229",
       "nfc_adp": 238.93,
       "points_2025_proj": 242.24,
       "var": -34.2
@@ -2562,6 +2796,7 @@
       "name": "Ja'Tavion Sanders",
       "adp": 2000,
       "player_id": "11624",
+      "unique_id": "Ja'Tavion Sanders-TE-232",
       "nfc_adp": 257.86,
       "points_2025_proj": 193.57,
       "var": -82.9

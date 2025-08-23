@@ -96,7 +96,10 @@ def main():
     updated_count = 0
     nfc_count = 0
     rashee_found = False
-    for player in players:
+    for idx, player in enumerate(players):
+        # Generate a unique ID for each player
+        player['unique_id'] = f"{player.get('name', '')}-{player.get('position', '')}-{idx}"
+        
         # Apply custom ADP
         player_id = player.get('player_id')
         if player_id and player_id in custom_adp:
