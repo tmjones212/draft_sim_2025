@@ -314,15 +314,20 @@ class DraftSimulator {
       return false;
     }
     
+    // Debug logging
+    console.log(`makePick called with ID: ${playerId}`);
+    
     // Convert to string for comparison since IDs might be mixed types
     const playerIdStr = String(playerId);
     const playerIndex = this.availablePlayers.findIndex(p => String(p.id) === playerIdStr);
     if (playerIndex === -1) {
       console.error(`Player not found with ID: ${playerId}`);
+      console.log('Available player IDs:', this.availablePlayers.slice(0, 5).map(p => ({ name: p.name, id: p.id })));
       return false;
     }
     
     const player = this.availablePlayers[playerIndex];
+    console.log(`Found player: ${player.name} at index ${playerIndex}`);
     const teamId = this.getCurrentTeam();
     const team = this.teams[teamId];
     
@@ -472,9 +477,18 @@ class DraftSimulator {
       
       // If draft is in progress, restore draft state
       if (this.draftStarted && this.draftedPlayers.length > 0) {
-        // Rebuild available players by removing drafted ones
-        const draftedIds = new Set(this.draftedPlayers.map(d => d.player.id));
-        this.availablePlayers = this.allPlayers.filter(p => !draftedIds.has(p.id));
+        // Use player names to match since IDs change between reloads
+        const draftedNames = new Set(this.draftedPlayers.map(d => `${d.player.name}-${d.player.position}`));
+        this.availablePlayers = this.allPlayers.filter(p => !draftedNames.has(`${p.name}-${p.position}`));
+        
+        // Update draftedPlayers with new player objects that have correct IDs
+        this.draftedPlayers = this.draftedPlayers.map(dp => {
+          const newPlayer = this.allPlayers.find(p => p.name === dp.player.name && p.position === dp.player.position);
+          return {
+            ...dp,
+            player: newPlayer || dp.player
+          };
+        });
         
         // Re-sort available players
         if (this.sortBy === 'adp') {
