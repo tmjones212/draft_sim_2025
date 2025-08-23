@@ -317,8 +317,11 @@ class DraftSimulator {
     // Debug logging
     console.log(`makePick called with ID: ${playerId}`);
     
+    // Unescape the ID (in case it was escaped for HTML)
+    const unescapedId = playerId.replace(/\\'/g, "'").replace(/\\"/g, '"');
+    
     // Convert to string for comparison since IDs might be mixed types
-    const playerIdStr = String(playerId);
+    const playerIdStr = String(unescapedId);
     const playerIndex = this.availablePlayers.findIndex(p => String(p.id) === playerIdStr);
     if (playerIndex === -1) {
       console.error(`Player not found with ID: ${playerId}`);
@@ -782,23 +785,27 @@ class DraftSimulator {
     const canPick = this.manualMode || (this.draftStarted && this.getCurrentTeam() === this.userTeamId);
     const cursorStyle = canPick ? 'cursor: pointer;' : 'cursor: not-allowed; opacity: 0.7;';
 
-    const html = filteredPlayers.map(player => `
-      <div class="player-row" onclick="draft.makePick('${player.id}')" style="${cursorStyle} padding: 8px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-        <div style="flex: 1;">
-          <span style="color: ${positionColors[player.position] || '#fff'}; font-weight: bold; margin-right: 10px;">${player.position}</span>
-          <span>${player.name}</span>
-          <span style="color: #888; margin-left: 10px;">${player.team}</span>
+    const html = filteredPlayers.map(player => {
+      // Escape the ID for safe use in onclick attribute
+      const escapedId = (player.id || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+      return `
+        <div class="player-row" onclick="draft.makePick('${escapedId}')" style="${cursorStyle} padding: 8px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+          <div style="flex: 1;">
+            <span style="color: ${positionColors[player.position] || '#fff'}; font-weight: bold; margin-right: 10px;">${player.position}</span>
+            <span>${player.name}</span>
+            <span style="color: #888; margin-left: 10px;">${player.team}</span>
+          </div>
+          <div>
+            ${this.adminMode && this.sortBy === 'var' ? 
+              `<span style="color: #50fa7b;">VAR: ${player.var ? player.var.toFixed(1) : '0.0'}</span>` :
+              this.adminMode && this.sortBy === 'nfc' ?
+              `<span style="color: #ff79c6;">NFC: ${player.nfc_adp ? player.nfc_adp.toFixed(1) : '999'}</span>` :
+              `<span style="color: #888;">ADP: ${player.adp}</span>`
+            }
+          </div>
         </div>
-        <div>
-          ${this.adminMode && this.sortBy === 'var' ? 
-            `<span style="color: #50fa7b;">VAR: ${player.var ? player.var.toFixed(1) : '0.0'}</span>` :
-            this.adminMode && this.sortBy === 'nfc' ?
-            `<span style="color: #ff79c6;">NFC: ${player.nfc_adp ? player.nfc_adp.toFixed(1) : '999'}</span>` :
-            `<span style="color: #888;">ADP: ${player.adp}</span>`
-          }
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     container.innerHTML = headerHtml + html;
   }
