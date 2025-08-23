@@ -16,6 +16,19 @@ class DraftSimulator {
     this.adminMode = false; // Admin mode for custom ADP
     this.customPlayersData = null; // Store custom ADP data
     this.publicPlayersData = null; // Store public ADP data
+    // Custom team names (K, Jy, P, Jn, Jw, S, P, T, E, L)
+    this.teamNames = {
+      1: 'K',
+      2: 'Jy',
+      3: 'P',
+      4: 'Jn',
+      5: 'Jw',
+      6: 'S',
+      7: 'Pt',  // Changed to Pt to avoid duplicate P
+      8: 'T',
+      9: 'E',
+      10: 'L'
+    }
     this.rosterSpots = {
       QB: 2,
       RB: 5,
@@ -256,7 +269,7 @@ class DraftSimulator {
     for (let i = 1; i <= this.numTeams; i++) {
       this.teams[i] = {
         id: i,
-        name: i === this.userTeamId ? 'Your Team' : `Team ${i}`,
+        name: i === this.userTeamId ? 'Your Team' : this.teamNames[i],
         roster: [],
         positionCounts: {}
       };
@@ -615,7 +628,7 @@ class DraftSimulator {
         spotsHtml += `</div>`;
         spotsHtml += '<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px;">';
         for (let i = 1; i <= this.numTeams; i++) {
-          spotsHtml += `<button onclick="draft.selectDraftSpot(${i})" style="padding: 15px; font-size: 16px;">${i}</button>`;
+          spotsHtml += `<button onclick="draft.selectDraftSpot(${i})" style="padding: 15px; font-size: 16px;">${this.teamNames[i]}<br><span style="font-size: 10px;">#${i}</span></button>`;
         }
         spotsHtml += '</div></div>';
         statusEl.innerHTML = spotsHtml;
@@ -705,7 +718,7 @@ class DraftSimulator {
               </div>
               ${gridHtml}
               <span style="background: ${isUserPick ? '#2a4e2a' : 'transparent'}; padding: 2px 6px; border-radius: 3px; white-space: nowrap; font-size: 12px;">
-                ${isUserPick ? 'YOU' : `T${currentTeam}`}
+                ${isUserPick ? 'YOU' : this.teamNames[currentTeam]}
               </span>
               ${!isUserPick && this.manualMode ? '<button onclick="draft.makeAutoPick()" style="padding: 2px 8px; font-size: 11px;">CPU</button>' : ''}
             </div>
@@ -820,7 +833,7 @@ class DraftSimulator {
     
     for (let i = 1; i <= this.numTeams; i++) {
       const fontSize = elementId === 'draft-board-mini' ? '10px' : '12px';
-      html += `<th style="padding: 3px; border: 1px solid #333; font-size: ${fontSize};">T${i}</th>`;
+      html += `<th style="padding: 3px; border: 1px solid #333; font-size: ${fontSize};">${this.teamNames[i]}</th>`;
     }
     html += '</tr></thead><tbody>';
 
